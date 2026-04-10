@@ -1,0 +1,76 @@
+.footer {
+  background: #020617;
+  color: #cbd5e1;
+  padding-top: 50px;
+  margin-top: 60px;
+}
+
+/* GRID */
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 30px;
+  padding: 0 30px 40px;
+}
+
+/* BRAND */
+.brand h2 {
+  color: #38bdf8;
+  cursor: pointer;
+}
+
+.brand p {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+.socials {
+  display: flex;
+  gap: 12px;
+  font-size: 18px;
+  margin-top: 10px;
+}
+
+.socials svg {
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.socials svg:hover {
+  color: #38bdf8;
+  transform: scale(1.2);
+}
+
+/* LINKS */
+.links h4 {
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.links span {
+  display: block;
+  margin: 6px 0;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.links span:hover {
+  color: #38bdf8;
+}
+
+/* CONTACT */
+.links p {
+  font-size: 14px;
+  margin: 6px 0;
+  color: #94a3b8;
+}
+
+/* BOTTOM */
+.bottom {
+  text-align: center;
+  padding: 15px;
+  border-top: 1px solid #1e293b;
+  font-size: 14px;
+  color: #64748b;
+}

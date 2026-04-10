@@ -1,0 +1,180 @@
+.container {
+  background: #0f172a;
+  color: #fff;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* HERO */
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 80px 40px;
+  background: radial-gradient(circle at top, #1e293b, #0f172a);
+}
+
+.heroContent {
+  max-width: 550px;
+  animation: fadeUp 1s ease;
+}
+
+.badge {
+  background: rgba(56, 189, 248, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: #38bdf8;
+  font-size: 14px;
+}
+
+.heroContent h1 {
+  font-size: 42px;
+  margin: 20px 0;
+}
+
+.heroContent h1 span {
+  color: #38bdf8;
+}
+
+.heroContent p {
+  color: #cbd5e1;
+}
+
+/* BUTTONS */
+.actions {
+  margin-top: 20px;
+}
+
+.actions button {
+  padding: 12px 18px;
+  margin-right: 10px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #38bdf8;
+  color: #000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.3s;
+}
+
+.actions button:hover {
+  transform: scale(1.05);
+}
+
+.secondaryBtn {
+  background: transparent;
+  border: 1px solid #38bdf8;
+  color: #38bdf8;
+}
+
+/* HERO IMAGE */
+.heroImage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.glassCard {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 30px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* MODULES */
+.modules {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.modules h2 {
+  color: #38bdf8;
+}
+
+.sectionSub {
+  color: #94a3b8;
+  margin-bottom: 30px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.grid div {
+  background: #1e293b;
+  padding: 25px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.grid div:hover {
+  transform: translateY(-8px);
+  background: #334155;
+}
+
+.grid svg {
+  font-size: 30px;
+  color: #38bdf8;
+  margin-bottom: 10px;
+}
+
+/* STATS */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  background: #020617;
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.stats h3 {
+  font-size: 28px;
+  color: #38bdf8;
+}
+
+/* CTA */
+.cta {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+}
+
+.cta button {
+  margin-top: 15px;
+  padding: 12px 20px;
+  background: #38bdf8;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* ANIMATION */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .heroContent h1 {
+    font-size: 30px;
+  }
+}

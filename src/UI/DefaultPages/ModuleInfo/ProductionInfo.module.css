@@ -1,0 +1,63 @@
+.container {
+  background: #0f172a;
+  color: #fff;
+}
+
+/* HERO */
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #1e293b, #7c2d12);
+}
+
+.hero h1 {
+  font-size: 36px;
+  color: #fb923c;
+}
+
+.hero p {
+  color: #e2e8f0;
+}
+
+/* FEATURES */
+.features {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.grid div {
+  background: rgba(251, 146, 60, 0.08);
+  border: 1px solid rgba(251, 146, 60, 0.2);
+  padding: 25px;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.grid div:hover {
+  transform: translateY(-8px);
+  background: rgba(251, 146, 60, 0.2);
+}
+
+.grid svg {
+  font-size: 30px;
+  color: #fb923c;
+}
+
+/* CTA */
+.cta {
+  text-align: center;
+  padding: 60px;
+}
+
+.cta button {
+  background: #fb923c;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+}

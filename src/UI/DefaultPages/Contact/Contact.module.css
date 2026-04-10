@@ -1,0 +1,110 @@
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 80vh;
+  background: #0f172a;
+  color: #fff;
+  padding: 40px 20px;
+  gap: 30px;
+}
+
+/* LEFT SIDE */
+.info {
+  flex: 1;
+  min-width: 280px;
+  animation: fadeUp 1s ease;
+}
+
+.info h1 {
+  font-size: 36px;
+  color: #38bdf8;
+}
+
+.info p {
+  margin: 10px 0 20px;
+  color: #cbd5e1;
+}
+
+.details div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  color: #94a3b8;
+}
+
+.details svg {
+  color: #38bdf8;
+  font-size: 20px;
+}
+
+/* FORM */
+.formBox {
+  flex: 1;
+  min-width: 280px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 25px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid #1e293b;
+  animation: fadeUp 1s ease;
+}
+
+.formBox h2 {
+  margin-bottom: 15px;
+  color: #38bdf8;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input,
+textarea {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  background: #020617;
+  color: #fff;
+}
+
+input:focus,
+textarea:focus {
+  border: 1px solid #38bdf8;
+}
+
+/* BUTTON */
+button {
+  padding: 10px;
+  background: #38bdf8;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* ANIMATION */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+}
