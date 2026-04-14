@@ -1,122 +1,163 @@
 import styles from "./Navbar.module.css";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import useTheme from "../../../hooks/useTheme";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { Sun, Moon } from "lucide-react";
 import {
-  FiMenu,
-  FiX,
-  FiChevronDown,
-  FiBox,
-  FiSettings,
-  FiShoppingCart,
-  FiBarChart2,
+  FiMenu, FiX, FiChevronDown,
+  FiBox, FiSettings, FiShoppingCart, FiBarChart2
 } from "react-icons/fi";
 
+const modules = [
+  { path: "/inventory/info", icon: <FiBox />, label: "Inventory", sub: "Stock & warehouse control", color: "var(--mod-inventory)", dim: "var(--mod-inventory-soft)" },
+  { path: "/production/info", icon: <FiSettings />, label: "Production", sub: "Manufacturing workflows", color: "var(--mod-production)", dim: "var(--mod-production-soft)" },
+  { path: "/sales", icon: <FiShoppingCart />, label: "Sales", sub: "Orders & transactions", color: "var(--mod-sales)", dim: "var(--mod-sales-soft)" },
+  { path: "/reports/info", icon: <FiBarChart2 />, label: "Reports", sub: "Analytics & insights", color: "var(--mod-reports)", dim: "var(--mod-reports-soft)" },
+];
+
 const Navbar = () => {
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
 
+  const dropdownRef = useRef(null);
+
   const goTo = (path) => {
     navigate(path);
-    setMenuOpen(false); // 🔥 auto close mobile
+    setMenuOpen(false);
+    setDropdown(false);
   };
+
+  const isActive = (path) => location.pathname === path;
+
+  // ✅ Close on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className={styles.navbar}>
-      {/* LOGO */}
+      {/* Logo */}
       <div className={styles.logo} onClick={() => goTo("/")}>
-        ERP System
+        <div className={styles.logoMark}>
+          <svg viewBox="0 0 24 24">
+            <path d="M2 20h20M6 20V10l6-6 6 6v10M10 20v-5h4v5" />
+          </svg>
+        </div>
+        <div>
+          <span className={styles.logoText}>ERP System</span>{" "}
+          <span className={styles.logoSub}>Enterprise</span>
+        </div>
       </div>
 
-      {/* DESKTOP NAV */}
+      {/* Desktop Nav */}
       <nav className={styles.links}>
-        <button
-          className={location.pathname === "/" ? styles.active : ""}
-          onClick={() => goTo("/")}
-        >
-          Home
-        </button>
+        {["/", "/about", "/contact"].map((path, i) => (
+          <motion.button
+            key={path}
+            className={`${styles.navBtn} ${isActive(path) ? styles.active : ""}`}
+            onClick={() => goTo(path)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            {["Home", "About", "Contact"][i]}
+          </motion.button>
+        ))}
 
-        <button
-          className={location.pathname === "/about" ? styles.active : ""}
-          onClick={() => goTo("/about")}
-        >
-          About
-        </button>
-
-        <button
-          className={location.pathname === "/contact" ? styles.active : ""}
-          onClick={() => goTo("/contact")}
-        >
-          Contact
-        </button>
-
-        {/* MODULES */}
-        <div
-          className={styles.dropdown}
-          onMouseEnter={() => setDropdown(true)}
-          onMouseLeave={() => setDropdown(false)}
-        >
-          <button className={styles.dropdownBtn}>
-            Modules <FiChevronDown />
+        {/* ✅ CLICK DROPDOWN */}
+        <div className={styles.dropdownWrap} ref={dropdownRef}>
+          <button
+            className={`${styles.dropdownBtn} ${dropdown ? styles.open : ""}`}
+            onClick={() => setDropdown((prev) => !prev)}
+          >
+            Modules
+            <FiChevronDown
+              className={`${styles.chevron} ${dropdown ? styles.rotated : ""}`}
+            />
           </button>
 
-          <div
-            className={`${styles.dropdownMenu} ${
-              dropdown ? styles.show : ""
-            }`}
-          >
-            <p onClick={() => goTo("/inventory")}>
-              <FiBox /> Inventory
-            </p>
-            <p onClick={() => goTo("/production")}>
-              <FiSettings /> Production
-            </p>
-            <p onClick={() => goTo("/sales")}>
-              <FiShoppingCart /> Sales
-            </p>
-            <p onClick={() => goTo("/reports")}>
-              <FiBarChart2 /> Reports
-            </p>
+          <div className={`${styles.dropdownMenu} ${dropdown ? styles.show : ""}`}>
+            {modules.map((m) => (
+              <div
+                key={m.path}
+                className={styles.dropItem}
+                onClick={() => goTo(m.path)}
+              >
+                <div
+                  className={styles.dropItemIcon}
+                  style={{
+                    background: m.dim,
+                    color: m.color,
+                    border: `1px solid color-mix(in srgb, ${m.color} 20%, transparent)`
+                  }}
+                >
+                  {m.icon}
+                </div>
+                <div>
+                  <div className={styles.dropItemText}>{m.label}</div>
+                  <div className={styles.dropItemSub}>{m.sub}</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </nav>
 
-      {/* RIGHT SIDE */}
+      {/* Actions */}
       <div className={styles.actions}>
-        <button onClick={() => goTo("/login")}>Login</button>
-        <button className={styles.registerBtn} onClick={() => goTo("/register")}>
-          Register
-        </button>
+        <motion.button
+          className={styles.iconBtn}
+          onClick={toggleTheme}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={theme}
+              initial={{ rotate: -30, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 30, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+            </motion.div>
+          </AnimatePresence>
+        </motion.button>
+
+        <motion.button
+          className={styles.btnOutline}
+          onClick={() => goTo("/login")}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          Sign in
+        </motion.button>
       </div>
 
-      {/* MOBILE ICON */}
-      <div className={styles.menuIcon} onClick={() => setMenuOpen(!menuOpen)}>
-        {menuOpen ? <FiX /> : <FiMenu />}
-      </div>
-
-      {/* MOBILE MENU */}
-      <div
-        className={`${styles.mobileMenu} ${
-          menuOpen ? styles.open : ""
-        }`}
+      {/* Mobile */}
+      <motion.div
+        className={styles.menuIcon}
+        onClick={() => setMenuOpen(!menuOpen)}
       >
-        <button onClick={() => goTo("/")}>Home</button>
-        <button onClick={() => goTo("/about")}>About</button>
-        <button onClick={() => goTo("/contact")}>Contact</button>
+        {menuOpen ? <FiX /> : <FiMenu />}
+      </motion.div>
 
-        <div className={styles.mobileModules}>
-          <p>Modules</p>
-          <span onClick={() => goTo("/inventory")}>Inventory</span>
-          <span onClick={() => goTo("/production")}>Production</span>
-          <span onClick={() => goTo("/sales")}>Sales</span>
-          <span onClick={() => goTo("/reports")}>Reports</span>
-        </div>
-
-        <button onClick={() => goTo("/login")}>Login</button>
-        <button onClick={() => goTo("/register")}>Register</button>
+      <div className={`${styles.mobileMenu} ${menuOpen ? styles.open : ""}`}>
+        {["/", "/about", "/contact"].map((path, i) => (
+          <button key={path} className={styles.mobileNavBtn} onClick={() => goTo(path)}>
+            {["Home", "About", "Contact"][i]}
+          </button>
+        ))}
       </div>
     </header>
   );

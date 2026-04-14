@@ -2,9 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import useAuth from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import useTheme from "../../hooks/useTheme";
-import { Bell, Sun, Moon, ChevronDown, LogOut, Settings, UserCircle } from "lucide-react";
+import {
+  Bell,
+  Sun,
+  Moon,
+  ChevronDown,
+  LogOut,
+  UserCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-
 import styles from "./Navbar.module.css";
 
 const Navbar = () => {
@@ -20,7 +26,6 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -33,17 +38,41 @@ const Navbar = () => {
   }, []);
 
   const getInitials = (name) =>
-    name ? name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2) : "U";
+    name
+      ? name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2)
+      : "U";
 
   const notifications = [
-    { id: 1, title: "New order received", desc: "Order #4521 from Acme Corp", time: "2m ago", unread: true },
-    { id: 2, title: "Low stock alert", desc: "Product SKU-088 below threshold", time: "18m ago", unread: true },
-    { id: 3, title: "Report ready", desc: "Q2 inventory report generated", time: "1h ago", unread: false },
+    {
+      id: 1,
+      title: "New order received",
+      desc: "Order #4521 from Acme Corp",
+      time: "2m ago",
+      unread: true,
+    },
+    {
+      id: 2,
+      title: "Low stock alert",
+      desc: "Product SKU-088 below threshold",
+      time: "18m ago",
+      unread: true,
+    },
+    {
+      id: 3,
+      title: "Report ready",
+      desc: "Q2 inventory report generated",
+      time: "1h ago",
+      unread: false,
+    },
   ];
 
   return (
     <div className={styles.navbar}>
-      {/* Left — Page breadcrumb feel */}
       <div className={styles.left}>
         <div className={styles.statusDot} />
         <span className={styles.statusLabel}>Live</span>
@@ -54,6 +83,7 @@ const Navbar = () => {
         <motion.button
           className={styles.iconBtn}
           onClick={toggleTheme}
+          
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Toggle theme"
@@ -66,20 +96,23 @@ const Navbar = () => {
               exit={{ rotate: 30, opacity: 0 }}
               transition={{ duration: 0.2 }}
             >
-              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+              {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
             </motion.div>
           </AnimatePresence>
         </motion.button>
 
-        {/* Notification Bell */}
+        {/* Notifications */}
         <div className={styles.notifWrapper}>
           <motion.button
             className={`${styles.iconBtn} ${notifOpen ? styles.iconBtnActive : ""}`}
-            onClick={() => { setNotifOpen(!notifOpen); setOpen(false); }}
+            onClick={() => {
+              setNotifOpen(!notifOpen);
+              setOpen(false);
+            }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <Bell size={17} />
+            <Bell size={15} />
             <motion.span
               className={styles.badge}
               initial={{ scale: 0 }}
@@ -107,11 +140,14 @@ const Navbar = () => {
                   <motion.div
                     key={n.id}
                     className={`${styles.notifItem} ${n.unread ? styles.notifUnread : ""}`}
-                    initial={{ opacity: 0, x: -8 }}
+                    initial={{ opacity: 0, x: -6 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <div className={styles.notifDot} style={{ opacity: n.unread ? 1 : 0 }} />
+                    <div
+                      className={styles.notifDot}
+                      style={{ opacity: n.unread ? 1 : 0 }}
+                    />
                     <div className={styles.notifBody}>
                       <p className={styles.notifTitle}>{n.title}</p>
                       <p className={styles.notifDesc}>{n.desc}</p>
@@ -124,15 +160,16 @@ const Navbar = () => {
           </AnimatePresence>
         </div>
 
-        {/* Divider */}
         <div className={styles.divider} />
 
         {/* Profile */}
         <div className={styles.profileWrapper}>
-          <motion.div
+          <div
             className={`${styles.profile} ${open ? styles.profileActive : ""}`}
-            onClick={() => { setOpen(!open); setNotifOpen(false); }}
-            whileHover={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+            onClick={() => {
+              setOpen(!open);
+              setNotifOpen(false);
+            }}
           >
             <div className={styles.avatar}>{getInitials(user?.name)}</div>
             <div className={styles.userInfo}>
@@ -143,9 +180,9 @@ const Navbar = () => {
               animate={{ rotate: open ? 180 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              <ChevronDown size={14} className={styles.chevron} />
+              <ChevronDown size={13} className={styles.chevron} />
             </motion.div>
-          </motion.div>
+          </div>
 
           <AnimatePresence>
             {open && (
@@ -157,24 +194,31 @@ const Navbar = () => {
                 transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className={styles.dropdownHeader}>
-                  <div className={styles.avatarLg}>{getInitials(user?.name)}</div>
+                  <div className={styles.avatarLg}>
+                    {getInitials(user?.name)}
+                  </div>
                   <div>
                     <p className={styles.dropName}>{user?.name}</p>
                     <p className={styles.dropEmail}>{user?.email}</p>
                   </div>
                 </div>
                 <div className={styles.dropDivider} />
-                <button className={styles.dropItem}>
-                  <UserCircle size={15} />
+                <button
+                  className={styles.dropItem}
+                  onClick={() => {
+                    navigate("/profile");
+                    setOpen(false);
+                  }}
+                >
+                  <UserCircle size={14} />
                   <span>My Profile</span>
                 </button>
-                <button className={styles.dropItem}>
-                  <Settings size={15} />
-                  <span>Settings</span>
-                </button>
                 <div className={styles.dropDivider} />
-                <button className={`${styles.dropItem} ${styles.dropLogout}`} onClick={handleLogout}>
-                  <LogOut size={15} />
+                <button
+                  className={`${styles.dropItem} ${styles.dropLogout}`}
+                  onClick={handleLogout}
+                >
+                  <LogOut size={14} />
                   <span>Sign out</span>
                 </button>
               </motion.div>

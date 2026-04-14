@@ -1,69 +1,424 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Page ── */
 .container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  background: linear-gradient(135deg, #1e1e2f, #2c2c54);
-  font-family: Arial, sans-serif;
+  justify-content: center;
+  background: var(--bg);
+  font-family:
+    "Geist",
+    -apple-system,
+    sans-serif;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  gap: 20px;
 }
 
-.formBox {
-  background: #ffffff;
-  padding: 40px;
-  border-radius: 12px;
-  width: 320px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+.container::before,
+.container::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.container::before {
+  width: 700px;
+  height: 700px;
+  top: -200px;
+  left: -150px;
+  background: radial-gradient(ellipse, var(--accent-soft) 0%, transparent 65%);
+}
+.container::after {
+  width: 500px;
+  height: 500px;
+  bottom: -150px;
+  right: -100px;
+  background: radial-gradient(ellipse, var(--green-soft) 0%, transparent 65%);
+}
+
+.grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    black 40%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    black 40%,
+    transparent 100%
+  );
+}
+
+/* ── Card ── */
+.card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px var(--accent-soft),
+    var(--shadow-lg),
+    var(--shadow);
+  animation: cardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--accent) 30%,
+    var(--accent2) 50%,
+    var(--accent) 70%,
+    transparent 100%
+  );
+}
+
+/* ── Brand Header ── */
+.brandHeader {
+  padding: 32px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   text-align: center;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--accent-soft) 0%, transparent 100%);
 }
 
-.title {
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #333;
+.brandLogo {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 1px var(--accent-glow),
+    0 8px 24px var(--accent-glow);
+  margin-bottom: 4px;
+}
+.brandLogo svg {
+  width: 24px;
+  height: 24px;
+}
+
+.brandName {
+  font-size: 11px;
+  font-family: "Geist Mono", monospace;
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.brandTagline {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.brandSub {
+  font-size: 13px;
+  color: var(--text2);
+  max-width: 260px;
+}
+
+/* ── Form Body ── */
+.formBody {
+  padding: 24px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Field ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.2px;
+}
+
+/* ── Input Wrap ── */
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: var(--text3);
+  transition: color 0.18s;
+}
+.inputIcon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.inputWrap:focus-within .inputIcon {
+  color: var(--accent2);
 }
 
 .input {
   width: 100%;
-  padding: 10px 12px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  height: 42px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: "Geist", sans-serif;
+  font-size: 13.5px;
+  padding: 0 12px 0 38px;
   outline: none;
-  transition: 0.3s;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s,
+    background 0.18s;
 }
-
+.input::placeholder {
+  color: var(--text3);
+}
+.input:hover {
+  border-color: var(--border2);
+  background: var(--surface3);
+}
 .input:focus {
-  border-color: #4cafef;
-  box-shadow: 0 0 5px rgba(76, 175, 239, 0.5);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--surface3);
 }
 
-.button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 15px;
-  border: none;
+.inputPassword {
+  padding-right: 40px;
+}
+
+/* ── Eye Toggle ── */
+.eyeBtn {
+  position: absolute;
+  right: 8px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
-  background-color: #4cafef;
-  color: white;
-  font-size: 16px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
   cursor: pointer;
-  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.18s,
+    background 0.18s;
+}
+.eyeBtn:hover {
+  color: var(--text2);
+  background: var(--surface2);
+}
+.eyeBtn svg {
+  width: 14px;
+  height: 14px;
 }
 
-.button:hover {
-  background-color: #2196f3;
+/* ── Error Banner ── */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--red-soft);
+  border: 1px solid var(--red);
+  border-radius: 8px;
+  font-size: 12.5px;
+  color: var(--red);
+  animation: errorIn 0.2s ease;
+}
+@keyframes errorIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.errorBanner svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
 }
 
-.linkText {
-  margin-top: 15px;
-  font-size: 14px;
+/* ── Submit Button ── */
+.btnSubmit {
+  width: 100%;
+  height: 42px;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  color: #fff;
+  font-family: "Geist", sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 4px;
+  transition:
+    background 0.18s,
+    transform 0.18s,
+    box-shadow 0.18s;
+}
+.btnSubmit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+.btnSubmit:hover:not(:disabled) {
+  background: var(--accent2);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+.btnSubmit:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.btnSubmit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btnSubmit svg {
+  width: 15px;
+  height: 15px;
 }
 
-.linkText a {
-  color: #4cafef;
+/* ── Spinner ── */
+.spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Footer ── */
+.formFooter {
+  padding: 14px 32px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+}
+.footerText {
+  font-size: 13px;
+  color: var(--text3);
+}
+.footerLink {
+  color: var(--accent);
   text-decoration: none;
+  font-weight: 500;
+  transition: color 0.18s;
+}
+.footerLink:hover {
+  color: var(--accent2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-.linkText a:hover {
-  text-decoration: underline;
+/* ── Meta ── */
+.meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: "Geist Mono", monospace;
+  color: var(--text3);
+  letter-spacing: 0.3px;
+}
+.metaDot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+@media (max-width: 480px) {
+  .brandHeader {
+    padding: 24px 24px 20px;
+  }
+  .formBody {
+    padding: 20px 24px 24px;
+  }
+  .formFooter {
+    padding: 14px 24px 18px;
+  }
 }

@@ -1,77 +1,69 @@
-/* Desktop wrapper — fixed sidebar */
-.desktopWrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 150;
-}
-
 .sidebar {
   width: var(--sidebar-width);
   height: 100vh;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  transition: width var(--transition-slow);
   overflow: hidden;
-  transition: width var(--transition);
-  font-family: var(--font-body);
   position: relative;
 }
 
-/* Gold top accent line */
 .sidebar::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent-gold) 0%, transparent 80%);
-  opacity: 0.7;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-soft), transparent);
 }
 
 .collapsed {
   width: var(--sidebar-collapsed);
 }
 
-/* Mobile sidebar */
-.mobile {
-  width: 240px !important;
-  height: 100%;
+/* ── Desktop Wrapper ── */
+.desktopWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  height: 100vh;
 }
 
-/* ─── Header ─── */
+/* ── Header ── */
 .header {
+  height: var(--navbar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 14px 14px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   overflow: hidden;
 }
 
 .brandMark {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, var(--accent-gold) 0%, #d97706 100%);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
+  font-size: 12px;
   font-weight: 700;
-  font-size: 16px;
-  color: #0b0d14;
+  color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(240, 168, 85, 0.25);
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .brandText {
@@ -80,136 +72,64 @@
 }
 
 .brandName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
   display: block;
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.03em;
-  line-height: 1.1;
+  letter-spacing: -0.3px;
 }
 
 .brandSub {
-  display: block;
   font-size: 10px;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
   text-transform: uppercase;
+  display: block;
   margin-top: 1px;
 }
 
 .collapseBtn {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition);
   flex-shrink: 0;
 }
+
 .collapseBtn:hover {
-  background: rgba(255,255,255,0.09);
-  color: var(--text-secondary);
+  background: var(--surface2);
+  border-color: var(--border2);
+  color: var(--text);
 }
 
-.closeBtn {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.closeBtn:hover { background: rgba(255,255,255,0.1); }
 
-/* ─── User Tag ─── */
-.userTag {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px 10px;
-  margin: 0 10px 6px;
-  background: rgba(255,255,255,0.03);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  overflow: hidden;
-  transition: padding var(--transition);
-}
 
-.userTagCollapsed {
-  padding: 8px;
-  justify-content: center;
-}
-
-.userAvatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #6378ff 0%, #8b5cf6 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #fff;
-  font-family: var(--font-display);
-  flex-shrink: 0;
-}
-
-.userMeta {
-  overflow: hidden;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.userTagName {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.userTagRole {
-  display: block;
-  font-size: 10.5px;
-  color: var(--text-muted);
-  text-transform: capitalize;
-  letter-spacing: 0.03em;
-}
-
-/* ─── Section Label ─── */
+/* ── Section Label ── */
 .sectionLabel {
+  padding: 16px 14px 6px;
   font-size: 10px;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 1px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  padding: 10px 20px 6px;
 }
 
-/* ─── Nav / Menu ─── */
+/* ── Nav ── */
 .nav {
   flex: 1;
+  padding: 4px 8px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 4px 10px;
-  scrollbar-width: none;
 }
-.nav::-webkit-scrollbar { display: none; }
 
 .menu {
   list-style: none;
@@ -218,34 +138,37 @@
   gap: 2px;
 }
 
+/* ── Link ── */
 .link {
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 9px 10px;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  color: var(--text2);
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
+  transition: all var(--transition);
   position: relative;
-  transition: background 0.18s, color 0.18s;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .link:hover {
-  background: rgba(255,255,255,0.05);
-  color: var(--text-primary);
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .active {
-  background: var(--accent-gold-dim) !important;
-  color: var(--accent-gold) !important;
+  background: var(--accent-soft);
+  border-color: rgba(108,116,240,0.2);
+  color: var(--accent2);
   font-weight: 500;
 }
 
-/* Gold left indicator */
 .active::before {
   content: '';
   position: absolute;
@@ -253,17 +176,16 @@
   top: 50%;
   transform: translateY(-50%);
   width: 3px;
-  height: 18px;
+  height: 16px;
+  background: var(--accent);
   border-radius: 0 3px 3px 0;
-  background: var(--accent-gold);
 }
 
 .linkIcon {
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  width: 20px;
+  color: inherit;
 }
 
 .linkLabel {
@@ -271,95 +193,114 @@
   white-space: nowrap;
 }
 
-/* Tooltip (collapsed desktop only) */
+/* ── Tooltip ── */
 .tooltip {
   position: absolute;
-  left: calc(var(--sidebar-collapsed) - 4px);
+  left: calc(100% + 12px);
   top: 50%;
   transform: translateY(-50%);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-medium);
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12.5px;
-  color: var(--text-primary);
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s, left 0.15s;
-  box-shadow: var(--shadow-md);
-  z-index: 300;
+  transition: opacity var(--transition);
+  box-shadow: var(--shadow);
+  z-index: 999;
 }
 
 .link:hover .tooltip {
   opacity: 1;
-  left: calc(var(--sidebar-collapsed) + 6px);
 }
 
-/* ─── Footer ─── */
+/* ── Footer ── */
 .footer {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border-subtle);
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .footerText {
   font-size: 10.5px;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
+  color: var(--text3);
+  font-family: var(--font-mono);
 }
 
-/* ─── Mobile Toggle Button ─── */
+/* ── Mobile ── */
 .mobileToggle {
   display: none;
-  flex-direction: column;
-  gap: 5px;
-  padding: 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
   position: fixed;
-  top: 14px;
-  left: 14px;
+  top: 13px;
+  left: 16px;
   z-index: 200;
+  width: 32px;
+  height: 32px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
 }
 
 .mobileToggle span {
   display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--text-secondary);
+  width: 16px;
+  height: 1.5px;
+  background: var(--text2);
   border-radius: 2px;
-  transition: background 0.2s;
 }
-.mobileToggle:hover span { background: var(--text-primary); }
 
-/* ─── Overlay ─── */
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0,0,0,0.6);
   backdrop-filter: blur(4px);
-  z-index: 250;
+  z-index: 90;
 }
 
-/* ─── Mobile Drawer ─── */
 .mobileDrawer {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  z-index: 300;
+  z-index: 95;
 }
 
-/* ─── Responsive ─── */
+.mobile {
+  width: var(--sidebar-width);
+  height: 100vh;
+}
+
+.closeBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+
+.closeBtn:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
 @media (max-width: 768px) {
   .desktopWrapper { display: none; }
   .mobileToggle { display: flex; }
-}
-
-@media (min-width: 769px) {
-  .mobileToggle { display: none; }
-  .mobileDrawer { display: none; }
-  .overlay { display: none; }
 }

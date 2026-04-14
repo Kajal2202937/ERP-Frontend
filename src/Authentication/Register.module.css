@@ -1,69 +1,287 @@
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Page ── */
 .container {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  background: linear-gradient(135deg, #1e1e2f, #2c2c54);
-  font-family: Arial, sans-serif;
+  justify-content: center;
+  background: var(--bg);
+  font-family: var(--font);
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  gap: 20px;
 }
 
-.formBox {
-  background: #ffffff;
-  padding: 40px;
-  border-radius: 12px;
-  width: 340px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+.container::before,
+.container::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+.container::before {
+  width: 700px;
+  height: 700px;
+  top: -200px;
+  right: -150px;
+  background: radial-gradient(ellipse, var(--green-soft) 0%, transparent 65%);
+}
+.container::after {
+  width: 500px;
+  height: 500px;
+  bottom: -150px;
+  left: -100px;
+  background: radial-gradient(ellipse, var(--accent-soft) 0%, transparent 65%);
+}
+
+/* Grid */
+.grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    black 40%,
+    transparent 100%
+  );
+}
+
+/* ── Card ── */
+.card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  animation: cardIn 0.45s var(--transition-slow) both;
+}
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--green) 30%,
+    var(--green) 50%,
+    var(--green) 70%,
+    transparent 100%
+  );
+}
+
+/* ── Brand Header ── */
+.brandHeader {
+  padding: 32px 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   text-align: center;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--green-soft) 0%, transparent 100%);
 }
 
-.title {
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #333;
+.brandLogo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--green) 0%, var(--green) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 1px var(--green-soft),
+    0 8px 24px var(--green-soft);
+  margin-bottom: 4px;
+}
+.brandLogo svg {
+  width: 24px;
+  height: 24px;
+}
+
+.brandName {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.brandTagline {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+.brandSub {
+  font-size: 13px;
+  color: var(--text2);
+}
+
+/* ── Form Body ── */
+.formBody {
+  padding: 24px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+/* ── Field ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.optionalBadge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text3);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* ── Input ── */
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text3);
+}
+
+.inputWrap:focus-within .inputIcon {
+  color: var(--green);
 }
 
 .input {
   width: 100%;
-  padding: 10px 12px;
-  margin: 8px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  outline: none;
-  transition: 0.3s;
+  height: 42px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13.5px;
+  padding: 0 12px 0 38px;
+}
+.input::placeholder {
+  color: var(--text3);
 }
 
+.input:hover {
+  border-color: var(--border2);
+}
 .input:focus {
-  border-color: #4cafef;
-  box-shadow: 0 0 5px rgba(76, 175, 239, 0.5);
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-soft);
 }
 
-.button {
+.inputPassword {
+  padding-right: 40px;
+}
+
+/* ── Button ── */
+.btnSubmit {
   width: 100%;
-  padding: 10px;
-  margin-top: 15px;
-  border: none;
-  border-radius: 6px;
-  background-color: #4cafef;
-  color: white;
-  font-size: 16px;
+  height: 42px;
+  background: var(--green);
+  border: 1px solid var(--green);
+  border-radius: var(--radius);
+  color: #fff;
+  font-weight: 500;
   cursor: pointer;
-  transition: 0.3s;
 }
 
-.button:hover {
-  background-color: #2196f3;
+.btnSubmit:hover {
+  box-shadow: 0 6px 20px var(--green-soft);
 }
 
-.linkText {
-  margin-top: 15px;
-  font-size: 14px;
+/* ── Error ── */
+.errorBanner {
+  padding: 10px;
+  background: var(--red-soft);
+  border: 1px solid var(--red);
+  color: var(--red);
 }
 
-.linkText a {
-  color: #4cafef;
-  text-decoration: none;
+/* ── Success ── */
+.successIcon {
+  background: var(--green-soft);
+  border: 1px solid var(--green);
+  color: var(--green);
 }
 
-.linkText a:hover {
-  text-decoration: underline;
+.successTitle {
+  color: var(--text);
+}
+.successSub {
+  color: var(--text2);
+}
+
+/* ── Footer ── */
+.formFooter {
+  border-top: 1px solid var(--border);
+}
+
+.footerText {
+  color: var(--text3);
+}
+.footerLink {
+  color: var(--green);
+}
+
+/* ── Meta ── */
+.meta {
+  color: var(--text3);
+}
+.metaDot {
+  background: var(--accent);
 }

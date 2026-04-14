@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useMemo } from "react";
 
 export const AuthContext = createContext();
 
@@ -35,9 +35,22 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
   };
 
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+  // 🔐 RBAC helpers (NEW)
+  const hasRole = (roles) => {
+    if (!user) return false;
+    return roles.includes(user.role);
+  };
+
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      login,
+      logout,
+      hasRole,
+    }),
+    [user, token]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

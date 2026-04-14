@@ -12,51 +12,68 @@ import { TbShoppingCartPlus } from "react-icons/tb";
 const CreateOrder = ({ refresh, onClose }) => {
   const [form, setForm] = useState({ product: "", quantity: "" });
   const [products, setProducts] = useState([]);
+  const [inventoryData, setInventoryData] = useState([]);
   const [disabledProductIds, setDisabledProductIds] = useState(new Set());
   const [selectedStock, setSelectedStock] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
+  // Load products
   useEffect(() => {
     API.get("/products")
       .then((res) => setProducts(res.data.data || []))
       .catch(() => toast.error("Failed to load products"));
   }, []);
 
+  // Load inventory
   useEffect(() => {
     getInventory()
       .then((res) => {
+        const data = res.data?.data || [];
+        setInventoryData(data);
+
         const disabled = new Set(
-          (res.data?.data || [])
+          data
             .filter((inv) => inv.isActive === false && inv.product?._id)
-            .map((inv) => inv.product._id)
+            .map((inv) => inv.product._id),
         );
         setDisabledProductIds(disabled);
       })
-      .catch(() => {});
+      .catch(() => toast.error("Failed to load inventory"));
   }, []);
 
-  const availableProducts = products.filter((p) => !disabledProductIds.has(p._id));
+  const availableProducts = products.filter(
+    (p) => !disabledProductIds.has(p._id),
+  );
 
+  // ✅ FIXED: get stock from inventory (NOT product)
   useEffect(() => {
-    const selected = availableProducts.find((p) => p._id === form.product);
-    setSelectedStock(selected?.quantity || 0);
-  }, [form.product, availableProducts]);
+    const inv = inventoryData.find((i) => i.product?._id === form.product);
+    setSelectedStock(inv?.quantity || 0);
+  }, [form.product, inventoryData]);
 
   const selectedProduct = availableProducts.find((p) => p._id === form.product);
+
   const qty = Number(form.quantity);
   const overStock = qty > 0 && qty > selectedStock;
-  const stockPct = selectedStock > 0 && qty > 0 ? Math.min((qty / selectedStock) * 100, 100) : 0;
+  const stockPct =
+    selectedStock > 0 && qty > 0
+      ? Math.min((qty / selectedStock) * 100, 100)
+      : 0;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!form.product) return toast.error("Please select a product");
-    if (disabledProductIds.has(form.product)) return toast.error("This product's inventory is disabled");
+    if (disabledProductIds.has(form.product))
+      return toast.error("This product's inventory is disabled");
     if (qty <= 0) return toast.error("Quantity must be greater than 0");
     if (qty > selectedStock) return toast.error("Not enough stock");
 
     setSubmitting(true);
+
     try {
       await createOrder({ product: form.product, quantity: qty });
+
       toast.success("Order created");
       refresh();
       setForm({ product: "", quantity: "" });
@@ -88,7 +105,9 @@ const CreateOrder = ({ refresh, onClose }) => {
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <div className={styles.headerIcon}><TbShoppingCartPlus size={16} /></div>
+            <div className={styles.headerIcon}>
+              <TbShoppingCartPlus size={16} />
+            </div>
             <h3 className={styles.headerTitle}>New Order</h3>
           </div>
           <motion.button
@@ -103,12 +122,13 @@ const CreateOrder = ({ refresh, onClose }) => {
 
         {/* Body */}
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
-          {/* Product select */}
+          {/* Product */}
           <div className={styles.field}>
             <label className={styles.label}>
               <FiPackage size={12} className={styles.labelIcon} />
               Product
             </label>
+
             <div className={styles.selectWrap}>
               <select
                 className={styles.select}
@@ -116,13 +136,19 @@ const CreateOrder = ({ refresh, onClose }) => {
                 onChange={(e) => setForm({ ...form, product: e.target.value })}
               >
                 <option value="">Choose a product…</option>
-                {availableProducts.map((p) => (
-                  <option key={p._id} value={p._id}>
-                    {p.name} — Stock: {p.quantity}
-                  </option>
-                ))}
+                {availableProducts.map((p) => {
+                  const inv = inventoryData.find(
+                    (i) => i.product?._id === p._id,
+                  );
+                  return (
+                    <option key={p._id} value={p._id}>
+                      {p.name} — Stock: {inv?.quantity || 0}
+                    </option>
+                  );
+                })}
               </select>
             </div>
+
             {disabledProductIds.size > 0 && (
               <p className={styles.hint}>
                 <FiInfo size={11} />
@@ -131,7 +157,7 @@ const CreateOrder = ({ refresh, onClose }) => {
             )}
           </div>
 
-          {/* Selected product card */}
+          {/* Product Card */}
           <AnimatePresence>
             {selectedProduct && (
               <motion.div
@@ -142,30 +168,46 @@ const CreateOrder = ({ refresh, onClose }) => {
                 transition={{ duration: 0.2 }}
               >
                 <div className={styles.productCardInner}>
-                  <div className={styles.pcIcon}><FiPackage size={14} /></div>
+                  <div className={styles.pcIcon}>
+                    <FiPackage size={14} />
+                  </div>
+
                   <div className={styles.pcInfo}>
-                    <span className={styles.pcName}>{selectedProduct.name}</span>
+                    <span className={styles.pcName}>
+                      {selectedProduct.name}
+                    </span>
                     <span className={styles.pcStock}>
                       {selectedStock} units available
                     </span>
                   </div>
-                  <span className={`${styles.pcBadge} ${selectedStock <= 5 ? styles.lowBadge : styles.okBadge}`}>
+
+                  <span
+                    className={`${styles.pcBadge} ${
+                      selectedStock <= 5 ? styles.lowBadge : styles.okBadge
+                    }`}
+                  >
                     {selectedStock <= 5 ? "Low stock" : "In stock"}
                   </span>
                 </div>
 
-                {/* Stock bar */}
                 {qty > 0 && (
                   <div className={styles.stockBarWrap}>
                     <div className={styles.stockBar}>
                       <motion.div
-                        className={`${styles.stockFill} ${overStock ? styles.overFill : ""}`}
+                        className={`${styles.stockFill} ${
+                          overStock ? styles.overFill : ""
+                        }`}
                         initial={{ width: 0 }}
                         animate={{ width: `${stockPct}%` }}
                         transition={{ duration: 0.3 }}
                       />
                     </div>
-                    <span className={`${styles.stockBarLabel} ${overStock ? styles.overLabel : ""}`}>
+
+                    <span
+                      className={`${styles.stockBarLabel} ${
+                        overStock ? styles.overLabel : ""
+                      }`}
+                    >
                       {qty} / {selectedStock}
                     </span>
                   </div>
@@ -180,14 +222,18 @@ const CreateOrder = ({ refresh, onClose }) => {
               <FiHash size={12} className={styles.labelIcon} />
               Quantity
             </label>
+
             <input
-              className={`${styles.input} ${overStock ? styles.inputError : ""}`}
+              className={`${styles.input} ${
+                overStock ? styles.inputError : ""
+              }`}
               type="number"
               min="1"
               placeholder="Enter quantity…"
               value={form.quantity}
               onChange={(e) => setForm({ ...form, quantity: e.target.value })}
             />
+
             <AnimatePresence>
               {overStock && (
                 <motion.p
@@ -205,17 +251,28 @@ const CreateOrder = ({ refresh, onClose }) => {
 
           {/* Actions */}
           <div className={styles.actions}>
-            <button type="button" className={styles.btnCancel} onClick={onClose}>
+            <button
+              type="button"
+              className={styles.btnCancel}
+              onClick={onClose}
+            >
               Cancel
             </button>
+
             <motion.button
               type="submit"
               className={styles.btnSubmit}
-              disabled={submitting || overStock || !form.product || !form.quantity}
+              disabled={
+                submitting || overStock || !form.product || !form.quantity
+              }
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
             >
-              {submitting ? <span className={styles.spinner} /> : <TbShoppingCartPlus size={15} />}
+              {submitting ? (
+                <span className={styles.spinner} />
+              ) : (
+                <TbShoppingCartPlus size={15} />
+              )}
               Create Order
             </motion.button>
           </div>

@@ -1,159 +1,229 @@
 import { useState } from "react";
 import { createSupplier } from "../../services/SupplierService";
 import styles from "./AddSupplier.module.css";
-import { FiX, FiUser, FiMail, FiPhone, FiHome, FiSave } from "react-icons/fi";
+import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  FiX,
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiHome,
+  FiSave,
+  FiBriefcase,
+} from "react-icons/fi";
+
+const EMPTY = { name: "", company: "", email: "", phone: "", address: "" };
+
+const Field = ({ icon, label, optional, error, children }) => (
+  <div className={`${styles.field} ${error ? styles.fieldError : ""}`}>
+    <label className={styles.label}>
+      <span className={styles.labelIcon}>{icon}</span>
+      {label}
+      {optional && <span className={styles.optional}>optional</span>}
+    </label>
+    {children}
+    <AnimatePresence>
+      {error && (
+        <motion.p
+          className={styles.errorMsg}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.15 }}
+        >
+          {error}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  </div>
+);
 
 const AddSupplier = ({ refresh, close }) => {
-  const [form, setForm] = useState({
-    name: "",
-    company: "",
-    email: "",
-    phone: "",
-    address: "",
-  });
-
+  const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: value }));
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
+  };
 
-  // ✅ VALIDATION
   const validate = () => {
-    let newErrors = {};
-
-    if (!form.name.trim()) newErrors.name = "Supplier name is required";
-    if (!form.email.trim()) newErrors.email = "Email is required";
-    if (!form.phone.trim()) newErrors.phone = "Phone is required";
-    if (!form.company.trim()) newErrors.company = "Company name is required";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e = {};
+    if (!form.name.trim()) e.name = "Supplier name is required";
+    if (!form.company.trim()) e.company = "Company name is required";
+    if (!form.email.trim()) e.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email";
+    if (!form.phone.trim()) e.phone = "Phone number is required";
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validate()) return;
-
+    setLoading(true);
     try {
-      setLoading(true);
       await createSupplier(form);
+      toast.success("Supplier added successfully");
       refresh();
-      handleClose();
-
-      setForm({
-        name: "",
-        company: "",
-        email: "",
-        phone: "",
-        address: "",
-      });
-
-      setErrors({});
-    } catch {
-      alert("Failed to add supplier");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to add supplier");
     } finally {
       setLoading(false);
     }
   };
 
   const handleClose = () => {
-    close?.();
-    setForm({
-      name: "",
-      company: "",
-      email: "",
-      phone: "",
-      address: "",
-    });
+    setForm(EMPTY);
     setErrors({});
+    close?.();
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modalCard}>
-
-        {/* HEADER */}
+    <motion.div
+      className={styles.overlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      onClick={handleClose}
+    >
+      <motion.div
+        className={styles.modal}
+        initial={{ opacity: 0, y: 20, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.97 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
         <div className={styles.header}>
-          <h2>
-            <FiUser /> Add Supplier
-          </h2>
-
-          <button className={styles.closeBtn} onClick={handleClose}>
-            <FiX />
+          <div className={styles.headerLeft}>
+            <div className={styles.headerIcon}>
+              <FiUser size={15} />
+            </div>
+            <div>
+              <h3 className={styles.headerTitle}>Add supplier</h3>
+              <p className={styles.headerSub}>
+                Fill in the supplier details below
+              </p>
+            </div>
+          </div>
+          <button
+            className={styles.closeBtn}
+            onClick={handleClose}
+            aria-label="Close"
+          >
+            <FiX size={14} />
           </button>
         </div>
 
-        {/* FORM */}
-        <form className={styles.form} onSubmit={handleSubmit}>
+        {/* Form */}
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          <div className={styles.grid}>
+            <Field
+              icon={<FiUser size={11} />}
+              label="Supplier name *"
+              error={errors.name}
+            >
+              <input
+                className={styles.input}
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="e.g. Raj Kumar"
+              />
+            </Field>
 
-          <div className={styles.group}>
-            <input
-              name="name"
-              placeholder="Supplier Name *"
-              onChange={handleChange}
-              value={form.name}
-            />
-            {errors.name && <p className={styles.error}>{errors.name}</p>}
+            <Field
+              icon={<FiBriefcase size={11} />}
+              label="Company *"
+              error={errors.company}
+            >
+              <input
+                className={styles.input}
+                name="company"
+                value={form.company}
+                onChange={handleChange}
+                placeholder="e.g. Acme Industries"
+              />
+            </Field>
+
+            <Field
+              icon={<FiMail size={11} />}
+              label="Email *"
+              error={errors.email}
+            >
+              <input
+                className={styles.input}
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="supplier@company.com"
+              />
+            </Field>
+
+            <Field
+              icon={<FiPhone size={11} />}
+              label="Phone *"
+              error={errors.phone}
+            >
+              <input
+                className={styles.input}
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="+91 98765 43210"
+              />
+            </Field>
+
+            <Field
+              icon={<FiHome size={11} />}
+              label="Address"
+              optional
+              error={null}
+              className={styles.full}
+            >
+              <input
+                className={styles.input}
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="Street, City, State"
+              />
+            </Field>
           </div>
 
-          <div className={styles.group}>
-            <input
-              name="company"
-              placeholder="Company *"
-              onChange={handleChange}
-              value={form.company}
-            />
-            {errors.company && <p className={styles.error}>{errors.company}</p>}
-          </div>
-
-          <div className={styles.group}>
-            <input
-              name="email"
-              placeholder="Email *"
-              onChange={handleChange}
-              value={form.email}
-            />
-            {errors.email && <p className={styles.error}>{errors.email}</p>}
-          </div>
-
-          <div className={styles.group}>
-            <input
-              name="phone"
-              placeholder="Phone *"
-              onChange={handleChange}
-              value={form.phone}
-            />
-            {errors.phone && <p className={styles.error}>{errors.phone}</p>}
-          </div>
-
-          <div className={styles.group}>
-            <input
-              name="address"
-              placeholder="Address"
-              onChange={handleChange}
-              value={form.address}
-            />
-          </div>
-
-          {/* ACTIONS */}
           <div className={styles.actions}>
-            <button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Add Supplier"}
-            </button>
-
             <button
               type="button"
-              className={styles.cancel}
+              className={styles.cancelBtn}
               onClick={handleClose}
             >
               Cancel
             </button>
+            <motion.button
+              type="submit"
+              className={styles.submitBtn}
+              disabled={loading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {loading ? (
+                <span className={styles.spinner} />
+              ) : (
+                <FiSave size={13} />
+              )}
+              {loading ? "Saving…" : "Add supplier"}
+            </motion.button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 
