@@ -142,6 +142,7 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+
       <div className={styles.actions}>
         <motion.button
           className={styles.iconBtn}
@@ -171,6 +172,7 @@ const Navbar = () => {
           Sign in
         </motion.button>
       </div>
+
       <motion.div
         className={styles.menuIcon}
         onClick={() => setMenuOpen(!menuOpen)}
@@ -182,12 +184,44 @@ const Navbar = () => {
         {["/", "/about", "/contact"].map((path, i) => (
           <button
             key={path}
-            className={styles.mobileNavBtn}
+            className={`${styles.mobileNavBtn} ${
+              isActive(path) ? styles.activeMobile : ""
+            }`}
             onClick={() => goTo(path)}
           >
             {["Home", "About", "Contact"][i]}
           </button>
         ))}
+
+        <div className={styles.mobileDivider}></div>
+
+        {modules.map((m) => (
+          <div
+            key={m.path}
+            className={styles.mobileModuleItem}
+            onClick={() => goTo(m.path)}
+          >
+            <div
+              className={styles.mobileModuleIcon}
+              style={{ background: m.dim, color: m.color }}
+            >
+              {m.icon}
+            </div>
+            <div>
+              <div className={styles.mobileModuleText}>{m.label}</div>
+              <div className={styles.mobileModuleSub}>{m.sub}</div>
+            </div>
+          </div>
+        ))}
+
+        <div className={styles.mobileDivider}></div>
+
+        <button
+          className={styles.mobileLoginBtn}
+          onClick={() => goTo("/login")}
+        >
+          Sign in
+        </button>
       </div>
     </header>
   );
