@@ -23,7 +23,7 @@ const Contact = () => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ NEW STATES
+  
   const [isTyping, setIsTyping] = useState(false);
 
   const socketRef = useRef(null);
@@ -43,7 +43,7 @@ const Contact = () => {
     };
   }, []);
 
-  // SOCKET INIT
+  
   useEffect(() => {
     let socket;
     try {
@@ -64,12 +64,12 @@ const Contact = () => {
           sender: data.sender || "admin",
           message: data.message,
           createdAt: data.createdAt || new Date().toISOString(),
-          status: "sent", // ✅ NEW
+          status: "sent", 
         },
       ]);
     };
 
-    // ✅ typing event
+    
     const handleTyping = () => {
       setIsTyping(true);
       clearTimeout(typingTimeout.current);
@@ -134,7 +134,7 @@ const Contact = () => {
         setSuccess(true);
         setConversationId(res.data._id);
 
-        // ✅ SYSTEM MESSAGE ADDED
+        
         setMessages([
           {
             sender: "system",
@@ -171,7 +171,7 @@ const Contact = () => {
       sender: "user",
       message: text,
       createdAt: new Date().toISOString(),
-      status: "sending", // ✅ NEW
+      status: "sending", 
     };
 
     setMessages((prev) => [...prev, tempMessage]);
@@ -199,7 +199,7 @@ const Contact = () => {
     }
   };
 
-  // ✅ CLOSE CHAT
+  
   const handleCloseChat = () => {
     socketRef.current?.emit("leave_contact", { contactId: conversationId });
     setSuccess(false);
@@ -209,7 +209,7 @@ const Contact = () => {
     setError("");
   };
 
-  // ✅ typing emit
+  
   const handleTypingInput = (e) => {
     setReplyText(e.target.value);
     socketRef.current?.emit("contact_typing", {
@@ -292,7 +292,6 @@ const Contact = () => {
                 <span>Support is online</span>
               </div>
 
-              {/* ✅ CLOSE BUTTON */}
               <button className={styles.closeBtn} onClick={handleCloseChat}>
                 <FiX />
               </button>
@@ -304,7 +303,6 @@ const Contact = () => {
                   <div className={styles.bubble}>
                     {m.message}
 
-                    {/* ✅ STATUS */}
                     {m.status && (
                       <span className={styles.msgStatus}>
                         {m.status === "sending" && "Sending..."}
@@ -316,7 +314,6 @@ const Contact = () => {
                 </div>
               ))}
 
-              {/* ✅ TYPING */}
               {isTyping && (
                 <div className={styles.typing}>Support is typing...</div>
               )}

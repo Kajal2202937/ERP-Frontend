@@ -44,7 +44,6 @@ const ProductionInfo = () => {
 
   return (
     <div className={styles.page}>
-      {/* HERO SECTION */}
       <section className={styles.hero}>
 
         <div
@@ -133,7 +132,6 @@ const ProductionInfo = () => {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section className={styles.featuresSection}>
         <div className={styles.sectionHeader}>
           <p className={styles.sectionEyebrow}>KEY FEATURES</p>
@@ -171,7 +169,6 @@ const ProductionInfo = () => {
         </div>
       </section>
 
-      {/* CTA */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaBox}>
           <h2 className={styles.ctaTitle}>

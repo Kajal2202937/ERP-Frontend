@@ -44,7 +44,6 @@ const SalesInfo = () => {
 
   return (
     <div className={styles.page}>
-      {/* HERO */}
       <section className={styles.hero}>
         <div
           className={styles.heroOrb}
@@ -134,7 +133,6 @@ const SalesInfo = () => {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section className={styles.featuresSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>
@@ -167,7 +165,6 @@ const SalesInfo = () => {
         </div>
       </section>
 
-      {/* CTA */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaBox}>
           <h2 className={styles.ctaTitle}>

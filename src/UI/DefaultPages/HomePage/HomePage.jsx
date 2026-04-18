@@ -92,7 +92,6 @@ const HomePage = () => {
           <div className={styles.heroOrb1} />
           <div className={styles.heroOrb2} />
 
-          {/* LEFT SIDE */}
           <motion.div
             className={styles.heroLeft}
             initial={{ opacity: 0, x: -24 }}
@@ -152,7 +151,6 @@ const HomePage = () => {
             </div>
           </motion.div>
 
-          {/* RIGHT SIDE */}
           <motion.div
             className={styles.heroRight}
             initial={{ opacity: 0, x: 24 }}

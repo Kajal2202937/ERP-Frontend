@@ -128,7 +128,6 @@ const AboutPage = () => {
 
   return (
     <div className={styles.page}>
-      {/* HERO SECTION */}
       <section className={styles.hero}>
         <motion.span
           className={styles.eyebrow}

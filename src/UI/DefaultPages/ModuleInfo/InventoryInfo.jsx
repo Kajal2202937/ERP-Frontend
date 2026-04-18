@@ -44,7 +44,6 @@ const InventoryInfo = () => {
 
   return (
     <div className={styles.page}>
-      {/* HERO SECTION */}
       <section className={styles.hero}>
 
         <div

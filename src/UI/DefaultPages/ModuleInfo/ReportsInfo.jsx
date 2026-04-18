@@ -44,7 +44,6 @@ const ReportsInfo = () => {
 
   return (
     <div className={styles.page}>
-      {/* HERO */}
       <section className={styles.hero}>
         <div
           className={styles.heroOrb}
@@ -138,7 +137,6 @@ const ReportsInfo = () => {
         </div>
       </section>
 
-      {/* FEATURES */}
       <section className={styles.featuresSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>
@@ -171,7 +169,6 @@ const ReportsInfo = () => {
         </div>
       </section>
 
-      {/* CTA */}
       <section className={styles.ctaSection}>
         <div className={styles.ctaBox}>
           <h2 className={styles.ctaTitle}>

@@ -326,9 +326,7 @@ const Contacts = () => {
 
   return (
     <div className={styles.chatLayout}>
-      {/* ══════════════ LEFT PANEL ══════════════ */}
       <div className={styles.leftPanel}>
-        {/* Header */}
         <div className={styles.header}>
           <h3>Inbox</h3>
           <div className={styles.headerActions}>
@@ -342,7 +340,6 @@ const Contacts = () => {
           </div>
         </div>
 
-        {/* Tabs */}
         <div className={styles.tabs}>
           {TABS.map((t) => (
             <button
@@ -356,7 +353,6 @@ const Contacts = () => {
           ))}
         </div>
 
-        {/* Search */}
         <div className={styles.searchBox}>
           <FiSearch size={13} />
           <input
@@ -382,7 +378,6 @@ const Contacts = () => {
           )}
         </div>
 
-        {/* List */}
         <div className={styles.contactList}>
           {loading ? (
             <div className={styles.loadingList}>Loading conversations…</div>
@@ -445,7 +440,6 @@ const Contacts = () => {
         </div>
       </div>
 
-      {/* ══════════════ RIGHT PANEL ══════════════ */}
       <div className={styles.rightPanel}>
         {!selected ? (
           <div className={styles.emptyChat}>
@@ -459,7 +453,6 @@ const Contacts = () => {
           </div>
         ) : (
           <>
-            {/* Chat header */}
             <div className={styles.chatHeader}>
               <div className={styles.chatHeaderAvatar}>
                 {initial(selected.name)}
@@ -495,7 +488,6 @@ const Contacts = () => {
               </div>
             </div>
 
-            {/* Resolved banner */}
             {selected.status === "resolved" && (
               <div className={styles.resolvedBanner}>
                 <FiCheckCircle size={13} />
@@ -503,7 +495,6 @@ const Contacts = () => {
               </div>
             )}
 
-            {/* Chat body */}
             <div className={styles.chatBody}>
               {timeline.map((item) => {
                 if (item.type === "separator") {
@@ -539,7 +530,6 @@ const Contacts = () => {
                 );
               })}
 
-              {/* Typing indicator */}
               {isTyping && (
                 <div className={styles.typingIndicator}>
                   <span className={styles.typingDot} />
@@ -551,7 +541,6 @@ const Contacts = () => {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input row */}
             <div className={styles.chatInputRow}>
               <div className={styles.chatInputWrap}>
                 <input
