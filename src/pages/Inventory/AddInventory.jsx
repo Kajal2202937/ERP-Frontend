@@ -47,7 +47,6 @@ const AddInventory = ({ refresh, onClose }) => {
 
   return (
     <div className={styles.modal}>
-      {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.headerIcon}>
@@ -65,7 +64,6 @@ const AddInventory = ({ refresh, onClose }) => {
         </motion.button>
       </div>
 
-      {/* Form */}
       <form className={styles.form} onSubmit={handleSubmit} noValidate>
         {/* Product Select */}
         <div className={styles.field}>
@@ -74,6 +72,8 @@ const AddInventory = ({ refresh, onClose }) => {
           </label>
           <select
             className={styles.select}
+            id="order-product"
+            name="product"
             value={form.productId}
             onChange={(e) => setForm({ ...form, productId: e.target.value })}
           >
@@ -85,8 +85,6 @@ const AddInventory = ({ refresh, onClose }) => {
             ))}
           </select>
         </div>
-
-        {/* Selected product info */}
         <AnimatePresence>
           {selectedProduct && (
             <motion.div
@@ -109,14 +107,14 @@ const AddInventory = ({ refresh, onClose }) => {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Quantity */}
         <div className={styles.field}>
           <label className={styles.label}>
             <FiHash size={11} /> Quantity to Add
           </label>
           <input
             className={styles.input}
+            id="o-quantity"
+            name="quantity"
             type="number"
             min="1"
             placeholder="e.g. 50"
@@ -124,8 +122,6 @@ const AddInventory = ({ refresh, onClose }) => {
             onChange={(e) => setForm({ ...form, quantity: e.target.value })}
           />
         </div>
-
-        {/* Actions */}
         <div className={styles.actions}>
           <button type="button" className={styles.btnCancel} onClick={onClose}>
             Cancel

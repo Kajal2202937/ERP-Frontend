@@ -12,28 +12,28 @@ const prodFeatures = [
   {
     icon: <FiSettings />,
     name: "Workflow Configuration",
-    desc: "Define production stages, assign responsibilities, and maintain structured process flows.",
+    desc: "Set up production stages in a way that matches how your work actually flows, with clear responsibilities at each step.",
     color: "#f0a855",
     dim: "rgba(240,168,85,0.1)",
   },
   {
     icon: <FiActivity />,
     name: "Production Tracking",
-    desc: "Monitor progress of ongoing production activities across different stages.",
+    desc: "Keep track of what’s in progress, what’s completed, and what needs attention across your production line.",
     color: "#6c74f0",
     dim: "rgba(108,116,240,0.1)",
   },
   {
     icon: <FiClock />,
     name: "Process Monitoring",
-    desc: "Track time spent in each stage to identify delays and improve efficiency.",
+    desc: "Understand where time is being spent so you can spot delays and improve how work moves forward.",
     color: "#4da8f5",
     dim: "rgba(77,168,245,0.1)",
   },
   {
     icon: <FiTrendingUp />,
     name: "Performance Insights",
-    desc: "Review output trends and operational performance using structured reports.",
+    desc: "Review output trends and identify areas where your production process can become more efficient.",
     color: "#3ecf8e",
     dim: "rgba(62,207,142,0.1)",
   },
@@ -44,8 +44,9 @@ const ProductionInfo = () => {
 
   return (
     <div className={styles.page}>
-      {/* HERO */}
+      {/* HERO SECTION */}
       <section className={styles.hero}>
+
         <div
           className={styles.heroOrb}
           style={{
@@ -56,7 +57,6 @@ const ProductionInfo = () => {
         />
 
         <div className={styles.heroInner}>
-          {/* LEFT */}
           <div className={styles.heroLeft}>
             <span
               className={styles.eyebrow}
@@ -70,23 +70,23 @@ const ProductionInfo = () => {
             </span>
 
             <h1 className={styles.heroTitle}>
-              Manage production with
+              Keep your production running
               <br />
               <span
                 style={{
-                  background:
-                    "linear-gradient(135deg,#f0a855,#fbc87a)",
+                  background: "linear-gradient(135deg,#f0a855,#fbc87a)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                structured workflows
+                smoothly and predictably
               </span>
             </h1>
 
             <p className={styles.heroDesc}>
-              Organize production processes, track progress across stages, and
-              maintain full operational visibility from start to completion.
+              Production can quickly become hard to manage when multiple stages
+              are involved. This system helps you stay organized, track
+              progress, and keep everything moving without losing visibility.
             </p>
 
             <div className={styles.heroBtns}>
@@ -101,11 +101,9 @@ const ProductionInfo = () => {
               >
                 Go to Production <FiArrowRight />
               </button>
-
             </div>
           </div>
 
-          {/* RIGHT → 🔥 NEW UI (NO HARDCODE DATA) */}
           <div className={styles.heroRight}>
             <div className={styles.processCard}>
               <div className={styles.processHeader}>
@@ -128,7 +126,7 @@ const ProductionInfo = () => {
               </div>
 
               <div className={styles.processFooter}>
-                <span>Workflow progresses step-by-step</span>
+                <span>Move step-by-step with clear visibility</span>
               </div>
             </div>
           </div>
@@ -140,10 +138,11 @@ const ProductionInfo = () => {
         <div className={styles.sectionHeader}>
           <p className={styles.sectionEyebrow}>KEY FEATURES</p>
           <h2 className={styles.sectionTitle}>
-            Production management capabilities
+            Tools to manage production with clarity
           </h2>
           <p className={styles.sectionDesc}>
-            Tools designed to structure and monitor manufacturing operations.
+            Everything you need to organize, track, and improve your production
+            workflow.
           </p>
         </div>
 
@@ -176,12 +175,8 @@ const ProductionInfo = () => {
       <section className={styles.ctaSection}>
         <div className={styles.ctaBox}>
           <h2 className={styles.ctaTitle}>
-            Improve production visibility
+            Stay on top of your production without the confusion
           </h2>
-          <p className={styles.ctaDesc}>
-            Access the production module to organize workflows and monitor
-            progress efficiently.
-          </p>
 
           <div className={styles.ctaActions}>
             <button
@@ -195,7 +190,6 @@ const ProductionInfo = () => {
             >
               Open Production <FiArrowRight />
             </button>
-
           </div>
         </div>
       </section>

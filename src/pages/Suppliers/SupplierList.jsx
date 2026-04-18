@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   deleteSupplier,
   updateSupplier,
@@ -7,10 +7,7 @@ import {
 import styles from "./SupplierList.module.css";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
-import API from "../../services/api";
 
-/* ── Deterministic avatar color using CSS variables ── */
 const AVATAR_PALETTE = [
   { bg: "rgba(108,116,240,0.12)", color: "#8b91f5" },
   { bg: "rgba(62,207,142,0.12)", color: "#3ecf8e" },
@@ -47,52 +44,6 @@ const SupplierList = ({
   const [togglingId, setTogglingId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
-  const [productStats, setProductStats] = useState({});
-
-  useEffect(() => {
-    API.get("/products")
-      .then((res) => {
-        const map = {};
-
-        (res?.data?.data || []).forEach((p) => {
-          // ✅ ONLY FIX ADDED HERE
-          const sid = p?.supplier?._id || p?.supplier;
-
-          if (!sid) return;
-
-          if (!map[sid]) {
-            map[sid] = {
-              count: 0,
-              qty: 0,
-              value: 0, // selling value
-              costValue: 0, // inventory value
-              profit: 0,
-            };
-          }
-
-          const qty = Number(p.quantity) || 0;
-          const price = Number(p.price) || 0;
-          const cost = Number(p.costPrice) || 0;
-
-          map[sid].count += 1;
-          map[sid].qty += qty;
-
-          // selling value
-          map[sid].value += price * qty;
-
-          // cost value
-          map[sid].costValue += cost * qty;
-
-          // profit
-          map[sid].profit += (price - cost) * qty;
-        });
-
-        setProductStats(map);
-      })
-      .catch((err) => {
-        console.error("Product stats error:", err);
-      });
-  }, [data]);
 
   const toggleAll = () =>
     setSelected(selected.length === data.length ? [] : data.map((d) => d._id));
@@ -104,6 +55,7 @@ const SupplierList = ({
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+
     try {
       setDeletingId(deleteTarget);
       await deleteSupplier(deleteTarget);
@@ -158,34 +110,15 @@ const SupplierList = ({
     });
   };
 
-  /* ── Loading skeleton ── */
   if (loading) {
-    return (
-      <div className={styles.skeletonWrap}>
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className={styles.skeletonRow}>
-            {[5, 18, 14, 18, 12, 8, 8, 10, 8, 8].map((w, j) => (
-              <div
-                key={j}
-                className={styles.skeletonCell}
-                style={{ width: `${w}%` }}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
+    return <div className={styles.skeletonWrap}>Loading...</div>;
   }
 
-  /* ── Empty ── */
   if (!data.length) {
     return (
       <div className={styles.empty}>
-        <div className={styles.emptyIcon}>👥</div>
-        <p className={styles.emptyTitle}>No suppliers found</p>
-        <p className={styles.emptyDesc}>
-          Add your first supplier to get started.
-        </p>
+        <div className={styles.emptyTitle}>No suppliers found</div>
+        <div className={styles.emptyDesc}>Add your first supplier</div>
       </div>
     );
   }
@@ -200,7 +133,7 @@ const SupplierList = ({
                 <input
                   type="checkbox"
                   className={styles.checkbox}
-                  checked={selected.length === data.length && data.length > 0}
+                  checked={selected.length === data.length}
                   onChange={toggleAll}
                 />
               </th>
@@ -208,207 +141,203 @@ const SupplierList = ({
               <th>Company</th>
               <th>Email</th>
               <th>Phone</th>
-              <th>Products</th>
               <th>Stock</th>
               <th>Value</th>
               <th>Status</th>
+              <th>Alerts</th>
+              <th>Score</th>
               <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
             <AnimatePresence>
-              {data.map((s, i) => {
-                const isEdit = editId === s._id;
-                const isSaving = savingId === s._id;
-                const isToggling = togglingId === s._id;
-                const isSel = selected.includes(s._id);
-                const av = getAvatarStyle(s.name);
-                const pStats = productStats[s._id];
+              {data.map((s) => {
+                const pStats = s.stats || {};
+
+                const score =
+                  (pStats.qty > 0 ? 40 : 0) +
+                  (pStats.lowStock === 0 ? 30 : 10) +
+                  (pStats.profit > 0 ? 30 : 0);
 
                 return (
                   <motion.tr
                     key={s._id}
+                    layout
                     className={`${styles.row} ${
-                      isSel ? styles.selectedRow : ""
+                      selected.includes(s._id) ? styles.selectedRow : ""
                     } ${!s.active ? styles.inactiveRow : ""} ${
-                      isEdit ? styles.editingRow : ""
+                      editId === s._id ? styles.editingRow : ""
                     }`}
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ delay: i * 0.03, duration: 0.2 }}
                   >
                     <td>
                       <input
                         type="checkbox"
                         className={styles.checkbox}
-                        checked={isSel}
+                        checked={selected.includes(s._id)}
                         onChange={() => toggleRow(s._id)}
                       />
                     </td>
 
-                    {isEdit ? (
-                      <>
-                        <td>
+                    <td>
+                      <div className={styles.nameCell}>
+                        <div
+                          className={styles.avatar}
+                          style={getAvatarStyle(s.name)}
+                        >
+                          {initials(s.name)}
+                        </div>
+
+                        {editId === s._id ? (
                           <input
                             className={styles.editInput}
-                            value={editForm.name || ""}
+                            value={editForm.name}
                             onChange={(e) =>
                               setEditForm({
                                 ...editForm,
                                 name: e.target.value,
                               })
                             }
-                            placeholder="Name"
-                            autoFocus
                           />
-                        </td>
+                        ) : (
+                          <span className={styles.supplierName}>{s.name}</span>
+                        )}
+                      </div>
+                    </td>
 
-                        <td>
-                          <input
-                            className={styles.editInput}
-                            value={editForm.company || ""}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                company: e.target.value,
-                              })
-                            }
-                            placeholder="Company"
-                          />
-                        </td>
+                    <td>
+                      {editId === s._id ? (
+                        <input
+                          className={styles.editInput}
+                          value={editForm.company}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              company: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        <span className={styles.company}>{s.company}</span>
+                      )}
+                    </td>
 
-                        <td>
-                          <input
-                            className={styles.editInput}
-                            value={editForm.email || ""}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                email: e.target.value,
-                              })
-                            }
-                            placeholder="Email"
-                          />
-                        </td>
+                    <td>
+                      {editId === s._id ? (
+                        <input
+                          className={styles.editInput}
+                          value={editForm.email}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              email: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        <span className={styles.email}>{s.email}</span>
+                      )}
+                    </td>
 
-                        <td>
-                          <input
-                            className={styles.editInput}
-                            value={editForm.phone || ""}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                phone: e.target.value,
-                              })
-                            }
-                            placeholder="Phone"
-                          />
-                        </td>
+                    <td>
+                      {editId === s._id ? (
+                        <input
+                          className={styles.editInput}
+                          value={editForm.phone}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              phone: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        <span className={styles.phone}>{s.phone}</span>
+                      )}
+                    </td>
 
-                        <td colSpan={3} className={styles.editPlaceholder}>
-                          —
-                        </td>
+                    <td className={styles.numCell}>
+                      {(pStats.qty || 0).toLocaleString()}
+                    </td>
 
-                        <td />
+                    <td className={styles.valCell}>
+                      ₹{(pStats.value || 0).toLocaleString("en-IN")}
+                    </td>
 
-                        <td>
-                          <div className={styles.actions}>
-                            <motion.button
+                    <td>
+                      <button
+                        className={`${styles.statusPill} ${
+                          s.active ? styles.pillActive : styles.pillInactive
+                        }`}
+                        onClick={() => handleToggleStatus(s._id)}
+                        disabled={togglingId === s._id}
+                      >
+                        <span className={styles.pillDot}></span>
+                        {togglingId === s._id
+                          ? "..."
+                          : s.active
+                            ? "Active"
+                            : "Inactive"}
+                      </button>
+                    </td>
+
+                    <td>
+                      {pStats.lowStock > 0 && (
+                        <span className={styles.numCell}>
+                          ⚠ {pStats.lowStock}
+                        </span>
+                      )}
+                      {pStats.outOfStock > 0 && (
+                        <span className={styles.numCell}>
+                          ❌ {pStats.outOfStock}
+                        </span>
+                      )}
+                    </td>
+
+                    <td className={styles.numCell}>{score}/100</td>
+
+                    <td>
+                      <div className={styles.actions}>
+                        {editId === s._id ? (
+                          <>
+                            <button
                               className={`${styles.actionBtn} ${styles.saveBtn}`}
                               onClick={() => handleUpdate(s._id)}
-                              disabled={isSaving}
+                              disabled={savingId === s._id}
                             >
-                              {isSaving ? (
-                                <span className={styles.spinnerSm} />
+                              {savingId === s._id ? (
+                                <span className={styles.spinnerSm}></span>
                               ) : (
-                                <FiSave size={13} />
+                                "✓"
                               )}
-                            </motion.button>
+                            </button>
 
-                            <motion.button
+                            <button
                               className={`${styles.actionBtn} ${styles.cancelBtn}`}
-                              onClick={() => {
-                                setEditId(null);
-                                setEditForm({});
-                              }}
-                              disabled={isSaving}
+                              onClick={() => setEditId(null)}
                             >
-                              <FiX size={13} />
-                            </motion.button>
-                          </div>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td>
-                          <div className={styles.nameCell}>
-                            <div
-                              className={styles.avatar}
-                              style={{
-                                background: av.bg,
-                                color: av.color,
-                              }}
-                            >
-                              {initials(s.name)}
-                            </div>
-                            <span className={styles.supplierName}>
-                              {s.name}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td>{s.company}</td>
-                        <td>{s.email}</td>
-                        <td>{s.phone}</td>
-
-                        <td>{pStats?.count ?? 0}</td>
-                        <td>{(pStats?.qty ?? 0).toLocaleString()}</td>
-
-                        <td>
-                          Cost: ₹
-                          {(pStats?.costValue ?? 0).toLocaleString("en-IN")}
-                          <br />
-                          Sell: ₹{(pStats?.value ?? 0).toLocaleString("en-IN")}
-                        </td>
-
-                        <td>
-                          <button
-                            className={`${styles.statusPill} ${
-                              s.active ? styles.pillActive : styles.pillInactive
-                            }`}
-                            onClick={() => handleToggleStatus(s._id)}
-                            disabled={isToggling}
-                          >
-                            {s.active ? "Active" : "Inactive"}
-                          </button>
-                        </td>
-
-                        <td>
-                          <div className={styles.actions}>
-                            <motion.button
+                              ✕
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
                               className={`${styles.actionBtn} ${styles.editBtn}`}
                               onClick={() => startEdit(s)}
                             >
-                              <FiEdit2 size={13} />
-                            </motion.button>
+                              ✎
+                            </button>
 
-                            <motion.button
+                            <button
                               className={`${styles.actionBtn} ${styles.deleteBtn}`}
                               onClick={() => setDeleteTarget(s._id)}
-                              disabled={deletingId === s._id}
                             >
-                              {deletingId === s._id ? (
-                                <span className={styles.spinnerSm} />
-                              ) : (
-                                <FiTrash2 size={13} />
-                              )}
-                            </motion.button>
-                          </div>
-                        </td>
-                      </>
-                    )}
+                              🗑
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </motion.tr>
                 );
               })}
@@ -417,27 +346,32 @@ const SupplierList = ({
         </table>
       </div>
 
-      {/* ── Delete confirm ── */}
-      <AnimatePresence>
-        {deleteTarget && (
-          <motion.div
-            className={styles.confirmOverlay}
-            onClick={() => setDeleteTarget(null)}
-          >
-            <motion.div
-              className={styles.confirmBox}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h4>Delete supplier?</h4>
+      {deleteTarget && (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmBox}>
+            <div className={styles.confirmTitle}>Delete supplier?</div>
+            <div className={styles.confirmDesc}>
+              This action cannot be undone.
+            </div>
 
-              <div className={styles.confirmActions}>
-                <button onClick={() => setDeleteTarget(null)}>Cancel</button>
-                <button onClick={handleDelete}>Delete</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className={styles.confirmActions}>
+              <button
+                className={styles.confirmCancel}
+                onClick={() => setDeleteTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.confirmDelete}
+                onClick={handleDelete}
+                disabled={deletingId === deleteTarget}
+              >
+                {deletingId === deleteTarget ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

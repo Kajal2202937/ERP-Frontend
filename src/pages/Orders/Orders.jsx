@@ -55,7 +55,6 @@ const Orders = () => {
 
   return (
     <div className={styles.page}>
-      {/* Top Bar */}
       <div className={styles.topBar}>
         <div className={styles.titleBlock}>
           <div className={styles.titleIcon}><TbShoppingCartPlus size={18} /></div>
@@ -105,8 +104,6 @@ const Orders = () => {
       </div>
 
       <OrderList orders={orders} refresh={fetchOrders} loading={loading} />
-
-      {/* Pagination */}
       <AnimatePresence>
         {!loading && pages > 1 && (
           <motion.div className={styles.pagination}
@@ -132,7 +129,6 @@ const Orders = () => {
         )}
       </AnimatePresence>
 
-      {/* Create Modal */}
       <AnimatePresence>
         {showForm && <CreateOrder refresh={fetchOrders} onClose={() => setShowForm(false)} />}
       </AnimatePresence>

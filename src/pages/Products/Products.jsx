@@ -62,7 +62,6 @@ const Products = () => {
   return (
     <div className={styles.page}>
 
-      {/* ── TOP BAR ── */}
       <div className={styles.topBar}>
         <div className={styles.titleBlock}>
           <div className={styles.titleIcon}><MdInventory2 size={18} /></div>
@@ -107,8 +106,6 @@ const Products = () => {
           </motion.button>
         </div>
       </div>
-
-      {/* ── MODAL ── */}
       <AnimatePresence>
         {showForm && (
           <motion.div className={styles.modalOverlay}
@@ -146,8 +143,6 @@ const Products = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ── TABLE CARD ── */}
       <motion.div className={styles.card}
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
@@ -159,8 +154,6 @@ const Products = () => {
           setShowForm={setShowForm}
         />
       </motion.div>
-
-      {/* ── PAGINATION ── */}
       <AnimatePresence>
         {!loading && totalPages > 1 && (
           <motion.div className={styles.pagination}

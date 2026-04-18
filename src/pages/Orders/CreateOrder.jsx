@@ -17,14 +17,12 @@ const CreateOrder = ({ refresh, onClose }) => {
   const [selectedStock, setSelectedStock] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load products
   useEffect(() => {
     API.get("/products")
       .then((res) => setProducts(res.data.data || []))
       .catch(() => toast.error("Failed to load products"));
   }, []);
 
-  // Load inventory
   useEffect(() => {
     getInventory()
       .then((res) => {
@@ -45,7 +43,6 @@ const CreateOrder = ({ refresh, onClose }) => {
     (p) => !disabledProductIds.has(p._id),
   );
 
-  // ✅ FIXED: get stock from inventory (NOT product)
   useEffect(() => {
     const inv = inventoryData.find((i) => i.product?._id === form.product);
     setSelectedStock(inv?.quantity || 0);
@@ -102,7 +99,6 @@ const CreateOrder = ({ refresh, onClose }) => {
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.headerIcon}>
@@ -120,11 +116,9 @@ const CreateOrder = ({ refresh, onClose }) => {
           </motion.button>
         </div>
 
-        {/* Body */}
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
-          {/* Product */}
           <div className={styles.field}>
-            <label className={styles.label}>
+            <label htmlFor="order-product" className={styles.label}>
               <FiPackage size={12} className={styles.labelIcon} />
               Product
             </label>
@@ -132,6 +126,8 @@ const CreateOrder = ({ refresh, onClose }) => {
             <div className={styles.selectWrap}>
               <select
                 className={styles.select}
+                id="order-product"
+                name="product"
                 value={form.product}
                 onChange={(e) => setForm({ ...form, product: e.target.value })}
               >
@@ -157,7 +153,6 @@ const CreateOrder = ({ refresh, onClose }) => {
             )}
           </div>
 
-          {/* Product Card */}
           <AnimatePresence>
             {selectedProduct && (
               <motion.div
@@ -215,10 +210,8 @@ const CreateOrder = ({ refresh, onClose }) => {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Quantity */}
           <div className={styles.field}>
-            <label className={styles.label}>
+            <label htmlFor="order-quantity" className={styles.label}>
               <FiHash size={12} className={styles.labelIcon} />
               Quantity
             </label>
@@ -227,6 +220,8 @@ const CreateOrder = ({ refresh, onClose }) => {
               className={`${styles.input} ${
                 overStock ? styles.inputError : ""
               }`}
+              id="order-quantity"
+              name="quantity"
               type="number"
               min="1"
               placeholder="Enter quantity…"
@@ -248,8 +243,6 @@ const CreateOrder = ({ refresh, onClose }) => {
               )}
             </AnimatePresence>
           </div>
-
-          {/* Actions */}
           <div className={styles.actions}>
             <button
               type="button"

@@ -15,7 +15,6 @@ import {
   FiToggleRight,
 } from "react-icons/fi";
 
-/* ── Status helpers ── */
 const STATE_META = {
   normal: { label: "Normal", cls: "normal" },
   low: { label: "Low", cls: "low" },
@@ -36,7 +35,6 @@ const InventoryList = ({ data = [], refresh }) => {
   const [savingId, setSavingId] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
 
-  /* ── Update quantity ── */
   const handleUpdate = async (item) => {
     const value = editData[item._id];
     if (value === "" || value === undefined || Number(value) < 0)
@@ -63,7 +61,6 @@ const InventoryList = ({ data = [], refresh }) => {
     }
   };
 
-  /* ── Toggle active ── */
   const handleToggle = async (item) => {
     try {
       setTogglingId(item.product._id);
@@ -93,7 +90,7 @@ const InventoryList = ({ data = [], refresh }) => {
             <th>Quantity</th>
             <th>Status</th>
             <th>Active</th>
-            <th>Actions</th> {/* Always visible now */}
+            <th>Actions</th>
           </tr>
         </thead>
 
@@ -117,7 +114,6 @@ const InventoryList = ({ data = [], refresh }) => {
                   exit={{ opacity: 0 }}
                   transition={{ delay: i * 0.03, duration: 0.2 }}
                 >
-                  {/* Product */}
                   <td>
                     <div className={styles.productCell}>
                       <div
@@ -134,11 +130,12 @@ const InventoryList = ({ data = [], refresh }) => {
                     </div>
                   </td>
 
-                  {/* Quantity */}
                   <td>
                     {isEditing ? (
                       <input
                         type="number"
+                        id={`qty-${item._id}`}
+                        name="quantity"
                         min="0"
                         className={styles.qtyInput}
                         value={editData[item._id] ?? ""}
@@ -163,15 +160,11 @@ const InventoryList = ({ data = [], refresh }) => {
                       </span>
                     )}
                   </td>
-
-                  {/* Status */}
                   <td>
                     <span className={`${styles.badge} ${styles[meta.cls]}`}>
                       {meta.label}
                     </span>
                   </td>
-
-                  {/* Active */}
                   <td>
                     {item.isActive ? (
                       <span className={styles.activePill}>
@@ -182,8 +175,6 @@ const InventoryList = ({ data = [], refresh }) => {
                       <span className={styles.disabledPill}>Disabled</span>
                     )}
                   </td>
-
-                  {/* Actions */}
                   <td>
                     <div className={styles.actions}>
                       {isEditing ? (

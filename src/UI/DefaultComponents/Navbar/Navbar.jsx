@@ -5,15 +5,48 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Sun, Moon } from "lucide-react";
 import {
-  FiMenu, FiX, FiChevronDown,
-  FiBox, FiSettings, FiShoppingCart, FiBarChart2
+  FiMenu,
+  FiX,
+  FiChevronDown,
+  FiBox,
+  FiSettings,
+  FiShoppingCart,
+  FiBarChart2,
 } from "react-icons/fi";
 
 const modules = [
-  { path: "/inventory/info", icon: <FiBox />, label: "Inventory", sub: "Stock & warehouse control", color: "var(--mod-inventory)", dim: "var(--mod-inventory-soft)" },
-  { path: "/production/info", icon: <FiSettings />, label: "Production", sub: "Manufacturing workflows", color: "var(--mod-production)", dim: "var(--mod-production-soft)" },
-  { path: "/sales", icon: <FiShoppingCart />, label: "Sales", sub: "Orders & transactions", color: "var(--mod-sales)", dim: "var(--mod-sales-soft)" },
-  { path: "/reports/info", icon: <FiBarChart2 />, label: "Reports", sub: "Analytics & insights", color: "var(--mod-reports)", dim: "var(--mod-reports-soft)" },
+  {
+    path: "/inventory/info",
+    icon: <FiBox />,
+    label: "Inventory",
+    sub: "Stock & warehouse control",
+    color: "var(--mod-inventory)",
+    dim: "var(--mod-inventory-soft)",
+  },
+  {
+    path: "/production/info",
+    icon: <FiSettings />,
+    label: "Production",
+    sub: "Manufacturing workflows",
+    color: "var(--mod-production)",
+    dim: "var(--mod-production-soft)",
+  },
+  {
+    path: "/sales",
+    icon: <FiShoppingCart />,
+    label: "Sales",
+    sub: "Orders & transactions",
+    color: "var(--mod-sales)",
+    dim: "var(--mod-sales-soft)",
+  },
+  {
+    path: "/reports/info",
+    icon: <FiBarChart2 />,
+    label: "Reports",
+    sub: "Analytics & insights",
+    color: "var(--mod-reports)",
+    dim: "var(--mod-reports-soft)",
+  },
 ];
 
 const Navbar = () => {
@@ -34,7 +67,6 @@ const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  // ✅ Close on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -47,7 +79,6 @@ const Navbar = () => {
 
   return (
     <header className={styles.navbar}>
-      {/* Logo */}
       <div className={styles.logo} onClick={() => goTo("/")}>
         <div className={styles.logoMark}>
           <svg viewBox="0 0 24 24">
@@ -60,7 +91,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Desktop Nav */}
       <nav className={styles.links}>
         {["/", "/about", "/contact"].map((path, i) => (
           <motion.button
@@ -73,8 +103,6 @@ const Navbar = () => {
             {["Home", "About", "Contact"][i]}
           </motion.button>
         ))}
-
-        {/* ✅ CLICK DROPDOWN */}
         <div className={styles.dropdownWrap} ref={dropdownRef}>
           <button
             className={`${styles.dropdownBtn} ${dropdown ? styles.open : ""}`}
@@ -86,7 +114,9 @@ const Navbar = () => {
             />
           </button>
 
-          <div className={`${styles.dropdownMenu} ${dropdown ? styles.show : ""}`}>
+          <div
+            className={`${styles.dropdownMenu} ${dropdown ? styles.show : ""}`}
+          >
             {modules.map((m) => (
               <div
                 key={m.path}
@@ -98,7 +128,7 @@ const Navbar = () => {
                   style={{
                     background: m.dim,
                     color: m.color,
-                    border: `1px solid color-mix(in srgb, ${m.color} 20%, transparent)`
+                    border: `1px solid color-mix(in srgb, ${m.color} 20%, transparent)`,
                   }}
                 >
                   {m.icon}
@@ -112,8 +142,6 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
-
-      {/* Actions */}
       <div className={styles.actions}>
         <motion.button
           className={styles.iconBtn}
@@ -143,8 +171,6 @@ const Navbar = () => {
           Sign in
         </motion.button>
       </div>
-
-      {/* Mobile */}
       <motion.div
         className={styles.menuIcon}
         onClick={() => setMenuOpen(!menuOpen)}
@@ -154,7 +180,11 @@ const Navbar = () => {
 
       <div className={`${styles.mobileMenu} ${menuOpen ? styles.open : ""}`}>
         {["/", "/about", "/contact"].map((path, i) => (
-          <button key={path} className={styles.mobileNavBtn} onClick={() => goTo(path)}>
+          <button
+            key={path}
+            className={styles.mobileNavBtn}
+            onClick={() => goTo(path)}
+          >
             {["Home", "About", "Contact"][i]}
           </button>
         ))}

@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./Contact.module.css";
-import { motion } from "framer-motion";
-import { FiMail, FiPhone, FiMapPin, FiSend } from "react-icons/fi";
-import { sendContactMessage } from "../../../services/contactService";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiSend, FiX } from "react-icons/fi";
+import {
+  sendContactMessage,
+  replyMessage,
+} from "../../../services/contactService";
+import { initSocket, getSocket } from "../../../services/socket";
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -12,247 +16,333 @@ const Contact = () => {
     message: "",
   });
 
+  const [conversationId, setConversationId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [replyText, setReplyText] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  // ================= HANDLE CHANGE =================
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // ✅ NEW STATES
+  const [isTyping, setIsTyping] = useState(false);
 
-  // ================= VALIDATION =================
-  const validate = () => {
-    if (!form.name || !form.email || !form.message) {
-      return "All required fields must be filled";
+  const socketRef = useRef(null);
+  const chatEndRef = useRef(null);
+  const conversationIdRef = useRef(null);
+  const isMounted = useRef(true);
+  const typingTimeout = useRef(null);
+
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  // SOCKET INIT
+  useEffect(() => {
+    let socket;
+    try {
+      socket = getSocket();
+    } catch {
+      socket = initSocket(localStorage.getItem("token"));
     }
+    socketRef.current = socket;
 
+    const handleReply = (data) => {
+      if (!conversationIdRef.current) return;
+      if (data.contactId !== conversationIdRef.current) return;
+      if (!isMounted.current) return;
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          sender: data.sender || "admin",
+          message: data.message,
+          createdAt: data.createdAt || new Date().toISOString(),
+          status: "sent", // ✅ NEW
+        },
+      ]);
+    };
+
+    // ✅ typing event
+    const handleTyping = () => {
+      setIsTyping(true);
+      clearTimeout(typingTimeout.current);
+      typingTimeout.current = setTimeout(() => {
+        setIsTyping(false);
+      }, 2000);
+    };
+
+    socket.on("contact_reply_receive", handleReply);
+    socket.on("contact_typing", handleTyping);
+
+    return () => {
+      socket.off("contact_reply_receive", handleReply);
+      socket.off("contact_typing", handleTyping);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!conversationId || !socketRef.current) return;
+
+    socketRef.current.emit("join_contact", { contactId: conversationId });
+
+    return () => {
+      socketRef.current.emit("leave_contact", { contactId: conversationId });
+    };
+  }, [conversationId]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const handleChange = (e) =>
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+
+  const validate = () => {
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      return "Name, email and message are required.";
+    }
     const emailRegex = /^\S+@\S+\.\S+$/;
     if (!emailRegex.test(form.email)) {
-      return "Invalid email format";
+      return "Please enter a valid email.";
     }
-
     return null;
   };
 
-  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
     const validationError = validate();
     if (validationError) {
       setError(validationError);
-      setLoading(false);
       return;
     }
-    try {
-      const data = await sendContactMessage(form);
 
-      if (data?.success) {
+    setLoading(true);
+
+    try {
+      const res = await sendContactMessage(form);
+
+      if (res?.success) {
         setSuccess(true);
-        setForm({
-          name: "",
-          email: "",
-          subject: "",
-          message: "",
-        });
+        setConversationId(res.data._id);
+
+        // ✅ SYSTEM MESSAGE ADDED
+        setMessages([
+          {
+            sender: "system",
+            message: "Conversation started. Our team will reply shortly.",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            sender: "user",
+            message: form.message,
+            createdAt: new Date().toISOString(),
+            status: "sent",
+          },
+        ]);
+
+        setForm({ name: "", email: "", subject: "", message: "" });
       }
     } catch (err) {
-      setError(err.message);
+      if (isMounted.current) {
+        setError(err?.message || "Failed to send message.");
+      }
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   };
 
-  // ================= STATIC DATA =================
-  const contactItems = [
-    {
-      icon: <FiMail />,
-      label: "Email",
-      value: "support@yourdomain.com",
-      color: "var(--mod-inventory)",
-      dim: "var(--mod-inventory-soft)",
-    },
-    {
-      icon: <FiPhone />,
-      label: "Phone",
-      value: "Available on request",
-      color: "var(--mod-sales)",
-      dim: "var(--mod-sales-soft)",
-    },
-    {
-      icon: <FiMapPin />,
-      label: "Location",
-      value: "India",
-      color: "var(--mod-production)",
-      dim: "var(--mod-production-soft)",
-    },
-  ];
+  const handleSendReply = async () => {
+    const text = replyText.trim();
+    if (!text || !conversationId) return;
 
-  const slideIn = {
-    hidden: { opacity: 0, x: -16 },
-    show: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-    },
+    setReplyText("");
+    setError("");
+
+    const tempMessage = {
+      sender: "user",
+      message: text,
+      createdAt: new Date().toISOString(),
+      status: "sending", // ✅ NEW
+    };
+
+    setMessages((prev) => [...prev, tempMessage]);
+
+    try {
+      await replyMessage(conversationId, text);
+
+      setMessages((prev) =>
+        prev.map((m) => (m === tempMessage ? { ...m, status: "sent" } : m)),
+      );
+    } catch {
+      if (isMounted.current) {
+        setError("Failed to send message.");
+        setMessages((prev) =>
+          prev.map((m) => (m === tempMessage ? { ...m, status: "failed" } : m)),
+        );
+      }
+    }
+  };
+
+  const handleReplyKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendReply();
+    }
+  };
+
+  // ✅ CLOSE CHAT
+  const handleCloseChat = () => {
+    socketRef.current?.emit("leave_contact", { contactId: conversationId });
+    setSuccess(false);
+    setConversationId(null);
+    setMessages([]);
+    setReplyText("");
+    setError("");
+  };
+
+  // ✅ typing emit
+  const handleTypingInput = (e) => {
+    setReplyText(e.target.value);
+    socketRef.current?.emit("contact_typing", {
+      contactId: conversationId,
+    });
   };
 
   return (
     <div className={styles.page}>
-      {/* Hero */}
-      <section className={styles.hero}>
-        <motion.span
-          className={styles.eyebrow}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          Contact
-        </motion.span>
-
-        <motion.h1
-          className={styles.heroTitle}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.08 }}
-        >
-          Get in touch with us
-        </motion.h1>
-
-        <motion.p className={styles.heroDesc}>
-          If you have questions about the system, feel free to reach out.
-        </motion.p>
-      </section>
-
-      {/* Main */}
-      <div className={styles.main}>
-        {/* Info */}
-        <motion.div className={styles.infoCol}>
-          <div>
-            <p className={styles.infoLabel}>Contact Information</p>
-            <h2 className={styles.infoTitle}>Reach us for any queries</h2>
-            <p className={styles.infoDesc}>
-              You can contact us for general information or technical support.
+      <AnimatePresence mode="wait">
+        {!success ? (
+          <motion.div key="form" className={styles.formCard}>
+            <h2 className={styles.title}>Contact Us</h2>
+            <p className={styles.subtitle}>
+              Send a message and start a live conversation.
             </p>
-          </div>
 
-          <motion.div className={styles.contactItems}>
-            {contactItems.map((item) => (
-              <motion.div key={item.label} className={styles.contactItem}>
-                <div
-                  className={styles.contactIconBox}
-                  style={{ background: item.dim, color: item.color }}
-                >
-                  {item.icon}
-                </div>
-                <div>
-                  <div className={styles.contactLabel}>{item.label}</div>
-                  <div className={styles.contactValue}>{item.value}</div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+            {error && <p className={styles.errorMsg}>{error}</p>}
 
-          <motion.div className={styles.responseBox}>
-            <span className={styles.responseIcon} />
-            <p className={styles.responseText}>
-              Our team reviews all messages and responds based on availability.
-            </p>
-          </motion.div>
-        </motion.div>
-
-        {/* Form */}
-        <motion.div className={styles.formCard}>
-          <div className={styles.formHeader}>
-            <p className={styles.formTitle}>Send a message</p>
-            <p className={styles.formSub}>
-              Fill out the form and we will review your request.
-            </p>
-          </div>
-
-          {/* ✅ ERROR */}
-          {error && (
-            <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>
-          )}
-
-          {/* SUCCESS */}
-          {success ? (
-            <div className={styles.successState}>
-              <p className={styles.successTitle}>Message submitted</p>
-              <p className={styles.successSub}>
-                Your message has been received successfully.
-              </p>
-            </div>
-          ) : (
-            <form className={styles.form} onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className={styles.form} noValidate>
               <div className={styles.row}>
                 <div className={styles.field}>
-                  <label className={styles.label}>Full Name</label>
+                  <label>Name</label>
                   <input
-                    className={styles.input}
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    required
                   />
                 </div>
-
                 <div className={styles.field}>
-                  <label className={styles.label}>Email</label>
+                  <label>Email</label>
                   <input
-                    className={styles.input}
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    required
                   />
                 </div>
               </div>
 
               <div className={styles.field}>
-                <label className={styles.label}>Subject</label>
-                <select
-                  className={styles.select}
+                <label>Subject</label>
+                <input
                   name="subject"
                   value={form.subject}
                   onChange={handleChange}
-                >
-                  <option value="">Select topic</option>
-                  <option value="general">General inquiry</option>
-                  <option value="support">Support</option>
-                </select>
-              </div>
-
-              <div className={styles.field}>
-                <label className={styles.label}>Message</label>
-                <textarea
-                  className={styles.textarea}
-                  name="message"
-                  value={form.message}
-                  onChange={handleChange}
-                  required
                 />
               </div>
 
-              <motion.button
+              <div className={styles.field}>
+                <label>Message</label>
+                <textarea
+                  name="message"
+                  rows={5}
+                  value={form.message}
+                  onChange={handleChange}
+                />
+              </div>
+
+              <button
                 type="submit"
-                className={styles.btnSubmit}
+                className={styles.sendBtn}
                 disabled={loading}
               >
                 {loading ? (
                   "Sending..."
                 ) : (
                   <>
-                    <FiSend /> Submit
+                    Send Message <FiSend />
                   </>
                 )}
-              </motion.button>
+              </button>
             </form>
-          )}
-        </motion.div>
-      </div>
+          </motion.div>
+        ) : (
+          <motion.div key="chat" className={styles.chatCard}>
+            <div className={styles.chatHeader}>
+              <div className={styles.onlineDot} />
+              <div>
+                <h3>Live Chat</h3>
+                <span>Support is online</span>
+              </div>
+
+              {/* ✅ CLOSE BUTTON */}
+              <button className={styles.closeBtn} onClick={handleCloseChat}>
+                <FiX />
+              </button>
+            </div>
+
+            <div className={styles.chatBody}>
+              {messages.map((m, i) => (
+                <div key={i} className={styles.msgRow}>
+                  <div className={styles.bubble}>
+                    {m.message}
+
+                    {/* ✅ STATUS */}
+                    {m.status && (
+                      <span className={styles.msgStatus}>
+                        {m.status === "sending" && "Sending..."}
+                        {m.status === "sent" && "✓"}
+                        {m.status === "failed" && "Failed"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* ✅ TYPING */}
+              {isTyping && (
+                <div className={styles.typing}>Support is typing...</div>
+              )}
+
+              <div ref={chatEndRef} />
+            </div>
+
+            <div className={styles.chatInputRow}>
+              <input
+                className={styles.chatInput}
+                value={replyText}
+                onChange={handleTypingInput}
+                onKeyDown={handleReplyKeyDown}
+                placeholder="Type a message…"
+              />
+              <button
+                onClick={handleSendReply}
+                disabled={!replyText.trim()}
+                className={styles.sendIconBtn}
+              >
+                <FiSend />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

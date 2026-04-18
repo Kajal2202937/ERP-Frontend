@@ -4,7 +4,6 @@
   gap: 24px;
 }
 
-/* ── Header ── */
 .header {
   display: flex;
   align-items: flex-start;
@@ -40,7 +39,7 @@
   font-weight: 500;
   color: var(--green);
   background: var(--green-soft);
-  border: 1px solid rgba(62,207,142,0.2);
+  border: 1px solid rgba(62, 207, 142, 0.2);
   padding: 5px 10px;
   border-radius: 999px;
   letter-spacing: 0.3px;
@@ -48,7 +47,7 @@
 }
 
 .headerBadge::before {
-  content: '';
+  content: "";
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -57,21 +56,24 @@
 }
 
 @keyframes badgePulse {
-  0%,100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
-/* ── Error ── */
 .error {
   background: var(--red-soft);
-  border: 1px solid rgba(248,113,113,0.25);
+  border: 1px solid rgba(248, 113, 113, 0.25);
   border-radius: var(--radius-md);
   padding: 12px 16px;
   font-size: 13px;
   color: var(--red);
 }
 
-/* ── Section Title ── */
 .sectionTitle {
   font-size: 11px;
   font-family: var(--font-mono);
@@ -84,7 +86,6 @@
   margin-bottom: -8px;
 }
 
-/* ── Stat Cards ── */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -99,7 +100,9 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  transition: border-color var(--transition), transform var(--transition);
+  transition:
+    border-color var(--transition),
+    transform var(--transition);
   cursor: default;
 }
 
@@ -130,20 +133,23 @@
 }
 
 .cardDanger {
-  border-color: rgba(248,113,113,0.2);
-  background: rgba(248,113,113,0.03);
+  border-color: rgba(248, 113, 113, 0.2);
+  background: rgba(248, 113, 113, 0.03);
 }
 
-.cardDanger:hover { border-color: rgba(248,113,113,0.35); }
+.cardDanger:hover {
+  border-color: rgba(248, 113, 113, 0.35);
+}
 
 .cardSuccess {
-  border-color: rgba(62,207,142,0.2);
-  background: rgba(62,207,142,0.03);
+  border-color: rgba(62, 207, 142, 0.2);
+  background: rgba(62, 207, 142, 0.03);
 }
 
-.cardSuccess:hover { border-color: rgba(62,207,142,0.35); }
+.cardSuccess:hover {
+  border-color: rgba(62, 207, 142, 0.35);
+}
 
-/* ── Trend ── */
 .trend {
   display: inline-flex;
   align-items: center;
@@ -156,11 +162,19 @@
   width: fit-content;
 }
 
-.trendUp    { color: var(--green); background: var(--green-soft); }
-.trendDown  { color: var(--red);   background: var(--red-soft);   }
-.trendNeutral { color: var(--text3); background: var(--surface2); }
+.trendUp {
+  color: var(--green);
+  background: var(--green-soft);
+}
+.trendDown {
+  color: var(--red);
+  background: var(--red-soft);
+}
+.trendNeutral {
+  color: var(--text3);
+  background: var(--surface2);
+}
 
-/* ── Charts ── */
 .chartsRow {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -183,7 +197,6 @@
   color: var(--text);
 }
 
-/* ── Pie Legend ── */
 .pieLegend {
   display: flex;
   flex-wrap: wrap;
@@ -205,7 +218,6 @@
   flex-shrink: 0;
 }
 
-/* ── Skeleton ── */
 .skeletonGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -230,11 +242,20 @@
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @media (max-width: 900px) {
-  .chartsRow { grid-template-columns: 1fr; }
-  .skeletonGrid { grid-template-columns: repeat(2,1fr); }
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+  .skeletonGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

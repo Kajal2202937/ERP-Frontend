@@ -12,28 +12,28 @@ const features = [
   {
     icon: <FiBarChart2 />,
     name: "Interactive Dashboards",
-    desc: "Real-time KPI dashboards with drill-down capability — see the whole picture or zoom into any metric.",
+    desc: "Get a clear view of your key metrics in one place, and explore details when something needs attention.",
     color: "#4da8f5",
     dim: "rgba(77,168,245,0.1)",
   },
   {
     icon: <FiPieChart />,
     name: "Sales & Inventory Mix",
-    desc: "Visual breakdowns of revenue by product, supplier, and period using donut and bar charts.",
+    desc: "Understand how your products, suppliers, and sales are performing through simple visual breakdowns.",
     color: "#6c74f0",
     dim: "rgba(108,116,240,0.1)",
   },
   {
     icon: <FiTrendingUp />,
     name: "Trend Analysis",
-    desc: "Detect growth patterns, seasonal demand, and operational trends with automated trendline overlays.",
+    desc: "Spot patterns in your data over time so you can plan better and respond to changes early.",
     color: "#3ecf8e",
     dim: "rgba(62,207,142,0.1)",
   },
   {
     icon: <FiFileText />,
     name: "Exportable Reports",
-    desc: "Generate PDF or CSV reports on demand, scheduled for email delivery, or triggered by milestones.",
+    desc: "Download and share reports when needed, making it easier to review or discuss performance with your team.",
     color: "#f0a855",
     dim: "rgba(240,168,85,0.1)",
   },
@@ -44,6 +44,7 @@ const ReportsInfo = () => {
 
   return (
     <div className={styles.page}>
+      {/* HERO */}
       <section className={styles.hero}>
         <div
           className={styles.heroOrb}
@@ -54,6 +55,7 @@ const ReportsInfo = () => {
             left: "auto",
           }}
         />
+
         <div className={styles.heroInner}>
           <div className={styles.heroLeft}>
             <span
@@ -66,25 +68,27 @@ const ReportsInfo = () => {
             >
               Reports Module
             </span>
+
             <h1 className={styles.heroTitle}>
-              Decisions powered
+              Understand your business
               <br />
               <span
                 style={{
                   background: "linear-gradient(135deg,#4da8f5,#7ec8ff)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
                 }}
               >
-                by real data
+                through clear insights
               </span>
             </h1>
+
             <p className={styles.heroDesc}>
-              Stop guessing. Understand your business performance with
-              interactive charts, trend analysis, and exportable reports — all
-              updated in real time.
+              When data is scattered, it’s hard to make decisions. This module
+              brings everything together so you can see what’s happening,
+              understand trends, and make more confident choices.
             </p>
+
             <div className={styles.heroBtns}>
               <button
                 className={styles.btnPrimary}
@@ -99,13 +103,13 @@ const ReportsInfo = () => {
               </button>
             </div>
           </div>
+
           <div className={styles.heroRight}>
             <div className={styles.analyticsCard}>
               <div className={styles.analyticsHeader}>
                 <span>Analytics Overview</span>
               </div>
 
-              {/* Chart Preview */}
               <div className={styles.chartPreview}>
                 {[40, 60, 35, 70, 55, 80, 65].map((h, i) => (
                   <div
@@ -116,13 +120,12 @@ const ReportsInfo = () => {
                 ))}
               </div>
 
-              {/* Metrics Labels */}
               <div className={styles.analyticsMetrics}>
                 {[
                   "Revenue Trends",
-                  "Order Volume",
-                  "Inventory Insights",
-                  "Performance Summary",
+                  "Order Activity",
+                  "Inventory Movement",
+                  "Overall Performance",
                 ].map((label) => (
                   <div key={label} className={styles.metricItem}>
                     <span className={styles.metricDot} />
@@ -135,27 +138,14 @@ const ReportsInfo = () => {
         </div>
       </section>
 
+      {/* FEATURES */}
       <section className={styles.featuresSection}>
         <div className={styles.sectionHeader}>
-          <p
-            style={{
-              fontSize: 11,
-              fontFamily: "'Geist Mono',monospace",
-              color: "rgba(238,240,247,0.28)",
-              letterSpacing: "1.5px",
-              textTransform: "uppercase",
-            }}
-          >
-            KEY FEATURES
-          </p>
           <h2 className={styles.sectionTitle}>
-            Analytics that actually answer questions
+            Insights that help you make better decisions
           </h2>
-          <p className={styles.sectionDesc}>
-            From daily operations to quarterly reviews — every report you need,
-            on demand.
-          </p>
         </div>
+
         <div className={styles.featureGrid}>
           {features.map((f) => (
             <div
@@ -173,6 +163,7 @@ const ReportsInfo = () => {
               >
                 {f.icon}
               </div>
+
               <div className={styles.featureName}>{f.name}</div>
               <div className={styles.featureDesc}>{f.desc}</div>
             </div>
@@ -180,26 +171,19 @@ const ReportsInfo = () => {
         </div>
       </section>
 
+      {/* CTA */}
       <section className={styles.ctaSection}>
-        <div
-          className={styles.ctaBox}
-          style={{
-            "--cta-line":
-              "linear-gradient(90deg, transparent, rgba(77,168,245,0.5), rgba(126,200,255,0.8), rgba(77,168,245,0.5), transparent)",
-          }}
-        >
-          <h2 className={styles.ctaTitle}>Make data-driven decisions</h2>
-          <p className={styles.ctaDesc}>
-            Access the reports module and transform raw business data into
-            actionable insights.
-          </p>
+        <div className={styles.ctaBox}>
+          <h2 className={styles.ctaTitle}>
+            Use your data to move forward with clarity
+          </h2>
+
           <div className={styles.ctaActions}>
             <button
               className={styles.btnPrimary}
               style={{
                 background: "#1c7abf",
                 borderColor: "rgba(77,168,245,0.5)",
-                "--btn-shadow": "rgba(77,168,245,0.3)",
               }}
               onClick={() => navigate("/login")}
             >

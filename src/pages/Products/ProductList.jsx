@@ -21,7 +21,16 @@ const ProductList = ({
   loading,
 }) => {
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({});
+
+  const [form, setForm] = useState({
+    name: "",
+    price: "",
+    costPrice: "",
+    category: "",
+    quantity: "",
+    supplier: "",
+  });
+
   const [inventoryMap, setInventoryMap] = useState({});
   const [suppliers, setSuppliers] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -41,8 +50,16 @@ const ProductList = ({
 
   useEffect(() => {
     API.get("/suppliers")
-      .then((res) => setSuppliers(res.data.data || []))
-      .catch(() => {});
+      .then((res) => {
+        const list =
+          res?.data?.data?.data || res?.data?.data || res?.data || [];
+
+        setSuppliers(Array.isArray(list) ? list : []);
+      })
+      .catch(() => {
+        setSuppliers([]);
+        toast.error("Failed to load suppliers");
+      });
   }, []);
 
   const isInventoryDisabled = (id) =>
@@ -51,11 +68,11 @@ const ProductList = ({
   const handleEdit = (p) => {
     setEditId(p._id);
     setForm({
-      name: p.name,
-      price: p.price,
-      costPrice: p.costPrice || 0, // ✅ ADDED
-      category: p.category,
-      quantity: p.quantity,
+      name: p.name || "",
+      price: p.price ?? "",
+      costPrice: p.costPrice ?? 0,
+      category: p.category || "",
+      quantity: p.quantity ?? "",
       supplier: p.supplier?._id || "",
     });
   };
@@ -63,14 +80,27 @@ const ProductList = ({
   const handleUpdate = async (id) => {
     try {
       setSavingId(id);
+
       await updateProduct(id, {
         ...form,
-        price: Number(form.price),
-        costPrice: Number(form.costPrice), // ✅ ADDED
-        quantity: Number(form.quantity),
+        price: Number(form.price) || 0,
+        costPrice: Number(form.costPrice) || 0,
+        quantity: Number(form.quantity) || 0,
+        supplier: form.supplier || null,
       });
+
       toast.success("Product updated");
       setEditId(null);
+
+      setForm({
+        name: "",
+        price: "",
+        costPrice: "",
+        category: "",
+        quantity: "",
+        supplier: "",
+      });
+
       refresh();
     } catch {
       toast.error("Update failed");
@@ -90,7 +120,6 @@ const ProductList = ({
     }
   };
 
-  /* ── Skeleton ── */
   if (loading) {
     return (
       <div className={styles.tableWrap}>
@@ -130,7 +159,6 @@ const ProductList = ({
     );
   }
 
-  /* ── Empty ── */
   if (!products.length) {
     return (
       <div className={styles.empty}>
@@ -151,7 +179,7 @@ const ProductList = ({
             <tr>
               <th>Name</th>
               <th>Price</th>
-              <th>Cost</th> {/* ✅ ADDED */}
+              <th>Cost</th>
               <th>Category</th>
               <th>Qty</th>
               <th>Supplier</th>
@@ -159,6 +187,7 @@ const ProductList = ({
               <th>Actions</th>
             </tr>
           </thead>
+
           <tbody>
             <AnimatePresence>
               {products.map((p, i) => {
@@ -270,7 +299,18 @@ const ProductList = ({
 
                             <motion.button
                               className={`${styles.actionBtn} ${styles.cancelBtn}`}
-                              onClick={() => setEditId(null)}
+                              onClick={() => {
+                                setEditId(null);
+
+                                setForm({
+                                  name: "",
+                                  price: "",
+                                  costPrice: "",
+                                  category: "",
+                                  quantity: "",
+                                  supplier: "",
+                                });
+                              }}
                               disabled={isSaving}
                               whileHover={{ scale: 1.08 }}
                               whileTap={{ scale: 0.92 }}
@@ -297,7 +337,9 @@ const ProductList = ({
 
                         <td>
                           <span
-                            className={`${styles.qty} ${p.quantity <= 5 ? styles.lowQty : ""}`}
+                            className={`${styles.qty} ${
+                              p.quantity <= 5 ? styles.lowQty : ""
+                            }`}
                           >
                             {p.quantity <= 5 && <FiAlertTriangle size={11} />}
                             {p.quantity.toLocaleString()}
@@ -327,7 +369,6 @@ const ProductList = ({
                                 if (disabled) return;
                                 handleEdit(p);
                                 setEditData(p);
-                                setShowForm(true);
                               }}
                             >
                               <FiEdit2 size={13} />

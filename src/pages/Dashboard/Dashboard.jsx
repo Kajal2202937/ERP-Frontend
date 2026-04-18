@@ -144,7 +144,7 @@ const Dashboard = () => {
           getSalesTrend(),
           API.get("/inventory"),
           API.get("/products"),
-          API.get("/contact"), // ✅ NEW
+          API.get("/contact"),
         ]);
         const contacts = contactRes?.data?.data || [];
 
@@ -272,12 +272,6 @@ const Dashboard = () => {
               value={inventoryStats.activeItems}
               variant="success"
               sub="Currently active"
-            />
-            <StatCard
-              title="Messages"
-              value={contactStats.total}
-              sub={`${contactStats.unread} unread`}
-              variant={contactStats.unread > 0 ? "danger" : "success"}
             />
           </div>
 

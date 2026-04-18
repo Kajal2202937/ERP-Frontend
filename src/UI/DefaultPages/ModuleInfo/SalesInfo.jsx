@@ -12,28 +12,28 @@ const features = [
   {
     icon: <FiShoppingCart />,
     name: "Order Management",
-    desc: "Create, track, and fulfil orders from a single view — with real-time stock validation on every line item.",
+    desc: "Handle orders from start to finish in one place, so nothing gets missed or delayed.",
     color: "#3ecf8e",
     dim: "rgba(62,207,142,0.1)",
   },
   {
     icon: <FiUsers />,
     name: "Customer Intelligence",
-    desc: "Build detailed customer profiles with purchase history, order frequency, and lifetime value metrics.",
+    desc: "Keep track of your customers, their orders, and how often they buy, so you can serve them better.",
     color: "#6c74f0",
     dim: "rgba(108,116,240,0.1)",
   },
   {
     icon: <FiDollarSign />,
     name: "Revenue Tracking",
-    desc: "Monitor gross revenue, average order value, and margin across products, customers, and periods.",
+    desc: "See how your sales are performing over time and understand where your revenue is coming from.",
     color: "#f0a855",
     dim: "rgba(240,168,85,0.1)",
   },
   {
     icon: <FiTrendingUp />,
-    name: "Growth Analytics",
-    desc: "Identify your best-performing products and customers with automated ranking and trend visualisations.",
+    name: "Growth Insights",
+    desc: "Identify which products and customers are driving your business forward.",
     color: "#4da8f5",
     dim: "rgba(77,168,245,0.1)",
   },
@@ -44,6 +44,7 @@ const SalesInfo = () => {
 
   return (
     <div className={styles.page}>
+      {/* HERO */}
       <section className={styles.hero}>
         <div
           className={styles.heroOrb}
@@ -53,6 +54,7 @@ const SalesInfo = () => {
             left: "-80px",
           }}
         />
+
         <div className={styles.heroInner}>
           <div className={styles.heroLeft}>
             <span
@@ -65,24 +67,28 @@ const SalesInfo = () => {
             >
               Sales Module
             </span>
+
             <h1 className={styles.heroTitle}>
-              Close more, track
+              Manage your sales
               <br />
               <span
                 style={{
                   background: "linear-gradient(135deg,#3ecf8e,#5edba5)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
                 }}
               >
-                every rupee
+                with better clarity
               </span>
             </h1>
+
             <p className={styles.heroDesc}>
-              Handle orders end-to-end, understand your customers deeply, and
-              drive revenue growth with sales analytics built for scale.
+              Sales can get messy when orders, customers, and payments are
+              handled separately. Bring everything together so you can stay
+              organized, track progress, and understand how your business is
+              growing.
             </p>
+
             <div className={styles.heroBtns}>
               <button
                 className={styles.btnPrimary}
@@ -97,6 +103,7 @@ const SalesInfo = () => {
               </button>
             </div>
           </div>
+
           <div className={styles.heroRight}>
             <div className={styles.salesCard}>
               <div className={styles.salesHeader}>
@@ -120,34 +127,21 @@ const SalesInfo = () => {
               </div>
 
               <div className={styles.pipelineFooter}>
-                <span>Orders move through structured stages</span>
+                <span>Orders move step by step until completion</span>
               </div>
             </div>
-          </div>{" "}
+          </div>
         </div>
       </section>
 
+      {/* FEATURES */}
       <section className={styles.featuresSection}>
         <div className={styles.sectionHeader}>
-          <p
-            style={{
-              fontSize: 11,
-              fontFamily: "'Geist Mono',monospace",
-              color: "rgba(238,240,247,0.28)",
-              letterSpacing: "1.5px",
-              textTransform: "uppercase",
-            }}
-          >
-            KEY FEATURES
-          </p>
           <h2 className={styles.sectionTitle}>
-            Sales tools that keep up with your team
+            Everything you need to manage sales smoothly
           </h2>
-          <p className={styles.sectionDesc}>
-            From the first order to repeat business — every touchpoint managed
-            in one system.
-          </p>
         </div>
+
         <div className={styles.featureGrid}>
           {features.map((f) => (
             <div
@@ -165,6 +159,7 @@ const SalesInfo = () => {
               >
                 {f.icon}
               </div>
+
               <div className={styles.featureName}>{f.name}</div>
               <div className={styles.featureDesc}>{f.desc}</div>
             </div>
@@ -172,26 +167,19 @@ const SalesInfo = () => {
         </div>
       </section>
 
+      {/* CTA */}
       <section className={styles.ctaSection}>
-        <div
-          className={styles.ctaBox}
-          style={{
-            "--cta-line":
-              "linear-gradient(90deg, transparent, rgba(62,207,142,0.5), rgba(94,219,165,0.8), rgba(62,207,142,0.5), transparent)",
-          }}
-        >
-          <h2 className={styles.ctaTitle}>Grow your sales faster</h2>
-          <p className={styles.ctaDesc}>
-            Access the sales module and get complete visibility into every
-            order, customer, and revenue stream.
-          </p>
+        <div className={styles.ctaBox}>
+          <h2 className={styles.ctaTitle}>
+            Keep your sales organized and growing
+          </h2>
+
           <div className={styles.ctaActions}>
             <button
               className={styles.btnPrimary}
               style={{
                 background: "#1d9e75",
                 borderColor: "rgba(62,207,142,0.5)",
-                "--btn-shadow": "rgba(62,207,142,0.3)",
               }}
               onClick={() => navigate("/login")}
             >

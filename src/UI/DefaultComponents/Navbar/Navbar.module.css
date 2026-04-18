@@ -1,364 +1,351 @@
-/* ── ROOT VARIABLES ── */
-:root {
-  --navbar-h: 60px;
-
-  --bg-glass: rgba(12, 13, 16, 0.82);
-
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.18);
-
-  --text-primary: #eef0f7;
-  --text-secondary: rgba(238, 240, 247, 0.6);
-  --text-muted: rgba(238, 240, 247, 0.4);
-  --text-ghost: rgba(238, 240, 247, 0.25);
-
-  --accent-soft: rgba(108, 116, 240, 0.12);
-  --accent-glow: rgba(108, 116, 240, 0.4);
-
-  --gradient-logo: linear-gradient(135deg, #6c74f0, #8b91f5);
-
-  --glow-line-accent: linear-gradient(
-    90deg,
-    transparent,
-    rgba(108, 116, 240, 0.6),
-    rgba(139, 145, 245, 0.8),
-    rgba(108, 116, 240, 0.6),
-    transparent
-  );
-
-  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
-
-  --r-sm: 8px;
-  --r-md: 14px;
-
-  --font: "Geist", sans-serif;
-  --font-mono: "Geist Mono", monospace;
-
-  /* 🔥 faster UI */
-  --t: 0.18s ease;
-  --t-fast: 0.1s ease;
-}
-
-/* ── Shell ── */
+/* ─── Navbar ────────────────────────────────────────────── */
 .navbar {
-  position: sticky;
+  font-family: var(--font);
+  position: fixed;
   top: 0;
-  z-index: 200;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   height: var(--navbar-h);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 24px;
+  gap: 8px;
   background: var(--bg-glass);
-
-  backdrop-filter: blur(18px); /* 🔥 reduced from 24 */
-  -webkit-backdrop-filter: blur(18px);
-
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border-bottom: 1px solid var(--border-subtle);
-
+  box-shadow: 0 1px 0 var(--border-subtle);
   transition:
     background var(--t),
     border-color var(--t);
 }
 
-.navbar::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--glow-line-accent);
-  opacity: 0.3;
-}
-
-/* ── Logo ── */
+/* ─── Logo ──────────────────────────────────────────────── */
 .logo {
   display: flex;
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  user-select: none;
-  text-decoration: none;
+  flex-shrink: 0;
+  margin-right: 8px;
 }
 
 .logoMark {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-sm);
+  width: 34px;
+  height: 34px;
   background: var(--gradient-logo);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 14px var(--accent-glow);
-  transition: box-shadow var(--t);
-}
-
-.logo:hover .logoMark {
-  box-shadow: 0 0 24px var(--accent-glow);
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 20px var(--accent-glow);
+  flex-shrink: 0;
 }
 
 .logoMark svg {
-  width: 16px;
-  height: 16px;
-  stroke: white;
-  stroke-width: 2.2;
+  width: 17px;
+  height: 17px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .logoText {
+  font-family: var(--font);
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .logoSub {
+  font-family: var(--font);
   font-size: 10px;
-  font-family: var(--font-mono);
-  color: var(--text-ghost);
-  letter-spacing: 1px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 4px;
+  vertical-align: middle;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-/* ── Desktop links ── */
+/* ─── Nav links ─────────────────────────────────────────── */
 .links {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  flex: 1;
+  padding: 0 12px;
 }
 
 .navBtn {
-  height: 34px;
-  padding: 0 14px;
-  border-radius: var(--r-sm);
-  background: transparent;
-  border: 1px solid transparent;
-  color: var(--text-secondary);
+  font-family: var(--font);
   font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all var(--t-fast);
+  padding: 6px 13px;
+  border-radius: var(--radius-sm);
+  transition:
+    color var(--t),
+    background var(--t);
+  letter-spacing: 0.01em;
+  position: relative;
 }
 
 .navBtn:hover {
+  color: var(--text-primary);
   background: var(--border-subtle);
-  border-color: var(--border-default);
-  color: var(--text-primary);
 }
 
-.active {
+.navBtn.active {
+  color: var(--text-primary);
   background: var(--border-default);
-  border-color: var(--border-medium);
-  color: var(--text-primary);
-  font-weight: 500;
 }
 
-/* ── Dropdown ── */
-.dropdownMenu {
+.navBtn.active::after {
+  content: "";
   position: absolute;
-  top: calc(100% + 10px);
-  left: 60%;
-  transform: translateX(-50%) translateY(-6px);
-
-  width: 240px;
-  background: var(--bg-glass);
-
-  /* 🔥 optimized blur */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  border: 1px solid var(--border-medium);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-xl);
-
-  overflow: hidden;
-
-  opacity: 0;
-  pointer-events: none;
-
-  transition:
-    opacity 0.12s ease,
-    transform 0.12s ease;
-
-  will-change: transform, opacity;
-
-  z-index: 300;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
 }
 
-.dropdownMenu.show {
-  opacity: 1.2;
-  pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
+/* ─── Dropdown ──────────────────────────────────────────── */
+.dropdownWrap {
+  position: relative;
 }
 
-/* ── Button ── */
 .dropdownBtn {
-  height: 34px;
-  padding: 0 14px;
-
-  border-radius: var(--r-sm);
-
-  background: transparent;      
-  border: 1px solid transparent;
-  outline: none;                
-
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
   color: var(--text-secondary);
-
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 13px;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
-  gap: 6px;
-
-  cursor: pointer;
-
-  font-family: var(--font);     
-  font-size: 13.5px;
-
-  appearance: none;             
-    -webkit-appearance: none;     
-
+  gap: 4px;
   transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    border-color 0.12s ease;
+    color var(--t),
+    background var(--t);
 }
 
 .dropdownBtn:hover,
 .dropdownBtn.open {
-  background: var(--border-subtle);
-  border-color: var(--border-default);
   color: var(--text-primary);
+  background: var(--border-subtle);
 }
 
 .chevron {
+  width: 14px;
+  height: 14px;
   transition: transform var(--t);
-}
-.chevron.rotated {
-  transform: rotate(180deg);
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
-/* ── Dropdown items ── */
+.rotated {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  width: 300px;
+  background: var(--bg-surface2);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  box-shadow: var(--shadow-xl);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--t),
+    transform var(--t);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dropdownMenu.show {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateX(-50%) translateY(0);
+}
+
 .dropItem {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 11px;
+  padding: 10px 11px;
+  border-radius: var(--radius);
   cursor: pointer;
-  border-bottom: 1px solid var(--border-subtle);
   transition: background var(--t-fast);
 }
 
-.dropItem:last-child {
-  border-bottom: none;
-}
-
 .dropItem:hover {
-  background: var(--accent-soft);
+  background: var(--border-subtle);
 }
 
 .dropItemIcon {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--r-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  flex-shrink: 0;
 }
 
 .dropItemText {
-  font-size: 13px;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 600;
   color: var(--text-primary);
-  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 .dropItemSub {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--text-muted);
+  margin-top: 1px;
 }
 
-/* ── Actions ── */
+/* ─── Actions ───────────────────────────────────────────── */
 .actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
 .iconBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--r-sm);
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: var(--border-subtle);
   border: 1px solid var(--border-default);
-  background: transparent;
   color: var(--text-secondary);
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transition:
+    background var(--t),
+    color var(--t),
+    border-color var(--t);
 }
 
 .iconBtn:hover {
-  background: var(--border-subtle);
+  background: var(--border-default);
   color: var(--text-primary);
+  border-color: var(--border-medium);
 }
 
 .btnOutline {
-  height: 32px;
-  padding: 0 16px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--border-medium);
-  background: transparent;
-  color: var(--text-secondary);
+  font-family: var(--font);
   font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--border-subtle);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius);
+  padding: 7px 17px;
   cursor: pointer;
+  transition:
+    background var(--t),
+    border-color var(--t);
+  letter-spacing: 0.01em;
 }
 
 .btnOutline:hover {
-  background: var(--border-subtle);
-  color: var(--text-primary);
+  background: var(--border-default);
+  border-color: var(--border-strong);
 }
 
-/* ── Mobile ── */
+/* ─── Hamburger ─────────────────────────────────────────── */
 .menuIcon {
   display: none;
+  font-size: 20px;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 6px;
+  margin-left: auto;
 }
 
+/* ─── Mobile menu ───────────────────────────────────────── */
 .mobileMenu {
   display: none;
-}
-
-.mobileMenu.open {
-  display: flex;
-  flex-direction: column;
   position: fixed;
   top: var(--navbar-h);
   left: 0;
   right: 0;
-  background: var(--bg-glass);
-  backdrop-filter: blur(18px);
-  padding: 12px 20px 20px;
-  z-index: 190;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  padding: 10px 16px 16px;
+  flex-direction: column;
+  gap: 3px;
+  transform: translateY(-8px);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--t),
+    opacity var(--t);
 }
 
-/* ── Responsive ── */
-@media (max-width: 900px) {
-  .navbar {
-    padding: 0 20px;
-  }
+.mobileMenu.open {
+  display: flex;
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
 
+.mobileNavBtn {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 13px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition:
+    color var(--t),
+    background var(--t);
+}
+
+.mobileNavBtn:hover {
+  color: var(--text-primary);
+  background: var(--border-subtle);
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+@media (max-width: 768px) {
   .links,
   .actions {
     display: none;
   }
-
   .menuIcon {
     display: flex;
-    width: 34px;
-    height: 34px;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-default);
-    border-radius: var(--r-sm);
-    color: var(--text-secondary);
   }
 }

@@ -2,9 +2,11 @@ import { useEffect, useState, useCallback } from "react";
 import {
   getSuppliers,
   bulkDeleteSuppliers,
+  getSupplierAnalytics,
 } from "../../services/SupplierService";
 import AddSupplier from "./AddSupplier";
 import SupplierList from "./SupplierList";
+import SupplierAnalytics from "./SupplierAnalytics";
 import styles from "./Suppliers.module.css";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -23,6 +25,7 @@ import { toast } from "react-toastify";
 
 const Suppliers = () => {
   const [data, setData] = useState([]);
+  const [analytics, setAnalytics] = useState([]);
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -42,7 +45,8 @@ const Suppliers = () => {
     setLoading(true);
     try {
       const res = await getSuppliers({ page, limit: 8, search });
-      const result = res?.data;
+
+      const result = res?.data?.data ?? res?.data ?? {};
       setData(result?.data || []);
       setTotalPages(result?.totalPages || 1);
       setTotal(result?.total || 0);
@@ -59,10 +63,18 @@ const Suppliers = () => {
     }
   }, [page, search]);
 
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      const res = await getSupplierAnalytics();
+      setAnalytics(res?.data?.data || []);
+    } catch {}
+  }, []);
+
   useEffect(() => {
-    const t = setTimeout(fetchData, 350);
+    const t = setTimeout(fetchData, 300);
+    fetchAnalytics();
     return () => clearTimeout(t);
-  }, [fetchData]);
+  }, [fetchData, fetchAnalytics]);
 
   useEffect(() => {
     setPage(1);
@@ -75,6 +87,7 @@ const Suppliers = () => {
       setSelected([]);
       setBulkConfirm(false);
       fetchData();
+      fetchAnalytics();
     } catch {
       toast.error("Bulk delete failed");
     }
@@ -91,6 +104,14 @@ const Suppliers = () => {
     if (right < totalPages - 1) range.push("...");
     if (totalPages > 1) range.push(totalPages);
     return range;
+  };
+
+  const fmtVal = (v) => {
+    if (!v) return "₹0";
+    if (v >= 10_000_000) return `₹${(v / 10_000_000).toFixed(1)}Cr`;
+    if (v >= 100_000) return `₹${(v / 100_000).toFixed(1)}L`;
+    if (v >= 1_000) return `₹${(v / 1_000).toFixed(1)}K`;
+    return `₹${v}`;
   };
 
   const kpiCards = [
@@ -118,7 +139,7 @@ const Suppliers = () => {
     {
       icon: <TbCurrencyRupee size={16} />,
       label: "Stock value",
-      value: `₹${stats.value.toLocaleString("en-IN")}`,
+      value: fmtVal(stats.value),
       color: "#4da8f5",
       dim: "rgba(77,168,245,0.12)",
     },
@@ -126,7 +147,6 @@ const Suppliers = () => {
 
   return (
     <div className={styles.page}>
-      {/* ── Top bar ── */}
       <div className={styles.topBar}>
         <div className={styles.titleBlock}>
           <div className={styles.titleIcon}>
@@ -170,10 +190,8 @@ const Suppliers = () => {
                 initial={{ opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 8 }}
-                transition={{ duration: 0.18 }}
               >
-                <FiTrash2 size={13} />
-                Delete ({selected.length})
+                <FiTrash2 size={13} /> Delete ({selected.length})
               </motion.button>
             )}
           </AnimatePresence>
@@ -189,7 +207,6 @@ const Suppliers = () => {
         </div>
       </div>
 
-      {/* ── KPI row ── */}
       <motion.div
         className={styles.kpiRow}
         variants={{
@@ -237,21 +254,27 @@ const Suppliers = () => {
           </motion.div>
         ))}
       </motion.div>
-
-      {/* ── Add supplier modal ── */}
+      {analytics.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <SupplierAnalytics data={analytics} />
+        </motion.div>
+      )}
       <AnimatePresence>
         {show && (
           <AddSupplier
             refresh={() => {
               fetchData();
+              fetchAnalytics();
               setShow(false);
             }}
             close={() => setShow(false)}
           />
         )}
       </AnimatePresence>
-
-      {/* ── Bulk delete confirm ── */}
       <AnimatePresence>
         {bulkConfirm && (
           <motion.div
@@ -297,8 +320,6 @@ const Suppliers = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ── Table ── */}
       <motion.div
         className={styles.card}
         initial={{ opacity: 0, y: 12 }}
@@ -307,14 +328,15 @@ const Suppliers = () => {
       >
         <SupplierList
           data={data}
-          refresh={fetchData}
+          refresh={() => {
+            fetchData();
+            fetchAnalytics();
+          }}
           loading={loading}
           selected={selected}
           setSelected={setSelected}
         />
       </motion.div>
-
-      {/* ── Pagination ── */}
       <AnimatePresence>
         {!loading && totalPages > 1 && (
           <motion.div

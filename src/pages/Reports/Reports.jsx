@@ -25,29 +25,28 @@ import {
   getInsights,
 } from "../../services/ReportService";
 
-// ─────────────────────────────
-// Utils
-// ─────────────────────────────
 const formatINR = (num) => Number(num || 0).toLocaleString("en-IN");
 
-// ✅ NEW: format date (fix 000000 issue)
 const formatDate = (date) => {
   const d = new Date(date);
-  if (isNaN(d)) return date; // fallback if already formatted
+  if (isNaN(d)) return date;
   return d.toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
   });
 };
 
-// ✅ NEW: compact currency
 const formatCompactINR = (value) => {
-  if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
-  if (value >= 1000) return `₹${(value / 1000).toFixed(1)}K`;
+  if (!value && value !== 0) return "₹0";
+  if (value >= 10000000)
+    return `₹${(value / 10000000).toFixed(value % 10000000 === 0 ? 0 : 1)}Cr`;
+  if (value >= 100000)
+    return `₹${(value / 100000).toFixed(value % 100000 === 0 ? 0 : 1)}L`;
+  if (value >= 1000)
+    return `₹${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}K`;
   return `₹${value}`;
 };
 
-// ✅ UPDATED TOOLTIP
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
 
@@ -62,9 +61,6 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-// ─────────────────────────────
-// COMPONENT
-// ─────────────────────────────
 const Reports = () => {
   const [data, setData] = useState({
     summary: {},
@@ -83,9 +79,6 @@ const Reports = () => {
     activeCard: null,
   });
 
-  // ─────────────────────────────
-  // Fallback Insight
-  // ─────────────────────────────
   const generateFallbackInsight = (summary = {}) => {
     const revenue = summary.totalRevenue || 0;
     const orders = summary.totalOrders || 0;
@@ -104,9 +97,6 @@ const Reports = () => {
     return msg.split(". ").join(".\n");
   };
 
-  // ─────────────────────────────
-  // FETCH DATA
-  // ─────────────────────────────
   const fetchReports = useCallback(async () => {
     setUI((p) => ({ ...p, loading: true, error: null }));
 
@@ -150,9 +140,6 @@ const Reports = () => {
     fetchReports();
   }, [fetchReports]);
 
-  // ─────────────────────────────
-  // KPI CARDS
-  // ─────────────────────────────
   const cards = [
     {
       key: "orders",
@@ -184,12 +171,8 @@ const Reports = () => {
     },
   ];
 
-  // ─────────────────────────────
-  // UI
-  // ─────────────────────────────
   return (
     <div className={styles.container}>
-      {/* HEADER */}
       <div className={styles.header}>
         <div>
           <h2>Reports Dashboard</h2>
@@ -219,8 +202,6 @@ const Reports = () => {
           </button>
         </div>
       </div>
-
-      {/* ERROR */}
       <AnimatePresence>
         {ui.error && (
           <motion.div
@@ -233,8 +214,6 @@ const Reports = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* KPI */}
       <div className={styles.kpiGrid}>
         {cards.map((card) => {
           const active = ui.activeCard === card.key;
@@ -261,8 +240,6 @@ const Reports = () => {
           );
         })}
       </div>
-
-      {/* CHART */}
       <div className={styles.chartBox}>
         <h3>Sales Trend</h3>
 
@@ -281,11 +258,7 @@ const Reports = () => {
               </defs>
 
               <CartesianGrid strokeDasharray="3 3" />
-
-              {/* ✅ FIXED X AXIS */}
               <XAxis dataKey="date" tickFormatter={formatDate} />
-
-              {/* ✅ CLEAN Y AXIS */}
               <YAxis tickFormatter={formatCompactINR} />
 
               <Tooltip content={<CustomTooltip />} />
@@ -301,15 +274,11 @@ const Reports = () => {
           </ResponsiveContainer>
         )}
       </div>
-
-      {/* INSIGHTS */}
       <div className={styles.insight}>
         <div className={styles.insightHeader}>
           <FiZap />
           <h4>Insights</h4>
         </div>
-
-        {/* ✅ UPDATED */}
         <p className={styles.insightText}>
           <FiTrendingUp className={styles.insightIcon} />
           <span className={styles.insightContent}>{data.insight}</span>

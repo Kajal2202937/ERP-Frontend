@@ -152,8 +152,6 @@ const ProductionList = ({ data, refresh }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Delete Confirm Modal */}
       <AnimatePresence>
         {deleteConfirm && (
           <motion.div className={styles.confirmOverlay}

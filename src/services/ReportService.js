@@ -3,16 +3,13 @@ import API from "./api";
 const BASE = "/reports";
 const TIMEOUT = 10000;
 
-// ─────────────────────────────
-// SAFE REQUEST (FIXED + CONSISTENT)
-// ─────────────────────────────
 const safeRequest = async (fn) => {
   try {
     const res = await fn();
 
     return {
       success: true,
-      data: res?.data?.data, // ONLY THIS
+      data: res?.data?.data,
       error: null,
     };
   } catch (error) {
@@ -23,21 +20,18 @@ const safeRequest = async (fn) => {
     };
   }
 };
-// ───────────── SUMMARY
+
 export const getSalesSummary = (params = {}) =>
   safeRequest(() => API.get(`${BASE}/sales`, { params, timeout: TIMEOUT }));
 
-// ───────────── TREND
 export const getSalesTrend = (params = {}) =>
   safeRequest(() =>
     API.get(`${BASE}/sales-trend`, { params, timeout: TIMEOUT }),
   );
 
-// ───────────── TOP PRODUCTS
 export const getTopProducts = () =>
   safeRequest(() => API.get(`${BASE}/top-products`, { timeout: TIMEOUT }));
 
-// ───────────── INSIGHTS
 export const getInsights = async () => {
   const res = await safeRequest(() => API.get("/insights"));
 

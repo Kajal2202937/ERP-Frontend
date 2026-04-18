@@ -141,7 +141,6 @@ const Inventory = () => {
 
   return (
     <div className={styles.page}>
-      {/* HEADER */}
       <div className={styles.topBar}>
         <div className={styles.titleBlock}>
           <div className={styles.titleIcon}>
@@ -197,7 +196,6 @@ const Inventory = () => {
             ))}
           </select>
 
-          {/* Always visible now */}
           <motion.button
             className={styles.btnPrimary}
             onClick={() => setShow(true)}
@@ -206,8 +204,6 @@ const Inventory = () => {
           </motion.button>
         </div>
       </div>
-
-      {/* KPI */}
       <motion.div className={styles.kpiRow} initial="hidden" animate="show">
         {kpis.map((k) => (
           <motion.div key={k.label} className={styles.kpiCard}>
@@ -231,8 +227,6 @@ const Inventory = () => {
           </motion.div>
         ))}
       </motion.div>
-
-      {/* MODAL */}
       <AnimatePresence>
         {show && (
           <div className={styles.modalOverlay} onClick={() => setShow(false)}>
@@ -248,8 +242,6 @@ const Inventory = () => {
           </div>
         )}
       </AnimatePresence>
-
-      {/* TABLE */}
       <div className={styles.tableCard}>
         {loading ? (
           <div>Loading...</div>
@@ -259,8 +251,6 @@ const Inventory = () => {
           <InventoryList data={data} refresh={fetchInventory} />
         )}
       </div>
-
-      {/* PAGINATION */}
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <button

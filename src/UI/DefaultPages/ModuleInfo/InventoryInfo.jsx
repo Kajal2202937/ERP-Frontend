@@ -12,28 +12,28 @@ const features = [
   {
     icon: <FiPackage />,
     name: "Stock Visibility",
-    desc: "Track available quantities, reserved stock, and movements across locations in real time.",
+    desc: "Always know what’s in stock, what’s reserved, and what’s moving — without needing to double-check or guess.",
     color: "#6c74f0",
     dim: "rgba(108,116,240,0.1)",
   },
   {
     icon: <FiLayers />,
     name: "Location Management",
-    desc: "Organise inventory across warehouses, stores, or storage units with structured control.",
+    desc: "Organize your inventory across different warehouses or storage areas in a way that’s easy to manage and understand.",
     color: "#4da8f5",
     dim: "rgba(77,168,245,0.1)",
   },
   {
     icon: <FiRefreshCw />,
     name: "Reorder Configuration",
-    desc: "Define minimum stock levels and restocking workflows based on operational needs.",
+    desc: "Set minimum stock levels and get clarity on when items need restocking, so you avoid last-minute shortages.",
     color: "#f0a855",
     dim: "rgba(240,168,85,0.1)",
   },
   {
     icon: <FiBarChart2 />,
     name: "Inventory Insights",
-    desc: "View stock trends, movement history, and usage patterns for better decision-making.",
+    desc: "Understand how your stock is used over time and spot patterns that help you plan better.",
     color: "#3ecf8e",
     dim: "rgba(62,207,142,0.1)",
   },
@@ -44,8 +44,9 @@ const InventoryInfo = () => {
 
   return (
     <div className={styles.page}>
-      {/* HERO */}
+      {/* HERO SECTION */}
       <section className={styles.hero}>
+
         <div
           className={styles.heroOrb}
           style={{
@@ -75,14 +76,15 @@ const InventoryInfo = () => {
                   "linear-gradient(135deg, #6c74f0 0%, #8b91f5 50%, #4da8f5 100%)",
               }}
             >
-              Centralised control over
+              Stay in control of your stock
               <br />
-              <span>inventory operations</span>
+              <span>without the usual complexity</span>
             </h1>
+
             <p className={styles.heroDesc}>
-              Track inventory across locations, monitor stock movement, and
-              maintain structured records with a system designed for operational
-              clarity.
+              Managing inventory shouldn’t feel overwhelming. Keep track of
+              stock, monitor movements, and maintain clear records — all in one
+              place so you always know what’s happening.
             </p>
 
             <div className={styles.heroBtns}>
@@ -97,11 +99,9 @@ const InventoryInfo = () => {
               >
                 Access Inventory <FiArrowRight />
               </button>
-
             </div>
           </div>
 
-          {/* GENERIC UI PREVIEW (NO FAKE DATA) */}
           <div className={styles.heroRight}>
             <div className={styles.mockCard}>
               <div className={styles.mockBar}>
@@ -128,7 +128,7 @@ const InventoryInfo = () => {
                   },
                   {
                     label: "Reorder Status",
-                    status: "Pending",
+                    status: "Needs Attention",
                     color: "#f0a855",
                   },
                 ].map((r) => (
@@ -155,24 +155,7 @@ const InventoryInfo = () => {
       {/* FEATURES */}
       <section className={styles.featuresSection}>
         <div className={styles.sectionHeader}>
-          <p
-            style={{
-              fontSize: 11,
-              fontFamily: "'Geist Mono',monospace",
-              color: "rgba(238,240,247,0.28)",
-              letterSpacing: "1.5px",
-              textTransform: "uppercase",
-            }}
-          >
-            FEATURES
-          </p>
-
-          <h2 className={styles.sectionTitle}>Core inventory capabilities</h2>
-
-          <p className={styles.sectionDesc}>
-            Designed to support structured inventory processes across different
-            business environments.
-          </p>
+          <h2 className={styles.sectionTitle}>What you can manage with ease</h2>
         </div>
 
         <div className={styles.featureGrid}>
@@ -200,110 +183,23 @@ const InventoryInfo = () => {
         </div>
       </section>
 
-      {/* PREVIEW */}
-      <section className={styles.previewSection}>
-        <div className={styles.previewInner}>
-          <div className={styles.previewText}>
-            <h2 className={styles.previewTitle}>
-              Structured inventory tracking for scalable operations
-            </h2>
-
-            <p className={styles.previewDesc}>
-              The module adapts to different inventory sizes and operational
-              complexity without changing workflow structure.
-            </p>
-
-            <div className={styles.previewList}>
-              {[
-                "Maintain consistent stock records",
-                "Track item-level movement history",
-                "Support bulk updates and imports",
-                "Define custom stock thresholds",
-              ].map((item) => (
-                <div key={item} className={styles.previewItem}>
-                  <span
-                    className={styles.previewItemDot}
-                    style={{ background: "#6c74f0" }}
-                  />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.mockCard} style={{ width: "100%" }}>
-            <div className={styles.mockBar}>
-              {["#f87171", "#f0a855", "#3ecf8e"].map((c, i) => (
-                <div key={i} className={styles.dot} style={{ background: c }} />
-              ))}
-            </div>
-
-            <div className={styles.previewFeatures}>
-              {[
-                {
-                  title: "Stock Visibility",
-                  desc: "Track available inventory across all locations in a structured view.",
-                },
-                {
-                  title: "Movement Logs",
-                  desc: "Maintain records of transfers and stock updates with traceability.",
-                },
-                {
-                  title: "Low Stock Alerts",
-                  desc: "Identify items that require attention based on defined thresholds.",
-                },
-                {
-                  title: "Data Consistency",
-                  desc: "Ensure accurate inventory records across all operations.",
-                },
-              ].map((item) => (
-                <div key={item.title} className={styles.previewCard}>
-                  <h4 className={styles.previewCardTitle}>{item.title}</h4>
-                  <p className={styles.previewCardDesc}>{item.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
-      <section
-        className={styles.ctaSection}
-        style={{
-          "--cta-orb":
-            "radial-gradient(ellipse, rgba(108,116,240,0.09) 0%, transparent 65%)",
-        }}
-      >
-        <div
-          className={styles.ctaBox}
-          style={{
-            "--cta-line":
-              "linear-gradient(90deg, transparent, rgba(108,116,240,0.6), rgba(139,145,245,0.8), rgba(108,116,240,0.6), transparent)",
-          }}
-        >
+      <section className={styles.ctaSection}>
+        <div className={styles.ctaBox}>
           <h2 className={styles.ctaTitle}>
-            Bring structure to your inventory operations
+            Keep your inventory organized and under control
           </h2>
-          <p className={styles.ctaDesc}>
-            Sign in to access inventory tools or create an account to begin
-            using the system.
-          </p>
 
-          <div className={styles.ctaActions}>
-            <button
-              className={styles.btnPrimary}
-              style={{
-                background: "#6c74f0",
-                borderColor: "rgba(108,116,240,0.5)",
-                "--btn-shadow": "rgba(108,116,240,0.3)",
-              }}
-              onClick={() => navigate("/login")}
-            >
-              Open Module <FiArrowRight />
-            </button>
-
-          </div>
+          <button
+            className={styles.btnPrimary}
+            style={{
+              background: "#6c74f0",
+              borderColor: "rgba(108,116,240,0.5)",
+            }}
+            onClick={() => navigate("/login")}
+          >
+            Open Module <FiArrowRight />
+          </button>
         </div>
       </section>
     </div>

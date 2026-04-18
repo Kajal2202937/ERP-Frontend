@@ -99,7 +99,6 @@ const AddSupplier = ({ refresh, close }) => {
         transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.headerIcon}>
@@ -115,18 +114,16 @@ const AddSupplier = ({ refresh, close }) => {
           <button
             className={styles.closeBtn}
             onClick={handleClose}
-            aria-label="Close"
+            aria- label=" Close"
           >
             <FiX size={14} />
           </button>
         </div>
-
-        {/* Form */}
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.grid}>
             <Field
               icon={<FiUser size={11} />}
-              label="Supplier name *"
+               label=" Supplier name *"
               error={errors.name}
             >
               <input
@@ -134,13 +131,12 @@ const AddSupplier = ({ refresh, close }) => {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
-                placeholder="e.g. Raj Kumar"
               />
             </Field>
 
             <Field
               icon={<FiBriefcase size={11} />}
-              label="Company *"
+               label=" Company *"
               error={errors.company}
             >
               <input
@@ -148,13 +144,12 @@ const AddSupplier = ({ refresh, close }) => {
                 name="company"
                 value={form.company}
                 onChange={handleChange}
-                placeholder="e.g. Acme Industries"
               />
             </Field>
 
             <Field
               icon={<FiMail size={11} />}
-              label="Email *"
+               label=" Email *"
               error={errors.email}
             >
               <input
@@ -163,13 +158,12 @@ const AddSupplier = ({ refresh, close }) => {
                 type="email"
                 value={form.email}
                 onChange={handleChange}
-                placeholder="supplier@company.com"
               />
             </Field>
 
             <Field
               icon={<FiPhone size={11} />}
-              label="Phone *"
+               label=" Phone *"
               error={errors.phone}
             >
               <input
@@ -177,14 +171,12 @@ const AddSupplier = ({ refresh, close }) => {
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
-                placeholder="+91 98765 43210"
               />
             </Field>
 
             <Field
               icon={<FiHome size={11} />}
-              label="Address"
-              optional
+               label=" Address"
               error={null}
               className={styles.full}
             >
@@ -193,7 +185,6 @@ const AddSupplier = ({ refresh, close }) => {
                 name="address"
                 value={form.address}
                 onChange={handleChange}
-                placeholder="Street, City, State"
               />
             </Field>
           </div>

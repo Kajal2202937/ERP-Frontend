@@ -53,7 +53,6 @@ const CreateProduction = ({ refresh, onClose }) => {
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.row}>
-            {/* Product */}
             <div className={styles.field}>
               <label className={styles.label}>
                 <FiPackage size={12} className={styles.labelIcon} />
@@ -71,7 +70,7 @@ const CreateProduction = ({ refresh, onClose }) => {
               </select>
             </div>
 
-            {/* Quantity */}
+            
             <div className={styles.field}>
               <label className={styles.label}>
                 <FiHash size={12} className={styles.labelIcon} />
@@ -87,7 +86,6 @@ const CreateProduction = ({ refresh, onClose }) => {
               />
             </div>
 
-            {/* Submit */}
             <div className={styles.fieldAction}>
               <label className={styles.labelSpacer} />
               <motion.button

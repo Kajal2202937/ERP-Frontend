@@ -1,27 +1,29 @@
+/* ─── Dashboard top navbar ──────────────────────────────── */
 .navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  height: var(--navbar-height);
+  font-family: var(--font);
+  height: var(--navbar-height, 52px);
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-
-  background: var(--surface);
-  opacity: 0.95;
-  backdrop-filter: blur(10px);
-  will-change: backdrop-filter;
-  -webkit-backdrop-filter: blur(16px);
-
-  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition:
+    background var(--t),
+    border-color var(--t);
 }
 
-/* ── Left ── */
+/* ─── Left ──────────────────────────────────────────────── */
 .left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .statusDot {
@@ -29,197 +31,371 @@
   height: 7px;
   border-radius: 50%;
   background: var(--green);
-  box-shadow: 0 0 8px var(--green);
-  animation: pulse 2.4s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(62, 207, 142, 0.55);
+  animation: pulse 2.5s ease-in-out infinite;
+  flex-shrink: 0;
 }
 
 @keyframes pulse {
   0%,
   100% {
+    transform: scale(1);
     opacity: 1;
-    box-shadow: 0 0 8px var(--green);
   }
   50% {
-    opacity: 0.4;
-    box-shadow: 0 0 2px var(--green);
+    transform: scale(0.8);
+    opacity: 0.6;
   }
 }
 
 .statusLabel {
-  font-size: 11px;
-  font-family: var(--font-mono);
-  font-weight: 500;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
   color: var(--green);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-/* ── Right ── */
+/* ─── Right ─────────────────────────────────────────────── */
 .right {
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-left: auto;
 }
 
-/* ── Icon Button ── */
+/* ─── Icon button ───────────────────────────────────────── */
 .iconBtn {
+  position: relative;
   width: 32px;
   height: 32px;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text2);
+  border-radius: var(--r-sm);
+  background: var(--border-subtle);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
+  transition:
+    background var(--t),
+    color var(--t),
+    border-color var(--t);
+  flex-shrink: 0;
+  overflow: visible; /* FIX: badge must escape button bounds */
 }
 
 .iconBtn:hover {
-  background: var(--surface2);
-  border-color: var(--border);
-  color: var(--text);
+  background: var(--border-default);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
 }
 
 .iconBtnActive {
-  background: var(--surface2);
-  border-color: var(--border2);
-  color: var(--text);
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
 }
 
-/* ── Badge ── */
+.iconBtnActive:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ─── Notification badge ────────────────────────────────── */
+/* FIX: was never animated — now handled by AnimatePresence in JSX */
 .badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--accent);
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 100px;
+  background: var(--red);
   color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  font-family: var(--font-mono);
+  font-family: var(--font);
+  font-size: 9.5px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--bg);
+  border: 2px solid var(--bg-base);
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(248, 113, 113, 0.45);
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* ── Notification Wrapper ── */
+/* ─── Notification wrapper ──────────────────────────────── */
 .notifWrapper {
   position: relative;
 }
 
-/* ── Notification Panel ── */
+/* ─── Notification panel ────────────────────────────────── */
+/* FIX: animation props now live in JSX (panelVariants) — CSS only handles layout */
 .notifPanel {
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
-  width: 310px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-md);
+  width: 320px;
+  background: var(--bg-surface2, var(--surface2));
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
   overflow: hidden;
   z-index: 200;
+  transform-origin: top right;
 }
 
+/* ─── Panel header ──────────────────────────────────────── */
 .panelHeader {
-  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 500;
+  padding: 13px 15px 11px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--border-subtle);
+  gap: 8px;
 }
 
-.markAll {
+.panelTitle {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* FIX #3: unread count chip in header title — was missing */
+.panelUnreadCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 100px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.panelActions {
+  display: flex;
+  gap: 3px;
+}
+
+.panelActions button {
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
   background: none;
   border: none;
-  color: var(--accent2);
-  font-size: 11.5px;
-  font-family: var(--font);
   cursor: pointer;
-  padding: 3px 6px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: var(--r-xs);
+  transition:
+    color var(--t),
+    background var(--t);
+  white-space: nowrap;
 }
 
-.markAll:hover {
+.panelActions button:hover {
+  color: var(--accent);
   background: var(--accent-soft);
 }
 
+/* ─── Notification list ─────────────────────────────────── */
+.notifList {
+  max-height: 290px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-default) transparent;
+}
+
+.notifList::-webkit-scrollbar {
+  width: 3px;
+}
+.notifList::-webkit-scrollbar-track {
+  background: transparent;
+}
+.notifList::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+
+/* ─── Empty state ───────────────────────────────────────── */
+.notifEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 16px;
+  color: var(--text-muted);
+}
+
+.notifEmpty p {
+  font-family: var(--font);
+  font-size: 12.5px;
+  margin: 0;
+}
+
+/* ─── Notification item ─────────────────────────────────── */
 .notifItem {
-  padding: 12px 16px;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  border-bottom: 1px solid var(--border);
+  gap: 9px;
+  padding: 11px 15px;
+  border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
+  transition: background var(--t-fast);
+  position: relative;
 }
 
 .notifItem:last-child {
   border-bottom: none;
 }
+
 .notifItem:hover {
-  background: var(--surface3);
+  background: var(--border-subtle);
 }
 
-.notifUnread {
-  background: rgba(108, 116, 240, 0.04);
+/* FIX #3: unread item styling — was missing entirely */
+.notifItemUnread {
+  background: var(--accent-soft);
 }
 
+.notifItemUnread:hover {
+  background: rgba(108, 116, 240, 0.14);
+}
+
+/* FIX #5: per-item unread dot — was missing */
 .notifDot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--accent2);
-  margin-top: 5px;
+  background: var(--accent);
   flex-shrink: 0;
+  margin-top: 5px;
+  box-shadow: 0 0 6px var(--accent-glow);
 }
 
+/* ─── Notification body ─────────────────────────────────── */
 .notifBody {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.notifTitle {
+.notifBody p {
+  font-family: var(--font);
+  margin: 0;
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notifBody p:first-child {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.notifItemUnread .notifBody p:first-child {
+  color: var(--text-primary);
+}
+
+.notifBody p:nth-child(2) {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* FIX #2: timestamp — was never rendered before */
+.notifTime {
+  font-family: var(--font);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  display: block;
+}
+
+.notifItemUnread .notifTime {
+  color: var(--accent);
+  opacity: 0.75;
+}
+
+/* ─── Panel footer ──────────────────────────────────────── */
+/* NEW: "view all N notifications" link when list is truncated */
+.panelFooter {
+  padding: 9px 15px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--border-subtle);
+}
+
+.panelFooter button {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--t);
+  width: 100%;
+  text-align: center;
+}
+
+.panelFooter button:hover {
+  opacity: 0.75;
+}
+
+/* ─── Sign up button ────────────────────────────────────── */
+.btnOutline {
+  font-family: var(--font);
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.notifDesc {
-  font-size: 11.5px;
-  color: var(--text3);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.notifTime {
-  font-size: 10.5px;
-  color: var(--text3);
-  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  background: var(--border-subtle);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--r-sm);
+  padding: 6px 14px;
+  cursor: pointer;
+  transition:
+    color var(--t),
+    background var(--t),
+    border-color var(--t);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* ── Divider ── */
+.btnOutline:hover {
+  color: var(--text-primary);
+  background: var(--border-default);
+  border-color: var(--border-strong);
+}
+
+/* ─── Divider ───────────────────────────────────────────── */
 .divider {
   width: 1px;
   height: 20px;
-  background: var(--border2);
-  margin: 0 6px;
+  background: var(--border-medium);
+  flex-shrink: 0;
+  margin: 0 2px;
 }
 
-/* ── Profile ── */
+/* ─── Profile wrapper ───────────────────────────────────── */
 .profileWrapper {
   position: relative;
 }
@@ -227,150 +403,114 @@
 .profile {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 4px 8px 4px 4px;
-  border-radius: var(--radius);
-  border: 1px solid transparent;
+  gap: 8px;
+  padding: 5px 8px 5px 5px;
+  border-radius: var(--r-sm);
   cursor: pointer;
+  transition: background var(--t);
   user-select: none;
 }
 
-.profile:hover,
-.profileActive {
-  background: var(--surface2);
-  border-color: var(--border);
+.profile:hover {
+  background: var(--border-subtle);
 }
 
+.profile > div:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile > div:nth-child(2) > span:first-child {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.profile > div:nth-child(2) > span:last-child {
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: capitalize;
+  line-height: 1.3;
+}
+
+/* ─── Avatar ────────────────────────────────────────────── */
 .avatar {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  background: var(--accent-soft);
-  border: 1px solid rgba(108, 116, 240, 0.25);
-  color: var(--accent2);
+  border-radius: 7px;
+  background: var(--gradient-accent);
+  color: #fff;
+  font-family: var(--font);
   font-size: 11px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
 }
 
-.userInfo {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-
-.userName {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.userRole {
-  font-size: 10.5px;
-  color: var(--text3);
-  text-transform: capitalize;
-  font-family: var(--font-mono);
-}
-
-.chevron {
-  color: var(--text3);
-}
-
-/* ── Dropdown ── */
+/* ─── Profile dropdown ──────────────────────────────────── */
 .dropdown {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 8px);
   right: 0;
-  width: 220px;
-  background: var(--surface2);
-  border: 1px solid var(--border2);
+  width: 168px;
+  background: var(--bg-surface2, var(--surface2));
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-xl);
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(-6px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  padding: 5px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   z-index: 200;
+  transform-origin: top right;
 }
 
-.dropdownHeader {
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--surface3);
-  border-bottom: 1px solid var(--border);
-}
-
-.dropdown.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-.avatarLg {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--accent-soft);
-  border: 1px solid rgba(108, 116, 240, 0.25);
-  color: var(--accent2);
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.dropName {
+.dropdown button {
+  font-family: var(--font);
   font-size: 13px;
   font-weight: 500;
-  color: var(--text);
-}
-
-.dropEmail {
-  font-size: 11px;
-  color: var(--text3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 140px;
-}
-
-.dropDivider {
-  height: 1px;
-  background: var(--border);
-  margin: 2px 0;
-}
-
-.dropItem {
-  width: 100%;
-  padding: 9px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  color: var(--text-secondary);
   background: none;
   border: none;
-  color: var(--text2);
-  font-size: 13px;
-  font-family: var(--font);
   cursor: pointer;
+  padding: 8px 11px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  gap: 9px;
   text-align: left;
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
+  width: 100%;
 }
 
-.dropItem:hover {
-  background: var(--surface3);
-  color: var(--text);
+.dropdown button:hover {
+  background: var(--border-subtle);
+  color: var(--text-primary);
 }
 
-.dropLogout {
-  color: var(--red);
-}
-
-.dropLogout:hover {
+.dropdown button:last-child:hover {
   background: var(--red-soft);
   color: var(--red);
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .btnOutline {
+    display: none;
+  }
+  .notifPanel {
+    width: 280px;
+    right: -16px;
+  }
+  .profile > div:nth-child(2) {
+    display: none;
+  }
 }

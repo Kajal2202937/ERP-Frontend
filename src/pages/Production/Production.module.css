@@ -117,9 +117,6 @@
   color: var(--text);
 }
 
-.filterWrap {
-}
-
 .filterSelect {
   height: 34px;
   background: var(--surface2);

@@ -15,7 +15,6 @@ import {
 } from "react-icons/fi";
 import { MdCurrencyRupee } from "react-icons/md";
 
-/* ── Reusable Field wrapper ── */
 const Field = ({ icon, label, error, full, children }) => (
   <div
     className={`${styles.field} ${full ? styles.full : ""} ${error ? styles.hasError : ""}`}
@@ -49,7 +48,7 @@ const EMPTY_FORM = {
   quantity: "",
   supplier: "",
   sku: "",
-  costPrice: "", // ✅ already added
+  costPrice: "",
 };
 
 const AddProduct = ({ refresh, editData, setEditData }) => {
@@ -60,18 +59,24 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
 
   useEffect(() => {
     API.get("/suppliers")
-      .then((res) => setSuppliers(res.data.data || []))
-      .catch(() => toast.error("Failed to load suppliers"));
+      .then((res) => {
+        const list = res?.data?.data?.data || [];
+
+        setSuppliers(list);
+      })
+      .catch(() => {
+        setSuppliers([]);
+        toast.error("Failed to load suppliers");
+      });
   }, []);
 
-  /* ✅ FIX: include costPrice in edit mode */
   useEffect(() => {
     if (editData) {
       setForm({
         name: editData.name || "",
         description: editData.description || "",
         price: editData.price ?? "",
-        costPrice: editData.costPrice ?? "", // 
+        costPrice: editData.costPrice ?? "",
         category: editData.category || "",
         quantity: editData.quantity ?? "",
         supplier: editData.supplier?._id || "",
@@ -87,7 +92,6 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
     if (errors[name]) setErrors((p) => ({ ...p, [name]: "" }));
   };
 
-  /* ✅ FIX: validate costPrice */
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = "Product name is required";
@@ -98,7 +102,7 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
       e.price = "Price must be greater than 0";
 
     if (form.costPrice === "" || Number(form.costPrice) < 0)
-      e.costPrice = "Cost price is required"; 
+      e.costPrice = "Cost price is required";
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -113,7 +117,7 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
       const payload = {
         ...form,
         price: Number(form.price),
-        costPrice: Number(form.costPrice), // ✅ FIXED
+        costPrice: Number(form.costPrice),
         quantity: Number(form.quantity) || 0,
       };
 
@@ -257,8 +261,6 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
           />
         </Field>
       </div>
-
-      {/* ── Footer ── */}
       <div className={styles.actions}>
         <button
           type="button"
