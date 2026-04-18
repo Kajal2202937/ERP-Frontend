@@ -3,7 +3,6 @@ import API from "../services/api";
 import { useNavigate, Link } from "react-router-dom";
 import styles from "./Register.module.css";
 
-/* ---------------- ICONS ---------------- */
 const IconClose = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="18" y1="6" x2="6" y2="18" />
@@ -34,13 +33,13 @@ const IconLock = () => (
 
 const IconPhone = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M22 16.92v3a2 2 0 01-2.18 2..." />
+    <path d="M22 16.92v3a2 2 0 01-2.18 2A19.8 19.8 0 013 5.18 2 2 0 015 3h3a2 2 0 012 1.72c.12.9.32 1.77.6 2.6a2 2 0 01-.45 2.11L9.03 10.97a16 16 0 006 6l1.54-1.12a2 2 0 012.11-.45c.83.28 1.7.48 2.6.6A2 2 0 0122 16.92z" />
   </svg>
 );
 
 const IconEye = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M1 12s4-8 11-8..." />
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
@@ -48,18 +47,21 @@ const IconEye = () => (
 const IconEyeOff = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="1" y1="1" x2="23" y2="23" />
+    <path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a21.77 21.77 0 015.17-6.32" />
   </svg>
 );
 
 const IconAlert = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="12" r="10" />
+    <line x1="12" y1="8" x2="12" y2="12" />
+    <line x1="12" y1="16" x2="12.01" y2="16" />
   </svg>
 );
 
 const IconCheck = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <polyline points="22 4 12 14 9 11" />
+    <polyline points="20 6 9 17 4 12" />
   </svg>
 );
 
@@ -69,7 +71,6 @@ const IconArrow = () => (
   </svg>
 );
 
-/* ---------------- PASSWORD STRENGTH ---------------- */
 const getStrength = (pwd) => {
   if (!pwd) return { score: 0, label: "", color: "" };
   let score = 0;
@@ -77,7 +78,6 @@ const getStrength = (pwd) => {
   if (/[A-Z]/.test(pwd)) score++;
   if (/[0-9]/.test(pwd)) score++;
   if (/[^A-Za-z0-9]/.test(pwd)) score++;
-
   const levels = [
     { label: "", color: "" },
     { label: "Weak", color: "#f87171" },
@@ -88,7 +88,6 @@ const getStrength = (pwd) => {
   return { score, ...levels[score] };
 };
 
-/* ---------------- COMPONENT ---------------- */
 const Register = () => {
   const navigate = useNavigate();
   const nameRef = useRef(null);
@@ -107,7 +106,6 @@ const Register = () => {
 
   const strength = getStrength(form.password);
 
-  /* AUTO FOCUS */
   useEffect(() => {
     nameRef.current?.focus();
   }, []);
@@ -125,8 +123,7 @@ const Register = () => {
     try {
       await API.post("/auth/register", form);
       setSuccess(true);
-
-      setTimeout(() => navigate("/login"), 1800);
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       setError(
         err.response?.data?.message || "Registration failed. Please try again.",
@@ -141,16 +138,13 @@ const Register = () => {
       <div className={styles.grid} />
 
       <div className={styles.card}>
-        {/* ✅ CLOSE BUTTON */}
         <button
           className={styles.closeBtn}
           onClick={() => navigate("/dashboard")}
-          aria-label="Close"
         >
           <IconClose />
         </button>
 
-        {/* HEADER */}
         <div className={styles.brandHeader}>
           <div className={styles.brandLogo}>🏢</div>
           <p className={styles.brandName}>ERP System</p>
@@ -177,7 +171,6 @@ const Register = () => {
               </div>
             )}
 
-            {/* NAME */}
             <div className={styles.field}>
               <label>Full name</label>
               <div className={styles.inputWrap}>
@@ -185,14 +178,12 @@ const Register = () => {
                 <input
                   ref={nameRef}
                   name="name"
-                  placeholder="Jane Smith"
                   value={form.name}
                   onChange={handleChange}
                 />
               </div>
             </div>
 
-            {/* EMAIL */}
             <div className={styles.field}>
               <label>Email</label>
               <div className={styles.inputWrap}>
@@ -200,14 +191,12 @@ const Register = () => {
                 <input
                   name="email"
                   type="email"
-                  placeholder="you@company.com"
                   value={form.email}
                   onChange={handleChange}
                 />
               </div>
             </div>
 
-            {/* PASSWORD */}
             <div className={styles.field}>
               <label>Password</label>
               <div className={styles.inputWrap}>
@@ -235,20 +224,19 @@ const Register = () => {
               )}
             </div>
 
-            {/* PHONE */}
             <div className={styles.field}>
               <label>Phone</label>
               <div className={styles.inputWrap}>
                 <IconPhone />
                 <input
                   name="phone"
+                  type="tel"
                   value={form.phone}
                   onChange={handleChange}
                 />
               </div>
             </div>
 
-            {/* SUBMIT */}
             <button
               type="submit"
               className={styles.btnSubmit}
