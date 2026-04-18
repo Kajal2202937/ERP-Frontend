@@ -214,6 +214,14 @@ const Navbar = () => {
           </div>
         ))}
 
+        <motion.button
+          className={styles.mobileThemeBtn}
+          onClick={toggleTheme}
+          whileTap={{ scale: 0.95 }}
+        >
+          {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+        </motion.button>
         <div className={styles.mobileDivider}></div>
 
         <button
