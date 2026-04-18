@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createProduct, updateProduct } from "../../services/productService";
+import { createProduct, updateProduct } from "../../services/ProductService";
 import API from "../../services/api";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
