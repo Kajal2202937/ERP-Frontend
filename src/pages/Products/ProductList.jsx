@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { deleteProduct, updateProduct } from "../../services/productService";
+import { deleteProduct, updateProduct } from "../../services/ProductService";
 import { getInventory } from "../../services/inventoryService";
 import API from "../../services/api";
 import styles from "./ProductList.module.css";
