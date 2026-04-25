@@ -22,8 +22,6 @@ const Contact = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-
-  
   const [isTyping, setIsTyping] = useState(false);
 
   const socketRef = useRef(null);
@@ -31,6 +29,7 @@ const Contact = () => {
   const conversationIdRef = useRef(null);
   const isMounted = useRef(true);
   const typingTimeout = useRef(null);
+  const typingDebounce = useRef(null);
 
   useEffect(() => {
     conversationIdRef.current = conversationId;
@@ -40,15 +39,14 @@ const Contact = () => {
     isMounted.current = true;
     return () => {
       isMounted.current = false;
+      clearTimeout(typingTimeout.current);
+      clearTimeout(typingDebounce.current);
     };
   }, []);
 
-  
   useEffect(() => {
-    let socket;
-    try {
-      socket = getSocket();
-    } catch {
+    let socket = getSocket();
+    if (!socket) {
       socket = initSocket(localStorage.getItem("token"));
     }
     socketRef.current = socket;
@@ -58,18 +56,26 @@ const Contact = () => {
       if (data.contactId !== conversationIdRef.current) return;
       if (!isMounted.current) return;
 
+      if (data.tempId) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.tempId === data.tempId ? { ...m, status: "sent" } : m,
+          ),
+        );
+        return;
+      }
+
       setMessages((prev) => [
         ...prev,
         {
           sender: data.sender || "admin",
           message: data.message,
           createdAt: data.createdAt || new Date().toISOString(),
-          status: "sent", 
+          status: "sent",
         },
       ]);
     };
 
-    
     const handleTyping = () => {
       setIsTyping(true);
       clearTimeout(typingTimeout.current);
@@ -134,7 +140,6 @@ const Contact = () => {
         setSuccess(true);
         setConversationId(res.data._id);
 
-        
         setMessages([
           {
             sender: "system",
@@ -164,29 +169,34 @@ const Contact = () => {
     const text = replyText.trim();
     if (!text || !conversationId) return;
 
+    const tempId = `temp_${Date.now()}`;
+
     setReplyText("");
     setError("");
 
     const tempMessage = {
+      tempId,
       sender: "user",
       message: text,
       createdAt: new Date().toISOString(),
-      status: "sending", 
+      status: "sending",
     };
 
     setMessages((prev) => [...prev, tempMessage]);
 
     try {
-      await replyMessage(conversationId, text);
+      await replyMessage(conversationId, text, tempId);
 
       setMessages((prev) =>
-        prev.map((m) => (m === tempMessage ? { ...m, status: "sent" } : m)),
+        prev.map((m) => (m.tempId === tempId ? { ...m, status: "sent" } : m)),
       );
     } catch {
       if (isMounted.current) {
         setError("Failed to send message.");
         setMessages((prev) =>
-          prev.map((m) => (m === tempMessage ? { ...m, status: "failed" } : m)),
+          prev.map((m) =>
+            m.tempId === tempId ? { ...m, status: "failed" } : m,
+          ),
         );
       }
     }
@@ -199,7 +209,6 @@ const Contact = () => {
     }
   };
 
-  
   const handleCloseChat = () => {
     socketRef.current?.emit("leave_contact", { contactId: conversationId });
     setSuccess(false);
@@ -209,12 +218,15 @@ const Contact = () => {
     setError("");
   };
 
-  
   const handleTypingInput = (e) => {
     setReplyText(e.target.value);
-    socketRef.current?.emit("contact_typing", {
-      contactId: conversationId,
-    });
+
+    clearTimeout(typingDebounce.current);
+    typingDebounce.current = setTimeout(() => {
+      socketRef.current?.emit("contact_typing", {
+        contactId: conversationId,
+      });
+    }, 300);
   };
 
   return (
@@ -299,10 +311,9 @@ const Contact = () => {
 
             <div className={styles.chatBody}>
               {messages.map((m, i) => (
-                <div key={i} className={styles.msgRow}>
+                <div key={m.tempId || i} className={styles.msgRow}>
                   <div className={styles.bubble}>
                     {m.message}
-
                     {m.status && (
                       <span className={styles.msgStatus}>
                         {m.status === "sending" && "Sending..."}
