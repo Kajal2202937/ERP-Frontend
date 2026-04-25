@@ -6,7 +6,7 @@ import {
   sendContactMessage,
   replyMessage,
 } from "../../../services/contactService";
-import { getSocket } from "../../../services/socket";
+import { initSocket, getSocket } from "../../../services/socket";
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -44,14 +44,20 @@ const Contact = () => {
     };
   }, []);
 
+  
   useEffect(() => {
     let socket;
 
     try {
       socket = getSocket();
     } catch (err) {
-      console.warn("⚠️ Socket not ready yet");
-      return;
+      const token = localStorage.getItem("token");
+      if (token) {
+        socket = initSocket(token);
+      } else {
+        console.warn("⚠️ No token found, socket not initialized");
+        return;
+      }
     }
 
     if (!socket) return;
@@ -66,8 +72,8 @@ const Contact = () => {
       if (data.tempId) {
         setMessages((prev) =>
           prev.map((m) =>
-            m.tempId === data.tempId ? { ...m, status: "sent" } : m,
-          ),
+            m.tempId === data.tempId ? { ...m, status: "sent" } : m
+          )
         );
         return;
       }
@@ -100,6 +106,7 @@ const Contact = () => {
     };
   }, []);
 
+  
   useEffect(() => {
     if (!conversationId || !socketRef.current) return;
 
@@ -197,15 +204,17 @@ const Contact = () => {
       await replyMessage(conversationId, text, tempId);
 
       setMessages((prev) =>
-        prev.map((m) => (m.tempId === tempId ? { ...m, status: "sent" } : m)),
+        prev.map((m) =>
+          m.tempId === tempId ? { ...m, status: "sent" } : m
+        )
       );
     } catch {
       if (isMounted.current) {
         setError("Failed to send message.");
         setMessages((prev) =>
           prev.map((m) =>
-            m.tempId === tempId ? { ...m, status: "failed" } : m,
-          ),
+            m.tempId === tempId ? { ...m, status: "failed" } : m
+          )
         );
       }
     }
@@ -219,7 +228,9 @@ const Contact = () => {
   };
 
   const handleCloseChat = () => {
-    socketRef.current?.emit("leave_contact", { contactId: conversationId });
+    socketRef.current?.emit("leave_contact", {
+      contactId: conversationId,
+    });
     setSuccess(false);
     setConversationId(null);
     setMessages([]);
@@ -244,28 +255,18 @@ const Contact = () => {
         {!success ? (
           <motion.div key="form" className={styles.formCard}>
             <h2 className={styles.title}>Contact Us</h2>
-            <p className={styles.subtitle}>
-              Send a message and start a live conversation.
-            </p>
 
             {error && <p className={styles.errorMsg}>{error}</p>}
 
-            <form onSubmit={handleSubmit} className={styles.form} noValidate>
+            <form onSubmit={handleSubmit} className={styles.form}>
               <input name="name" value={form.name} onChange={handleChange} />
               <input name="email" value={form.email} onChange={handleChange} />
-              <input
-                name="subject"
-                value={form.subject}
-                onChange={handleChange}
-              />
               <textarea
                 name="message"
                 value={form.message}
                 onChange={handleChange}
               />
-              <button type="submit" disabled={loading}>
-                {loading ? "Sending..." : "Send Message"}
-              </button>
+              <button type="submit">{loading ? "Sending..." : "Send"}</button>
             </form>
           </motion.div>
         ) : (
@@ -283,9 +284,6 @@ const Contact = () => {
               onChange={handleTypingInput}
               onKeyDown={handleReplyKeyDown}
             />
-            <button onClick={handleSendReply}>
-              <FiSend />
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
