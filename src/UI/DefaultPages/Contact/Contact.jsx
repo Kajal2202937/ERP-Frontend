@@ -31,10 +31,12 @@ const Contact = () => {
   const typingTimeout = useRef(null);
   const typingDebounce = useRef(null);
 
+  // Keep latest conversationId
   useEffect(() => {
     conversationIdRef.current = conversationId;
   }, [conversationId]);
 
+  // Mount / Unmount safety
   useEffect(() => {
     isMounted.current = true;
     return () => {
@@ -44,19 +46,13 @@ const Contact = () => {
     };
   }, []);
 
+  // ✅ SOCKET INIT FIXED
   useEffect(() => {
-    let socket;
+    let socket = getSocket();
 
-    try {
-      socket = getSocket();
-    } catch {
+    if (!socket) {
       const token = localStorage.getItem("token");
-      if (token) {
-        socket = initSocket(token);
-      } else {
-        console.warn("⚠️ No token, socket not initialized");
-        return;
-      }
+      socket = initSocket(token);
     }
 
     if (!socket) return;
@@ -64,10 +60,13 @@ const Contact = () => {
     socketRef.current = socket;
 
     const handleReply = (data) => {
-      if (!conversationIdRef.current) return;
+      console.log("📩 Received:", data);
+
+      if (!conversationIdRef.current || !data?.contactId) return;
       if (String(data.contactId) !== String(conversationIdRef.current)) return;
       if (!isMounted.current) return;
 
+      // ✅ Update temp message status
       if (data.tempId) {
         setMessages((prev) =>
           prev.map((m) =>
@@ -77,6 +76,7 @@ const Contact = () => {
         return;
       }
 
+      // ✅ Add new message
       setMessages((prev) => [
         ...prev,
         {
@@ -89,6 +89,7 @@ const Contact = () => {
     };
 
     const handleTyping = (data) => {
+      if (!conversationIdRef.current) return;
       if (String(data.contactId) !== String(conversationIdRef.current)) return;
 
       setIsTyping(true);
@@ -107,6 +108,7 @@ const Contact = () => {
     };
   }, []);
 
+  // ✅ JOIN ROOM
   useEffect(() => {
     if (!conversationId || !socketRef.current) return;
 
@@ -121,6 +123,7 @@ const Contact = () => {
     };
   }, [conversationId]);
 
+  // Auto scroll
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -139,6 +142,7 @@ const Contact = () => {
     return null;
   };
 
+  // ✅ SEND FIRST MESSAGE
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -183,6 +187,7 @@ const Contact = () => {
     }
   };
 
+  // ✅ FIXED SEND REPLY (NO SOCKET EMIT HERE)
   const handleSendReply = async () => {
     const text = replyText.trim();
     if (!text || !conversationId) return;
@@ -203,13 +208,7 @@ const Contact = () => {
     setMessages((prev) => [...prev, tempMessage]);
 
     try {
-      socketRef.current?.emit("send_message", {
-        contactId: String(conversationId),
-        message: text,
-        sender: "user",
-        tempId,
-      });
-
+      // ✅ ONLY API CALL (backend will emit socket)
       await replyMessage(conversationId, text, tempId);
     } catch {
       if (isMounted.current) {
