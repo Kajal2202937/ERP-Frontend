@@ -6,7 +6,7 @@ import {
   sendContactMessage,
   replyMessage,
 } from "../../../services/contactService";
-import { initSocket, getSocket } from "../../../services/socket";
+import { getSocket } from "../../../services/socket";
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -45,10 +45,17 @@ const Contact = () => {
   }, []);
 
   useEffect(() => {
-    let socket = getSocket();
-    if (!socket) {
-      socket = initSocket(localStorage.getItem("token"));
+    let socket;
+
+    try {
+      socket = getSocket();
+    } catch (err) {
+      console.warn("⚠️ Socket not ready yet");
+      return;
     }
+
+    if (!socket) return;
+
     socketRef.current = socket;
 
     const handleReply = (data) => {
@@ -99,7 +106,9 @@ const Contact = () => {
     socketRef.current.emit("join_contact", { contactId: conversationId });
 
     return () => {
-      socketRef.current.emit("leave_contact", { contactId: conversationId });
+      socketRef.current?.emit("leave_contact", {
+        contactId: conversationId,
+      });
     };
   }, [conversationId]);
 
@@ -242,112 +251,41 @@ const Contact = () => {
             {error && <p className={styles.errorMsg}>{error}</p>}
 
             <form onSubmit={handleSubmit} className={styles.form} noValidate>
-              <div className={styles.row}>
-                <div className={styles.field}>
-                  <label>Name</label>
-                  <input
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className={styles.field}>
-                  <label>Email</label>
-                  <input
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className={styles.field}>
-                <label>Subject</label>
-                <input
-                  name="subject"
-                  value={form.subject}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label>Message</label>
-                <textarea
-                  name="message"
-                  rows={5}
-                  value={form.message}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <button
-                type="submit"
-                className={styles.sendBtn}
-                disabled={loading}
-              >
-                {loading ? (
-                  "Sending..."
-                ) : (
-                  <>
-                    Send Message <FiSend />
-                  </>
-                )}
+              <input name="name" value={form.name} onChange={handleChange} />
+              <input name="email" value={form.email} onChange={handleChange} />
+              <input
+                name="subject"
+                value={form.subject}
+                onChange={handleChange}
+              />
+              <textarea
+                name="message"
+                value={form.message}
+                onChange={handleChange}
+              />
+              <button type="submit" disabled={loading}>
+                {loading ? "Sending..." : "Send Message"}
               </button>
             </form>
           </motion.div>
         ) : (
           <motion.div key="chat" className={styles.chatCard}>
-            <div className={styles.chatHeader}>
-              <div className={styles.onlineDot} />
-              <div>
-                <h3>Live Chat</h3>
-                <span>Support is online</span>
-              </div>
-
-              <button className={styles.closeBtn} onClick={handleCloseChat}>
-                <FiX />
-              </button>
-            </div>
-
             <div className={styles.chatBody}>
               {messages.map((m, i) => (
-                <div key={m.tempId || i} className={styles.msgRow}>
-                  <div className={styles.bubble}>
-                    {m.message}
-                    {m.status && (
-                      <span className={styles.msgStatus}>
-                        {m.status === "sending" && "Sending..."}
-                        {m.status === "sent" && "✓"}
-                        {m.status === "failed" && "Failed"}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <div key={m.tempId || i}>{m.message}</div>
               ))}
-
-              {isTyping && (
-                <div className={styles.typing}>Support is typing...</div>
-              )}
-
+              {isTyping && <div>Typing...</div>}
               <div ref={chatEndRef} />
             </div>
 
-            <div className={styles.chatInputRow}>
-              <input
-                className={styles.chatInput}
-                value={replyText}
-                onChange={handleTypingInput}
-                onKeyDown={handleReplyKeyDown}
-                placeholder="Type a message…"
-              />
-              <button
-                onClick={handleSendReply}
-                disabled={!replyText.trim()}
-                className={styles.sendIconBtn}
-              >
-                <FiSend />
-              </button>
-            </div>
+            <input
+              value={replyText}
+              onChange={handleTypingInput}
+              onKeyDown={handleReplyKeyDown}
+            />
+            <button onClick={handleSendReply}>
+              <FiSend />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

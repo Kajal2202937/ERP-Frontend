@@ -40,14 +40,19 @@ const Contacts = lazy(() => import("./pages/Contacts/Contacts"));
 function App() {
   const { user } = useAuth();
   const socketInitialized = useRef(false);
-
   useEffect(() => {
     const token = user?.token || localStorage.getItem("token");
 
-    if (token && !socketInitialized.current) {
-      initSocket(token);
-      socketInitialized.current = true;
-      console.log("🚀 Socket initialized from App.js");
+    if (!token) return;
+
+    if (!socketInitialized.current) {
+      try {
+        initSocket(token);
+        socketInitialized.current = true;
+        console.log("🚀 Socket initialized from App.js");
+      } catch (err) {
+        console.error("Socket init failed:", err);
+      }
     }
   }, [user]);
 
