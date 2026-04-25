@@ -6,7 +6,7 @@ import {
   sendContactMessage,
   replyMessage,
 } from "../../../services/contactService";
-import { getSocket } from "../../../services/socket";
+import { getSocket, initSocket } from "../../../services/socket";
 
 const Contact = () => {
   const [form, setForm] = useState({
@@ -49,9 +49,14 @@ const Contact = () => {
 
     try {
       socket = getSocket();
-    } catch (err) {
-      console.warn("⚠️ Socket not initialized yet");
-      return;
+    } catch {
+      const token = localStorage.getItem("token");
+      if (token) {
+        socket = initSocket(token);
+      } else {
+        console.warn("⚠️ No token, socket not initialized");
+        return;
+      }
     }
 
     if (!socket) return;
@@ -60,7 +65,7 @@ const Contact = () => {
 
     const handleReply = (data) => {
       if (!conversationIdRef.current) return;
-      if (data.contactId !== conversationIdRef.current) return;
+      if (String(data.contactId) !== String(conversationIdRef.current)) return;
       if (!isMounted.current) return;
 
       if (data.tempId) {
@@ -83,7 +88,9 @@ const Contact = () => {
       ]);
     };
 
-    const handleTyping = () => {
+    const handleTyping = (data) => {
+      if (String(data.contactId) !== String(conversationIdRef.current)) return;
+
       setIsTyping(true);
       clearTimeout(typingTimeout.current);
       typingTimeout.current = setTimeout(() => {
@@ -103,11 +110,13 @@ const Contact = () => {
   useEffect(() => {
     if (!conversationId || !socketRef.current) return;
 
-    socketRef.current.emit("join_contact", { contactId: conversationId });
+    socketRef.current.emit("join_contact", {
+      contactId: String(conversationId),
+    });
 
     return () => {
       socketRef.current?.emit("leave_contact", {
-        contactId: conversationId,
+        contactId: String(conversationId),
       });
     };
   }, [conversationId]);
@@ -194,11 +203,14 @@ const Contact = () => {
     setMessages((prev) => [...prev, tempMessage]);
 
     try {
-      await replyMessage(conversationId, text, tempId);
+      socketRef.current?.emit("send_message", {
+        contactId: String(conversationId),
+        message: text,
+        sender: "user",
+        tempId,
+      });
 
-      setMessages((prev) =>
-        prev.map((m) => (m.tempId === tempId ? { ...m, status: "sent" } : m)),
-      );
+      await replyMessage(conversationId, text, tempId);
     } catch {
       if (isMounted.current) {
         setError("Failed to send message.");
@@ -220,7 +232,7 @@ const Contact = () => {
 
   const handleCloseChat = () => {
     socketRef.current?.emit("leave_contact", {
-      contactId: conversationId,
+      contactId: String(conversationId),
     });
     setSuccess(false);
     setConversationId(null);
@@ -237,7 +249,7 @@ const Contact = () => {
     clearTimeout(typingDebounce.current);
     typingDebounce.current = setTimeout(() => {
       socketRef.current.emit("contact_typing", {
-        contactId: conversationId,
+        contactId: String(conversationId),
       });
     }, 300);
   };
@@ -248,44 +260,56 @@ const Contact = () => {
         {!success ? (
           <motion.div key="form" className={styles.formCard}>
             <h2 className={styles.title}>Contact Us</h2>
+            <p className={styles.subtitle}>
+              Send a message and start a live conversation.
+            </p>
 
             {error && <p className={styles.errorMsg}>{error}</p>}
 
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.row}>
+                <div className={styles.field}>
+                  <label>Name</label>
+                  <input
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label>Email</label>
+                  <input
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.field}>
+                <label>Subject</label>
                 <input
-                  name="name"
-                  type="text"
-                  placeholder="Name"
-                  value={form.name}
-                  onChange={handleChange}
-                />
-                <input
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  value={form.email}
+                  name="subject"
+                  value={form.subject}
                   onChange={handleChange}
                 />
               </div>
 
-              <input
-                name="subject"
-                type="text"
-                placeholder="Subject"
-                value={form.subject}
-                onChange={handleChange}
-              />
+              <div className={styles.field}>
+                <label>Message</label>
+                <textarea
+                  name="message"
+                  rows={5}
+                  value={form.message}
+                  onChange={handleChange}
+                />
+              </div>
 
-              <textarea
-                name="message"
-                rows={5}
-                placeholder="Message"
-                value={form.message}
-                onChange={handleChange}
-              />
-
-              <button type="submit" className={styles.sendBtn}>
+              <button
+                type="submit"
+                className={styles.sendBtn}
+                disabled={loading}
+              >
                 {loading ? (
                   "Sending..."
                 ) : (
@@ -300,7 +324,11 @@ const Contact = () => {
           <motion.div key="chat" className={styles.chatCard}>
             <div className={styles.chatHeader}>
               <div className={styles.onlineDot} />
-              <h3>Live Chat</h3>
+              <div>
+                <h3>Live Chat</h3>
+                <span>Support is online</span>
+              </div>
+
               <button onClick={handleCloseChat} className={styles.closeBtn}>
                 <FiX />
               </button>
@@ -309,10 +337,23 @@ const Contact = () => {
             <div className={styles.chatBody}>
               {messages.map((m, i) => (
                 <div key={m.tempId || i} className={styles.msgRow}>
-                  <div className={styles.bubble}>{m.message}</div>
+                  <div className={styles.bubble}>
+                    {m.message}
+                    {m.status && (
+                      <span className={styles.msgStatus}>
+                        {m.status === "sending" && "Sending..."}
+                        {m.status === "sent" && "✓"}
+                        {m.status === "failed" && "Failed"}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
-              {isTyping && <div className={styles.typing}>Typing...</div>}
+
+              {isTyping && (
+                <div className={styles.typing}>Support is typing...</div>
+              )}
+
               <div ref={chatEndRef} />
             </div>
 
@@ -322,9 +363,13 @@ const Contact = () => {
                 onChange={handleTypingInput}
                 onKeyDown={handleReplyKeyDown}
                 className={styles.chatInput}
-                placeholder="Type message..."
+                placeholder="Type a message…"
               />
-              <button onClick={handleSendReply} className={styles.sendIconBtn}>
+              <button
+                onClick={handleSendReply}
+                disabled={!replyText.trim()}
+                className={styles.sendIconBtn}
+              >
                 <FiSend />
               </button>
             </div>
