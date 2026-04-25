@@ -1,22 +1,22 @@
 import { io } from "socket.io-client";
 
 let socket = null;
-let isInitializing = false;
 
 export const initSocket = (token = null) => {
-  if (socket) return socket;
-
-  if (isInitializing) return null;
-
-  isInitializing = true;
-
   const BASE_URL = import.meta.env.VITE_SOCKET_URL;
+
+  if (socket?.connected) return socket;
+
+  if (socket && !socket.connected) {
+    socket.connect();
+    return socket;
+  }
 
   socket = io(BASE_URL, {
     transports: ["websocket"],
     autoConnect: true,
     reconnection: true,
-    reconnectionAttempts: 10,
+    reconnectionAttempts: Infinity,
     reconnectionDelay: 2000,
     auth: { token },
   });
@@ -36,14 +36,12 @@ export const initSocket = (token = null) => {
   return socket;
 };
 
-export const getSocket = () => {
-  return socket;
-};
+export const getSocket = () => socket;
 
 export const disconnectSocket = () => {
   if (socket) {
+    socket.removeAllListeners();
     socket.disconnect();
     socket = null;
-    isInitializing = false;
   }
 };

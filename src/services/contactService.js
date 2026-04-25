@@ -1,15 +1,13 @@
 import API from "./api";
-
 const handleError = (err, defaultMsg) => {
-  if (err.response) {
-    throw new Error(err.response.data?.message || defaultMsg);
-  } else if (err.request) {
-    throw new Error("Server not responding");
-  } else {
-    throw new Error(defaultMsg);
-  }
-};
+  const msg =
+    err?.response?.data?.message ||
+    err?.response?.data?.error ||
+    err?.message ||
+    defaultMsg;
 
+  throw new Error(msg);
+};
 export const sendContactMessage = async (formData) => {
   try {
     const { data } = await API.post("/contact", formData);
@@ -55,16 +53,19 @@ export const updateMessageStatus = async (id, status) => {
   }
 };
 
-
-export const replyMessage = async (id, message, tempId) => {
+export const replyMessage = async (id, message, tempId, retries = 2) => {
   try {
     const { data } = await API.post(`/contact/${id}/reply`, {
       message,
-      tempId, 
+      tempId,
+      sender: "admin",
     });
 
     return data;
   } catch (err) {
+    if (retries > 0) {
+      return replyMessage(id, message, tempId, retries - 1);
+    }
     handleError(err, "Failed to send reply");
   }
 };
