@@ -1,69 +1,381 @@
+/* ─── Auth page container ───────────────────────────────── */
 .container {
-  height: 100vh;
+  font-family: var(--font);
+  min-height: 100vh;
+  background: var(--bg-base);
   display: flex;
-  justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #1e1e2f, #2c2c54);
-  font-family: Arial, sans-serif;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
 }
 
-.formBox {
-  background: #ffffff;
-  padding: 40px;
-  border-radius: 12px;
-  width: 320px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+/* ─── Subtle dot-grid background ───────────────────────── */
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    var(--border-default) 1px,
+    transparent 1px
+  );
+  background-size: 28px 28px;
+  opacity: 0.55;
+  pointer-events: none;
+  mask-image: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    black 30%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 80% at 50% 50%,
+    black 30%,
+    transparent 100%
+  );
+}
+
+.grid::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 60% 50% at 50% 0%,
+      rgba(108, 116, 240, 0.09) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 40% 40% at 80% 80%,
+      rgba(62, 207, 142, 0.05) 0%,
+      transparent 60%
+    );
+}
+
+/* ─── Card ──────────────────────────────────────────────── */
+.card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xl);
+  padding: 40px 36px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ─── Close button ──────────────────────────────────────── */
+.closeBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--border-subtle);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    background var(--t),
+    color var(--t),
+    border-color var(--t);
+}
+
+.closeBtn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.closeBtn:hover {
+  background: var(--border-default);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+/* ─── Brand header ──────────────────────────────────────── */
+.brandHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  margin-bottom: 32px;
 }
 
-.title {
-  margin-bottom: 20px;
-  font-size: 24px;
-  color: #333;
+.brandLogo {
+  width: 44px;
+  height: 44px;
+  background: var(--gradient-logo);
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 24px var(--accent-glow);
+  margin-bottom: 14px;
+}
+
+.brandLogo svg {
+  width: 22px;
+  height: 22px;
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.brandName {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  border-radius: 100px;
+  padding: 3px 11px;
+  margin-bottom: 14px;
+}
+
+.brandTagline {
+  font-family: var(--font);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+.brandSub {
+  font-family: var(--font);
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ─── Form body ─────────────────────────────────────────── */
+.formBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ─── Error banner ──────────────────────────────────────── */
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--red-soft);
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  border-radius: var(--radius);
+  padding: 10px 13px;
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--red);
+  line-height: 1.4;
+}
+
+.errorBanner svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* ─── Field ─────────────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ─── Input wrap ────────────────────────────────────────── */
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.inputIcon svg {
+  width: 15px;
+  height: 15px;
 }
 
 .input {
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--border-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 10px 13px 10px 38px;
   width: 100%;
-  padding: 10px 12px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
   outline: none;
-  transition: 0.3s;
+  transition:
+    border-color var(--t),
+    background var(--t),
+    box-shadow var(--t);
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
 }
 
 .input:focus {
-  border-color: #4cafef;
-  box-shadow: 0 0 5px rgba(76, 175, 239, 0.5);
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
-.button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 15px;
+/* password has extra right padding for the eye btn */
+.inputPassword {
+  padding-right: 42px;
+}
+
+/* ─── Eye toggle ────────────────────────────────────────── */
+.eyeBtn {
+  position: absolute;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  background: none;
   border: none;
-  border-radius: 6px;
-  background-color: #4cafef;
-  color: white;
-  font-size: 16px;
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  transition: 0.3s;
+  transition: color var(--t);
 }
 
-.button:hover {
-  background-color: #2196f3;
+.eyeBtn svg {
+  width: 15px;
+  height: 15px;
 }
 
-.linkText {
-  margin-top: 15px;
+.eyeBtn:hover {
+  color: var(--text-primary);
+}
+
+/* ─── Submit button ─────────────────────────────────────── */
+.btnSubmit {
+  font-family: var(--font);
   font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--gradient-accent);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  padding: 12px 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px var(--accent-glow);
+  transition:
+    box-shadow var(--t),
+    opacity var(--t),
+    transform var(--t);
+  margin-top: 4px;
+  width: 100%;
 }
 
-.linkText a {
-  color: #4cafef;
-  text-decoration: none;
+.btnSubmit svg {
+  width: 16px;
+  height: 16px;
 }
 
-.linkText a:hover {
-  text-decoration: underline;
+.btnSubmit:hover:not(:disabled) {
+  box-shadow: 0 8px 28px rgba(108, 116, 240, 0.38);
+}
+
+.btnSubmit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ─── Spinner ───────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ─── Meta footer ───────────────────────────────────────── */
+.meta {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.metaDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green-soft);
+  animation: pulse 2.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
+}
+
+/* ─── Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .card {
+    padding: 30px 22px;
+    border-radius: var(--radius-lg);
+  }
 }

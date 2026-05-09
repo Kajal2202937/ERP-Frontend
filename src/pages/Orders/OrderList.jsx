@@ -6,7 +6,11 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
-  FiPackage, FiAlertTriangle, FiUser, FiHash, FiLock,
+  FiPackage,
+  FiAlertTriangle,
+  FiUser,
+  FiHash,
+  FiLock,
 } from "react-icons/fi";
 import { TbCurrencyRupee } from "react-icons/tb";
 
@@ -25,7 +29,7 @@ const OrderList = ({ orders = [], refresh, loading }) => {
         const disabled = new Set(
           (res.data?.data || [])
             .filter((inv) => inv?.isActive === false && inv?.product?._id)
-            .map((inv) => inv.product._id)
+            .map((inv) => inv.product._id),
         );
         setDisabledProductIds(disabled);
       })
@@ -45,30 +49,50 @@ const OrderList = ({ orders = [], refresh, loading }) => {
     }
   };
 
-  /* ── SKELETON ── */
   if (loading) {
     return (
       <div className={styles.grid}>
         {[...Array(6)].map((_, i) => (
           <div key={i} className={styles.skeletonCard}>
-            <div className={styles.skelLine} style={{ width: "60%", height: 14 }} />
-            <div className={styles.skelLine} style={{ width: "40%", height: 11, marginTop: 8 }} />
-            <div className={styles.skelLine} style={{ width: "80%", height: 11, marginTop: 20 }} />
-            <div className={styles.skelLine} style={{ width: "50%", height: 11, marginTop: 8 }} />
-            <div className={styles.skelLine} style={{ width: "100%", height: 34, marginTop: 20, borderRadius: 8 }} />
+            <div
+              className={styles.skelLine}
+              style={{ width: "60%", height: 14 }}
+            />
+            <div
+              className={styles.skelLine}
+              style={{ width: "40%", height: 11, marginTop: 8 }}
+            />
+            <div
+              className={styles.skelLine}
+              style={{ width: "80%", height: 11, marginTop: 20 }}
+            />
+            <div
+              className={styles.skelLine}
+              style={{ width: "50%", height: 11, marginTop: 8 }}
+            />
+            <div
+              className={styles.skelLine}
+              style={{
+                width: "100%",
+                height: 34,
+                marginTop: 20,
+                borderRadius: 8,
+              }}
+            />
           </div>
         ))}
       </div>
     );
   }
 
-  /* ── EMPTY ── */
   if (!orders.length) {
     return (
       <div className={styles.empty}>
         <div className={styles.emptyIcon}>🛒</div>
         <p className={styles.emptyTitle}>No orders found</p>
-        <p className={styles.emptyDesc}>Create your first order to get started.</p>
+        <p className={styles.emptyDesc}>
+          Create your first order to get started.
+        </p>
       </div>
     );
   }
@@ -88,9 +112,12 @@ const OrderList = ({ orders = [], refresh, loading }) => {
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ delay: i * 0.04, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              transition={{
+                delay: i * 0.04,
+                duration: 0.25,
+                ease: [0.22, 1, 0.36, 1],
+              }}
             >
-              {/* Disabled banner */}
               <AnimatePresence>
                 {isDisabled && (
                   <motion.div
@@ -104,30 +131,30 @@ const OrderList = ({ orders = [], refresh, loading }) => {
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* Card top accent */}
-              <div className={`${styles.cardAccent} ${styles[`accent_${statusMeta.cls}`]}`} />
-
-              {/* Header */}
+              <div
+                className={`${styles.cardAccent} ${styles[`accent_${statusMeta.cls}`]}`}
+              />
               <div className={styles.cardHeader}>
                 <div className={styles.productInfo}>
                   <div className={styles.productIconWrap}>
                     <FiPackage size={14} />
                   </div>
                   <div>
-                    <p className={styles.productName}>{o.product?.name || "Product"}</p>
+                    <p className={styles.productName}>
+                      {o.product?.name || "Product"}
+                    </p>
                     <p className={styles.supplierName}>
                       <FiUser size={10} />
                       {o.product?.supplier?.name || "No Supplier"}
                     </p>
                   </div>
                 </div>
-                <div className={`${styles.statusPill} ${styles[statusMeta.cls]}`}>
+                <div
+                  className={`${styles.statusPill} ${styles[statusMeta.cls]}`}
+                >
                   {statusMeta.label}
                 </div>
               </div>
-
-              {/* Stats row */}
               <div className={styles.statsRow}>
                 <div className={styles.stat}>
                   <span className={styles.statLabel}>Total</span>
@@ -145,11 +172,11 @@ const OrderList = ({ orders = [], refresh, loading }) => {
                 </div>
                 <div className={styles.stat}>
                   <span className={styles.statLabel}>Order ID</span>
-                  <span className={styles.statId}>#{o._id.slice(-6).toUpperCase()}</span>
+                  <span className={styles.statId}>
+                    #{o._id.slice(-6).toUpperCase()}
+                  </span>
                 </div>
               </div>
-
-              {/* Status control */}
               <div className={styles.cardFooter}>
                 {isDisabled ? (
                   <div className={styles.lockedRow}>
@@ -158,9 +185,13 @@ const OrderList = ({ orders = [], refresh, loading }) => {
                   </div>
                 ) : (
                   <select
+                    id={`order-status-${o._id}`}
+                    name="orderStatus"
                     className={`${styles.statusSelect} ${styles[`select_${statusMeta.cls}`]}`}
                     value={o.status}
-                    onChange={(e) => handleStatusChange(o._id, e.target.value, productId)}
+                    onChange={(e) =>
+                      handleStatusChange(o._id, e.target.value, productId)
+                    }
                   >
                     <option value="pending">Pending</option>
                     <option value="completed">Completed</option>

@@ -1,242 +1,414 @@
-/* ================= TABLE ================= */
+/* ── Table ── */
+.tableWrap {
+  overflow-x: auto;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-  color: #111827;
+  font-size: 13px;
 }
 
-/* ================= HEAD ================= */
-.table thead {
-  background: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
+.table thead tr {
+  border-bottom: 1px solid var(--border);
 }
 
 .table thead th {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #6b7280;
-  padding: 13px 16px;
+  padding: 10px 14px;
   text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
   white-space: nowrap;
-  user-select: none;
 }
 
-.table thead th:first-child {
-  width: 44px;
-  padding-left: 20px;
+/* ── Rows ── */
+.row {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
 }
 
-/* ================= BODY ROWS ================= */
-.table tbody tr {
-  border-bottom: 1px solid #f1f5f9;
-  transition: background 0.15s ease;
-}
-
-.table tbody tr:last-child {
+.row:last-child {
   border-bottom: none;
 }
-
-.table tbody tr:hover {
-  background: #f5f3ff;
+.row:hover {
+  background: var(--surface2);
 }
-
-/* Selected row */
-.table tbody tr:has(input[type="checkbox"]:checked) {
-  background: #eef2ff;
-}
-
-.table tbody td {
-  padding: 13px 16px;
-  color: #374151;
+.row td {
+  padding: 10px 14px;
   vertical-align: middle;
 }
 
-.table tbody td:first-child {
-  padding-left: 20px;
+.selectedRow {
+  background: rgba(108, 116, 240, 0.04);
+}
+.inactiveRow {
+  opacity: 0.55;
+}
+.editingRow {
+  background: rgba(108, 116, 240, 0.04);
 }
 
-/* ================= CHECKBOXES ================= */
-.table input[type="checkbox"] {
+/* ── Checkbox ── */
+.checkbox {
   width: 15px;
   height: 15px;
-  accent-color: #6366f1;
+  accent-color: var(--accent);
   cursor: pointer;
-  border-radius: 4px;
 }
 
-/* ================= INLINE EDIT INPUTS ================= */
-.table tbody td input[type="text"],
-.table tbody td input:not([type="checkbox"]) {
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  background: #fff;
-  border: 1px solid #6366f1;
+/* ── Name cell ── */
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
   border-radius: 8px;
-  color: #111827;
-  padding: 6px 10px;
-  width: 100%;
-  min-width: 90px;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-  transition: box-shadow 0.15s ease;
-  box-sizing: border-box;
-}
-
-.table tbody td input:focus {
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25);
-}
-
-/* ================= STATUS BADGES ================= */
-.active,
-.inactive {
-  display: inline-block;
   font-size: 11.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.supplierName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+.company {
+  font-size: 13px;
+  color: var(--text2);
+}
+.phone {
+  font-size: 12.5px;
+  color: var(--text2);
+  font-family: var(--font-mono);
+}
+
+.email {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.numCell {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text2);
+}
+
+.valCell {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  padding: 3px 10px;
-  border-radius: 20px;
+  color: var(--text);
+}
+
+.editPlaceholder {
+  text-align: center;
+  color: var(--text3);
+  font-size: 13px;
+}
+
+/* ── Status pill ── */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  border: 1px solid;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  user-select: none;
+  background: none;
+  transition: all 0.15s;
   white-space: nowrap;
 }
 
-.active {
-  background: #dcfce7;
-  color: #16a34a;
-  border: 1px solid #bbf7d0;
+.pillDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-.active:hover {
-  opacity: 0.78;
-  transform: scale(0.97);
+.pillActive {
+  color: var(--green, #3ecf8e);
+  border-color: rgba(62, 207, 142, 0.25);
+}
+.pillActive:hover {
+  background: var(--green-soft);
 }
 
-.inactive {
-  background: #f3f4f6;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
+.pillInactive {
+  color: var(--text3);
+  border-color: var(--border);
+}
+.pillInactive:hover {
+  background: var(--surface3);
 }
 
-.inactive:hover {
-  opacity: 0.78;
-  transform: scale(0.97);
+.statusPill:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-/* ================= ACTION BUTTONS ================= */
+/* ── Inline edit inputs ── */
+.editInput {
+  height: 30px;
+  width: 100%;
+  min-width: 80px;
+  background: var(--surface3);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12.5px;
+  padding: 0 8px;
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  transition: border-color 0.18s;
+}
+
+.editInput::placeholder {
+  color: var(--text3);
+}
+
+/* ── Action buttons ── */
 .actions {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 4px;
 }
 
-.iconBtn,
-.editBtn,
-.deleteBtn,
-.saveBtn {
-  display: inline-flex;
+.actionBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 15px;
-  transition: all 0.18s ease;
+  transition: all 0.15s;
+  color: var(--text3);
 }
 
-/* Edit */
-.editBtn {
-  background: #eef2ff;
-  color: #4f46e5;
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .editBtn:hover {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: white;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-  transform: translateY(-1px);
+  background: var(--accent-soft);
+  border-color: rgba(108, 116, 240, 0.3);
+  color: var(--accent2);
 }
-
-/* Delete */
-.deleteBtn {
-  background: #fff1f2;
-  color: #dc2626;
-}
-
-.deleteBtn:hover {
-  background: #dc2626;
-  color: white;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-  transform: translateY(-1px);
-}
-
-/* Save */
-.saveBtn {
-  background: #f0fdf4;
-  color: #16a34a;
-}
-
 .saveBtn:hover {
-  background: #16a34a;
-  color: white;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
-  transform: translateY(-1px);
+  background: var(--green-soft);
+  border-color: rgba(62, 207, 142, 0.3);
+  color: var(--green);
+}
+.cancelBtn:hover {
+  background: var(--red-soft, rgba(248, 113, 113, 0.1));
+  border-color: rgba(248, 113, 113, 0.3);
+  color: var(--red);
+}
+.deleteBtn:hover {
+  background: var(--red-soft, rgba(248, 113, 113, 0.1));
+  border-color: rgba(248, 113, 113, 0.3);
+  color: var(--red);
 }
 
-/* Cancel / Icon */
-.iconBtn {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.iconBtn:hover {
-  background: #e5e7eb;
-  color: #374151;
-  transform: translateY(-1px);
-}
-
-/* ================= STOCK VALUE COLUMN ================= */
-.table tbody td:nth-child(7) {
-  font-weight: 700;
-  color: #4f46e5;
-}
-
-/* ================= LOADING / EMPTY ================= */
-.loading,
-.empty {
-  font-family: "Inter", sans-serif;
-  text-align: center;
-  padding: 60px 20px;
-  color: #9ca3af;
-  font-size: 14px;
-}
-
-.loading::before {
-  content: '';
-  display: block;
-  width: 28px;
-  height: 28px;
-  border: 2.5px solid #e5e7eb;
-  border-top-color: #6366f1;
+/* ── Spinner ── */
+.spinnerSm {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--border3);
+  border-top-color: var(--accent2);
   border-radius: 50%;
-  margin: 0 auto 14px;
   animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.empty::before {
-  content: '⊘';
-  display: block;
-  font-size: 28px;
-  margin-bottom: 10px;
-  opacity: 0.3;
+/* ── Skeleton ── */
+.skeletonWrap {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.skeletonRow:last-child {
+  border-bottom: none;
+}
+
+.skeletonCell {
+  height: 13px;
+  border-radius: 5px;
+  background: var(--surface2);
+  animation: shimmer 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ── Empty ── */
+.empty {
+  padding: 60px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.emptyIcon {
+  font-size: 36px;
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+.emptyTitle {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text2);
+}
+.emptyDesc {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+/* ── Delete confirm ── */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.confirmBox {
+  width: 340px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg, 16px);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+.confirmIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--red-soft, rgba(248, 113, 113, 0.1));
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: var(--red, #f87171);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.confirmTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.confirmDesc {
+  font-size: 13px;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+.confirmActions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.confirmCancel {
+  flex: 1;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius, 10px);
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.confirmCancel:hover {
+  background: var(--surface3);
+  border-color: var(--border3);
+  color: var(--text);
+}
+
+.confirmDelete {
+  flex: 1;
+  height: 36px;
+  background: var(--red, #f87171);
+  border: 1px solid transparent;
+  border-radius: var(--radius, 10px);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.confirmDelete:hover {
+  background: #fb9090;
 }

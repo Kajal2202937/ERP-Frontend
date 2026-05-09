@@ -1,20 +1,35 @@
+import { useState } from "react";
 import {
   deleteSupplier,
   updateSupplier,
   toggleSupplierStatus,
 } from "../../services/SupplierService";
-
 import styles from "./SupplierList.module.css";
-import {
-  FiEdit,
-  FiTrash2,
-  FiSave,
-  FiX,
-} from "react-icons/fi";
-
 import { toast } from "react-toastify";
-import { useState, useEffect } from "react";
-import API from "../../services/api";
+import { motion, AnimatePresence } from "framer-motion";
+
+const AVATAR_PALETTE = [
+  { bg: "rgba(108,116,240,0.12)", color: "#8b91f5" },
+  { bg: "rgba(62,207,142,0.12)", color: "#3ecf8e" },
+  { bg: "rgba(240,168,85,0.12)", color: "#f0a855" },
+  { bg: "rgba(77,168,245,0.12)", color: "#4da8f5" },
+  { bg: "rgba(248,113,113,0.12)", color: "#f87171" },
+  { bg: "rgba(167,139,250,0.12)", color: "#a78bfa" },
+];
+
+const getAvatarStyle = (name = "") => {
+  const idx =
+    (name.charCodeAt(0) + (name.charCodeAt(1) || 0)) % AVATAR_PALETTE.length;
+  return AVATAR_PALETTE[idx];
+};
+
+const initials = (name = "") =>
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
 const SupplierList = ({
   data = [],
@@ -24,242 +39,340 @@ const SupplierList = ({
   setSelected,
 }) => {
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({});
+  const [editForm, setEditForm] = useState({});
+  const [savingId, setSavingId] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // ✅ DASHBOARD STATS
-  const [stats, setStats] = useState({});
+  const toggleAll = () =>
+    setSelected(selected.length === data.length ? [] : data.map((d) => d._id));
 
-  // =========================
-  // FETCH PRODUCT STATS
-  // =========================
-  useEffect(() => {
-    API.get("/products")
-      .then((res) => {
-        const products = res.data.data || [];
-
-        const map = {};
-
-        products.forEach((p) => {
-          const supplierId = p.supplier?._id;
-          if (!supplierId) return;
-
-          if (!map[supplierId]) {
-            map[supplierId] = {
-              count: 0,
-              quantity: 0,
-              value: 0,
-            };
-          }
-
-          map[supplierId].count += 1;
-          map[supplierId].quantity += p.quantity || 0;
-          map[supplierId].value +=
-            (p.price || 0) * (p.quantity || 0);
-        });
-
-        setStats(map);
-      })
-      .catch(() => {});
-  }, [data]);
-
-  const toggleSelect = (id) => {
+  const toggleRow = (id) =>
     setSelected((prev) =>
-      prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
-  };
 
-  const toggleAll = () => {
-    if (selected.length === data.length) setSelected([]);
-    else setSelected(data.map((d) => d._id));
-  };
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
 
-  const handleDelete = async (id) => {
     try {
-      await deleteSupplier(id);
-      toast.success("Deleted");
+      setDeletingId(deleteTarget);
+      await deleteSupplier(deleteTarget);
+      toast.success("Supplier deleted");
+      setDeleteTarget(null);
       refresh();
     } catch {
       toast.error("Delete failed");
+    } finally {
+      setDeletingId(null);
     }
   };
 
   const handleUpdate = async (id) => {
+    if (!editForm.name?.trim()) return toast.error("Name is required");
+    if (!editForm.email?.trim()) return toast.error("Email is required");
+
     try {
-      await updateSupplier(id, form);
+      setSavingId(id);
+      await updateSupplier(id, editForm);
+      toast.success("Supplier updated");
       setEditId(null);
-      setForm({});
-      toast.success("Updated");
+      setEditForm({});
       refresh();
     } catch {
       toast.error("Update failed");
+    } finally {
+      setSavingId(null);
     }
   };
 
-  const handleStatus = async (id) => {
+  const handleToggleStatus = async (id) => {
     try {
+      setTogglingId(id);
       await toggleSupplierStatus(id);
       toast.success("Status updated");
       refresh();
     } catch {
       toast.error("Status update failed");
+    } finally {
+      setTogglingId(null);
     }
   };
 
-  if (loading)
-    return <div className={styles.loading}>Loading...</div>;
+  const startEdit = (s) => {
+    setEditId(s._id);
+    setEditForm({
+      name: s.name,
+      company: s.company,
+      email: s.email,
+      phone: s.phone,
+    });
+  };
 
-  if (!data.length)
-    return <div className={styles.empty}>No suppliers found</div>;
+  if (loading) {
+    return <div className={styles.skeletonWrap}>Loading...</div>;
+  }
+
+  if (!data.length) {
+    return (
+      <div className={styles.empty}>
+        <div className={styles.emptyTitle}>No suppliers found</div>
+        <div className={styles.emptyDesc}>Add your first supplier</div>
+      </div>
+    );
+  }
 
   return (
-    <table className={styles.table}>
-      <thead>
-        <tr>
-          <th>
-            <input
-              type="checkbox"
-              checked={
-                selected.length === data.length && data.length > 0
-              }
-              onChange={toggleAll}
-            />
-          </th>
+    <>
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  className={styles.checkbox}
+                  checked={selected.length === data.length}
+                  onChange={toggleAll}
+                />
+              </th>
+              <th>Supplier</th>
+              <th>Company</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Stock</th>
+              <th>Value</th>
+              <th>Status</th>
+              <th>Alerts</th>
+              <th>Score</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
+          <tbody>
+            <AnimatePresence>
+              {data.map((s) => {
+                const pStats = s.stats || {};
 
-          {/* ✅ NEW DASHBOARD COLUMNS */}
-          <th>Products</th>
-          <th>Stock Qty</th>
-          <th>Stock Value</th>
+                const score =
+                  (pStats.qty > 0 ? 40 : 0) +
+                  (pStats.lowStock === 0 ? 30 : 10) +
+                  (pStats.profit > 0 ? 30 : 0);
 
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {data.map((s) => (
-          <tr key={s._id}>
-            <td>
-              <input
-                type="checkbox"
-                checked={selected.includes(s._id)}
-                onChange={() => toggleSelect(s._id)}
-              />
-            </td>
-
-            {editId === s._id ? (
-              <>
-                <td>
-                  <input
-                    value={form.name || ""}
-                    onChange={(e) =>
-                      setForm({ ...form, name: e.target.value })
-                    }
-                  />
-                </td>
-
-                <td>
-                  <input
-                    value={form.email || ""}
-                    onChange={(e) =>
-                      setForm({ ...form, email: e.target.value })
-                    }
-                  />
-                </td>
-
-                <td>
-                  <input
-                    value={form.phone || ""}
-                    onChange={(e) =>
-                      setForm({ ...form, phone: e.target.value })
-                    }
-                  />
-                </td>
-
-                {/* DASHBOARD EMPTY IN EDIT */}
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-
-                <td>
-                  <button
-                    className={styles.iconBtn}
-                    onClick={() => setEditId(null)}
+                return (
+                  <motion.tr
+                    key={s._id}
+                    layout
+                    className={`${styles.row} ${
+                      selected.includes(s._id) ? styles.selectedRow : ""
+                    } ${!s.active ? styles.inactiveRow : ""} ${
+                      editId === s._id ? styles.editingRow : ""
+                    }`}
                   >
-                    <FiX />
-                  </button>
-                </td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        className={styles.checkbox}
+                        checked={selected.includes(s._id)}
+                        onChange={() => toggleRow(s._id)}
+                      />
+                    </td>
 
-                <td>
-                  <button
-                    className={styles.saveBtn}
-                    onClick={() => handleUpdate(s._id)}
-                  >
-                    <FiSave />
-                  </button>
-                </td>
-              </>
-            ) : (
-              <>
-                <td>{s.name}</td>
-                <td>{s.email}</td>
-                <td>{s.phone}</td>
+                    <td>
+                      <div className={styles.nameCell}>
+                        <div
+                          className={styles.avatar}
+                          style={getAvatarStyle(s.name)}
+                        >
+                          {initials(s.name)}
+                        </div>
 
-                {/* ✅ DASHBOARD DATA */}
-                <td>{stats[s._id]?.count || 0}</td>
+                        {editId === s._id ? (
+                          <input
+                            className={styles.editInput}
+                            value={editForm.name}
+                            onChange={(e) =>
+                              setEditForm({
+                                ...editForm,
+                                name: e.target.value,
+                              })
+                            }
+                          />
+                        ) : (
+                          <span className={styles.supplierName}>{s.name}</span>
+                        )}
+                      </div>
+                    </td>
 
-                <td>{stats[s._id]?.quantity || 0}</td>
+                    <td>
+                      {editId === s._id ? (
+                        <input
+                          className={styles.editInput}
+                          value={editForm.company}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              company: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        <span className={styles.company}>{s.company}</span>
+                      )}
+                    </td>
 
-                <td>
-                  ₹ {stats[s._id]?.value?.toLocaleString() || 0}
-                </td>
+                    <td>
+                      {editId === s._id ? (
+                        <input
+                          className={styles.editInput}
+                          value={editForm.email}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              email: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        <span className={styles.email}>{s.email}</span>
+                      )}
+                    </td>
 
-                <td>
-                  <span
-                    onClick={() => handleStatus(s._id)}
-                    className={
-                      s.active
-                        ? styles.active
-                        : styles.inactive
-                    }
-                  >
-                    {s.active ? "Active" : "Inactive"}
-                  </span>
-                </td>
+                    <td>
+                      {editId === s._id ? (
+                        <input
+                          className={styles.editInput}
+                          value={editForm.phone}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              phone: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        <span className={styles.phone}>{s.phone}</span>
+                      )}
+                    </td>
 
-                <td className={styles.actions}>
-                  <button
-                    className={styles.editBtn}
-                    onClick={() => {
-                      setEditId(s._id);
-                      setForm({
-                        name: s.name,
-                        email: s.email,
-                        phone: s.phone,
-                      });
-                    }}
-                  >
-                    <FiEdit />
-                  </button>
+                    <td className={styles.numCell}>
+                      {(pStats.qty || 0).toLocaleString()}
+                    </td>
 
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={() => handleDelete(s._id)}
-                  >
-                    <FiTrash2 />
-                  </button>
-                </td>
-              </>
-            )}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                    <td className={styles.valCell}>
+                      ₹{(pStats.value || 0).toLocaleString("en-IN")}
+                    </td>
+
+                    <td>
+                      <button
+                        className={`${styles.statusPill} ${
+                          s.active ? styles.pillActive : styles.pillInactive
+                        }`}
+                        onClick={() => handleToggleStatus(s._id)}
+                        disabled={togglingId === s._id}
+                      >
+                        <span className={styles.pillDot}></span>
+                        {togglingId === s._id
+                          ? "..."
+                          : s.active
+                            ? "Active"
+                            : "Inactive"}
+                      </button>
+                    </td>
+
+                    <td>
+                      {pStats.lowStock > 0 && (
+                        <span className={styles.numCell}>
+                          ⚠ {pStats.lowStock}
+                        </span>
+                      )}
+                      {pStats.outOfStock > 0 && (
+                        <span className={styles.numCell}>
+                          ❌ {pStats.outOfStock}
+                        </span>
+                      )}
+                    </td>
+
+                    <td className={styles.numCell}>{score}/100</td>
+
+                    <td>
+                      <div className={styles.actions}>
+                        {editId === s._id ? (
+                          <>
+                            <button
+                              className={`${styles.actionBtn} ${styles.saveBtn}`}
+                              onClick={() => handleUpdate(s._id)}
+                              disabled={savingId === s._id}
+                            >
+                              {savingId === s._id ? (
+                                <span className={styles.spinnerSm}></span>
+                              ) : (
+                                "✓"
+                              )}
+                            </button>
+
+                            <button
+                              className={`${styles.actionBtn} ${styles.cancelBtn}`}
+                              onClick={() => setEditId(null)}
+                            >
+                              ✕
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className={`${styles.actionBtn} ${styles.editBtn}`}
+                              onClick={() => startEdit(s)}
+                            >
+                              ✎
+                            </button>
+
+                            <button
+                              className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                              onClick={() => setDeleteTarget(s._id)}
+                            >
+                              🗑
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </AnimatePresence>
+          </tbody>
+        </table>
+      </div>
+
+      {deleteTarget && (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmBox}>
+            <div className={styles.confirmTitle}>Delete supplier?</div>
+            <div className={styles.confirmDesc}>
+              This action cannot be undone.
+            </div>
+
+            <div className={styles.confirmActions}>
+              <button
+                className={styles.confirmCancel}
+                onClick={() => setDeleteTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.confirmDelete}
+                onClick={handleDelete}
+                disabled={deletingId === deleteTarget}
+              >
+                {deletingId === deleteTarget ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

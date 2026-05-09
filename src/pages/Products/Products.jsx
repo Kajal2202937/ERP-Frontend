@@ -1,12 +1,17 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { getProducts } from "../../services/productService";
+import { getProducts } from "../../services/ProductService";
 import ProductList from "./ProductList";
 import AddProduct from "./AddProduct";
 import styles from "./Products.module.css";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-
-import { FiPlus, FiSearch, FiX, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  FiPlus,
+  FiSearch,
+  FiX,
+  FiChevronLeft,
+  FiChevronRight,
+} from "react-icons/fi";
 import { MdInventory2 } from "react-icons/md";
 
 const Products = () => {
@@ -27,7 +32,11 @@ const Products = () => {
     async (pageNo = page, searchText = activeSearch) => {
       setLoading(true);
       try {
-        const res = await getProducts({ page: pageNo, limit, search: searchText });
+        const res = await getProducts({
+          page: pageNo,
+          limit,
+          search: searchText,
+        });
         const data = res?.data;
         setProducts(data?.data || []);
         setTotalPages(data?.pages || 1);
@@ -39,22 +48,42 @@ const Products = () => {
         setLoading(false);
       }
     },
-    [page, activeSearch]
+    [page, activeSearch],
   );
 
   useEffect(() => {
     fetchProducts(page, activeSearch);
   }, [page, activeSearch]);
 
-  const handleSearch = () => { setActiveSearch(search.trim()); setPage(1); };
-  const handleClearSearch = () => { setSearch(""); setActiveSearch(""); setPage(1); searchInputRef.current?.focus(); };
-  const handlePageChange = (p) => { if (p >= 1 && p <= totalPages) setPage(p); };
-  const openAddModal = () => { setEditData(null); setShowForm(true); };
-  const closeModal = () => { setShowForm(false); setEditData(null); };
-  const handleRefresh = () => { fetchProducts(page, activeSearch); setShowForm(false); };
+  const handleSearch = () => {
+    setActiveSearch(search.trim());
+    setPage(1);
+  };
+  const handleClearSearch = () => {
+    setSearch("");
+    setActiveSearch("");
+    setPage(1);
+    searchInputRef.current?.focus();
+  };
+  const handlePageChange = (p) => {
+    if (p >= 1 && p <= totalPages) setPage(p);
+  };
+  const openAddModal = () => {
+    setEditData(null);
+    setShowForm(true);
+  };
+  const closeModal = () => {
+    setShowForm(false);
+    setEditData(null);
+  };
+  const handleRefresh = () => {
+    fetchProducts(page, activeSearch);
+    setShowForm(false);
+  };
 
   const getPaginationRange = () => {
-    const delta = 2, range = [];
+    const delta = 2,
+      range = [];
     const left = Math.max(2, page - delta);
     const right = Math.min(totalPages - 1, page + delta);
     range.push(1);
@@ -67,23 +96,29 @@ const Products = () => {
 
   return (
     <div className={styles.page}>
-      {/* ── TOP BAR ── */}
       <div className={styles.topBar}>
         <div className={styles.titleBlock}>
           <div className={styles.titleIcon}>
-            <MdInventory2 size={20} />
+            <MdInventory2 size={18} />
           </div>
           <div>
             <h2 className={styles.title}>Products</h2>
             <p className={styles.subtitle}>
-              {totalCount} items{activeSearch && <span className={styles.searchTag}>"{activeSearch}"</span>}
+              {totalCount} item{totalCount !== 1 ? "s" : ""}
+              {activeSearch && (
+                <span className={styles.searchTag}>"{activeSearch}"</span>
+              )}
             </p>
           </div>
         </div>
 
         <div className={styles.controls}>
           <div className={styles.searchWrapper}>
-            <FiSearch className={styles.searchIcon} onClick={handleSearch} />
+            <FiSearch
+              className={styles.searchIcon}
+              size={13}
+              onClick={handleSearch}
+            />
             <input
               ref={searchInputRef}
               className={styles.searchInput}
@@ -102,7 +137,7 @@ const Products = () => {
                   exit={{ opacity: 0, scale: 0.6 }}
                   transition={{ duration: 0.15 }}
                 >
-                  <FiX size={13} />
+                  <FiX size={11} />
                 </motion.button>
               )}
             </AnimatePresence>
@@ -114,13 +149,10 @@ const Products = () => {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
           >
-            <FiPlus size={16} />
-            Add Product
+            <FiPlus size={14} /> Add Product
           </motion.button>
         </div>
       </div>
-
-      {/* ── MODAL ── */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -141,7 +173,9 @@ const Products = () => {
             >
               <div className={styles.modalHeader}>
                 <div className={styles.modalTitleGroup}>
-                  <div className={styles.modalIcon}><MdInventory2 size={16} /></div>
+                  <div className={styles.modalIcon}>
+                    <MdInventory2 size={15} />
+                  </div>
                   <h3 className={styles.modalTitle}>
                     {editData ? "Edit Product" : "New Product"}
                   </h3>
@@ -152,9 +186,10 @@ const Products = () => {
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   transition={{ duration: 0.18 }}
                 >
-                  <FiX size={16} />
+                  <FiX size={14} />
                 </motion.button>
               </div>
+
               <div className={styles.modalBody}>
                 <AddProduct
                   refresh={handleRefresh}
@@ -166,8 +201,6 @@ const Products = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* ── TABLE CARD ── */}
       <motion.div
         className={styles.card}
         initial={{ opacity: 0, y: 12 }}
@@ -182,8 +215,6 @@ const Products = () => {
           setShowForm={setShowForm}
         />
       </motion.div>
-
-      {/* ── PAGINATION ── */}
       <AnimatePresence>
         {!loading && totalPages > 1 && (
           <motion.div
@@ -194,20 +225,21 @@ const Products = () => {
           >
             <span className={styles.pageInfo}>
               Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+              <span className={styles.totalCount}> · {totalCount} items</span>
             </span>
-
             <div className={styles.pageControls}>
               <button
                 className={styles.pageArrow}
                 disabled={page === 1}
                 onClick={() => handlePageChange(page - 1)}
               >
-                <FiChevronLeft size={15} />
+                <FiChevronLeft size={13} />
               </button>
-
               {getPaginationRange().map((p, i) =>
                 p === "..." ? (
-                  <span key={i} className={styles.ellipsis}>…</span>
+                  <span key={i} className={styles.ellipsis}>
+                    …
+                  </span>
                 ) : (
                   <button
                     key={p}
@@ -216,15 +248,14 @@ const Products = () => {
                   >
                     {p}
                   </button>
-                )
+                ),
               )}
-
               <button
                 className={styles.pageArrow}
                 disabled={page === totalPages}
                 onClick={() => handlePageChange(page + 1)}
               >
-                <FiChevronRight size={15} />
+                <FiChevronRight size={13} />
               </button>
             </div>
           </motion.div>
