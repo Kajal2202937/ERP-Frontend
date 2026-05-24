@@ -5,7 +5,6 @@ const API = axios.create({
   withCredentials: true,
 });
 
-// ── Attach auth token to every request if present ────────────────────────────
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -14,7 +13,6 @@ API.interceptors.request.use((config) => {
   return config;
 });
 
-// ── Response interceptor — normalise errors ───────────────────────────────────
 API.interceptors.response.use(
   (res) => res,
   (err) => {
@@ -27,7 +25,6 @@ API.interceptors.response.use(
   },
 );
 
-// ─── Public ───────────────────────────────────────────────────────────────────
 
 export const submitTicket = (data) =>
   API.post("/tickets", data).then((r) => r.data);
@@ -38,7 +35,6 @@ export const replyToTicket = (id, data) =>
 export const markTicketSeen = (id) =>
   API.post(`/tickets/${id}/seen`).then((r) => r.data);
 
-// ─── Admin-only ───────────────────────────────────────────────────────────────
 
 export const fetchTickets = (params = {}) =>
   API.get("/tickets", { params }).then((r) => r.data);
