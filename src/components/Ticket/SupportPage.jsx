@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import { submitTicket } from "../../services/ticketService";
 import TicketChat from "../../components/Ticket/TicketChat";
-import styles from "./Support.module.css";
+import styles from "./SupportPage.module.css";
 
 const SupportPage = () => {
   const [view, setView] = useState("form");
