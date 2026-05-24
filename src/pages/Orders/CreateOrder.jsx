@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createOrder } from "../../services/OrderService";
 import { getInventory } from "../../services/inventoryService";
 import API from "../../services/api";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./CreateOrder.module.css";
-
 import { FiPackage, FiHash, FiX, FiAlertCircle, FiInfo } from "react-icons/fi";
 import { TbShoppingCartPlus } from "react-icons/tb";
 
@@ -18,25 +17,31 @@ const CreateOrder = ({ refresh, onClose }) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    API.get("/products")
-      .then((res) => setProducts(res.data.data || []))
-      .catch(() => toast.error("Failed to load products"));
-  }, []);
+    const load = async () => {
+      try {
+        const [prodRes, invRes] = await Promise.allSettled([
+          API.get("/products"),
+          getInventory(),
+        ]);
 
-  useEffect(() => {
-    getInventory()
-      .then((res) => {
-        const data = res.data?.data || [];
-        setInventoryData(data);
+        if (prodRes.status === "fulfilled") {
+          setProducts(prodRes.value.data?.data || []);
+        }
 
-        const disabled = new Set(
-          data
-            .filter((inv) => inv.isActive === false && inv.product?._id)
-            .map((inv) => inv.product._id),
-        );
-        setDisabledProductIds(disabled);
-      })
-      .catch(() => toast.error("Failed to load inventory"));
+        if (invRes.status === "fulfilled") {
+          const inv = invRes.value.data?.data || [];
+          setInventoryData(inv);
+          setDisabledProductIds(
+            new Set(
+              inv
+                .filter((i) => i.isActive === false && i.product?._id)
+                .map((i) => i.product._id),
+            ),
+          );
+        }
+      } catch {}
+    };
+    load();
   }, []);
 
   const availableProducts = products.filter(
@@ -49,7 +54,6 @@ const CreateOrder = ({ refresh, onClose }) => {
   }, [form.product, inventoryData]);
 
   const selectedProduct = availableProducts.find((p) => p._id === form.product);
-
   const qty = Number(form.quantity);
   const overStock = qty > 0 && qty > selectedStock;
   const stockPct =
@@ -57,30 +61,30 @@ const CreateOrder = ({ refresh, onClose }) => {
       ? Math.min((qty / selectedStock) * 100, 100)
       : 0;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      if (!form.product) return toast.error("Please select a product");
+      if (disabledProductIds.has(form.product))
+        return toast.error("This product's inventory is disabled");
+      if (qty <= 0) return toast.error("Quantity must be greater than 0");
+      if (qty > selectedStock) return toast.error("Not enough stock");
 
-    if (!form.product) return toast.error("Please select a product");
-    if (disabledProductIds.has(form.product))
-      return toast.error("This product's inventory is disabled");
-    if (qty <= 0) return toast.error("Quantity must be greater than 0");
-    if (qty > selectedStock) return toast.error("Not enough stock");
-
-    setSubmitting(true);
-
-    try {
-      await createOrder({ product: form.product, quantity: qty });
-
-      toast.success("Order created");
-      refresh();
-      setForm({ product: "", quantity: "" });
-      onClose?.();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      setSubmitting(true);
+      try {
+        await createOrder({ product: form.product, quantity: qty });
+        toast.success("Order created");
+        refresh();
+        setForm({ product: "", quantity: "" });
+        onClose?.();
+      } catch (err) {
+        toast.error(err.message || "Something went wrong");
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [form, qty, selectedStock, disabledProductIds, refresh, onClose],
+  );
 
   return (
     <motion.div
@@ -119,10 +123,8 @@ const CreateOrder = ({ refresh, onClose }) => {
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.field}>
             <label htmlFor="order-product" className={styles.label}>
-              <FiPackage size={12} className={styles.labelIcon} />
-              Product
+              <FiPackage size={12} className={styles.labelIcon} /> Product
             </label>
-
             <div className={styles.selectWrap}>
               <select
                 className={styles.select}
@@ -144,7 +146,6 @@ const CreateOrder = ({ refresh, onClose }) => {
                 })}
               </select>
             </div>
-
             {disabledProductIds.size > 0 && (
               <p className={styles.hint}>
                 <FiInfo size={11} />
@@ -166,7 +167,6 @@ const CreateOrder = ({ refresh, onClose }) => {
                   <div className={styles.pcIcon}>
                     <FiPackage size={14} />
                   </div>
-
                   <div className={styles.pcInfo}>
                     <span className={styles.pcName}>
                       {selectedProduct.name}
@@ -175,33 +175,24 @@ const CreateOrder = ({ refresh, onClose }) => {
                       {selectedStock} units available
                     </span>
                   </div>
-
                   <span
-                    className={`${styles.pcBadge} ${
-                      selectedStock <= 5 ? styles.lowBadge : styles.okBadge
-                    }`}
+                    className={`${styles.pcBadge} ${selectedStock <= 5 ? styles.lowBadge : styles.okBadge}`}
                   >
                     {selectedStock <= 5 ? "Low stock" : "In stock"}
                   </span>
                 </div>
-
                 {qty > 0 && (
                   <div className={styles.stockBarWrap}>
                     <div className={styles.stockBar}>
                       <motion.div
-                        className={`${styles.stockFill} ${
-                          overStock ? styles.overFill : ""
-                        }`}
+                        className={`${styles.stockFill} ${overStock ? styles.overFill : ""}`}
                         initial={{ width: 0 }}
                         animate={{ width: `${stockPct}%` }}
                         transition={{ duration: 0.3 }}
                       />
                     </div>
-
                     <span
-                      className={`${styles.stockBarLabel} ${
-                        overStock ? styles.overLabel : ""
-                      }`}
+                      className={`${styles.stockBarLabel} ${overStock ? styles.overLabel : ""}`}
                     >
                       {qty} / {selectedStock}
                     </span>
@@ -210,16 +201,13 @@ const CreateOrder = ({ refresh, onClose }) => {
               </motion.div>
             )}
           </AnimatePresence>
+
           <div className={styles.field}>
             <label htmlFor="order-quantity" className={styles.label}>
-              <FiHash size={12} className={styles.labelIcon} />
-              Quantity
+              <FiHash size={12} className={styles.labelIcon} /> Quantity
             </label>
-
             <input
-              className={`${styles.input} ${
-                overStock ? styles.inputError : ""
-              }`}
+              className={`${styles.input} ${overStock ? styles.inputError : ""}`}
               id="order-quantity"
               name="quantity"
               type="number"
@@ -228,7 +216,6 @@ const CreateOrder = ({ refresh, onClose }) => {
               value={form.quantity}
               onChange={(e) => setForm({ ...form, quantity: e.target.value })}
             />
-
             <AnimatePresence>
               {overStock && (
                 <motion.p
@@ -243,6 +230,7 @@ const CreateOrder = ({ refresh, onClose }) => {
               )}
             </AnimatePresence>
           </div>
+
           <div className={styles.actions}>
             <button
               type="button"
@@ -251,7 +239,6 @@ const CreateOrder = ({ refresh, onClose }) => {
             >
               Cancel
             </button>
-
             <motion.button
               type="submit"
               className={styles.btnSubmit}

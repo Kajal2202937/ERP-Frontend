@@ -1,0 +1,13 @@
+.page {
+  height: calc(100vh - var(--navbar-height, 64px));
+  padding: 20px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 0;
+    height: 100vh;
+  }
+}

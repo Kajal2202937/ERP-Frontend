@@ -84,7 +84,6 @@ const IconArrow = () => (
   </svg>
 );
 
-/* ✅ NEW CLOSE ICON */
 const IconClose = () => (
   <svg
     viewBox="0 0 24 24"
@@ -98,6 +97,11 @@ const IconClose = () => (
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
+
+const getRedirectPath = (role) => {
+  if (role === "staff") return "/";
+  return "/dashboard";
+};
 
 const Login = () => {
   const { login } = useAuth();
@@ -121,7 +125,8 @@ const Login = () => {
       const res = await API.post("/auth/login", form);
       login(res.data.data, res.data.token);
       const role = res.data.data.role;
-      navigate(role === "admin" || role === "manager" ? "/dashboard" : "/");
+
+      navigate(getRedirectPath(role));
     } catch (err) {
       setError(err.response?.data?.message || "Invalid email or password");
     } finally {
@@ -134,7 +139,7 @@ const Login = () => {
       <div className={styles.grid} />
 
       <div className={styles.card}>
-        {/* ✅ CLOSE BUTTON */}
+        {/* CLOSE BUTTON */}
         <button
           className={styles.closeBtn}
           onClick={() => navigate("/")}

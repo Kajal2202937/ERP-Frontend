@@ -5,7 +5,6 @@
   max-width: 900px;
 }
 
-/* ── Page header ── */
 .pageHeader {
   display: flex;
   align-items: flex-start;
@@ -25,7 +24,6 @@
   margin-top: 3px;
 }
 
-/* ── Layout ── */
 .layout {
   display: grid;
   grid-template-columns: 256px 1fr;
@@ -44,7 +42,6 @@
   gap: 14px;
 }
 
-/* ── Profile card ── */
 .profileCard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -135,7 +132,6 @@
   letter-spacing: 0.2px;
 }
 
-/* ── Section ── */
 .section {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -146,6 +142,14 @@
   gap: 14px;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
 .sectionTitle {
   font-size: 11px;
   font-weight: 600;
@@ -153,11 +157,34 @@
   letter-spacing: 0.6px;
   text-transform: uppercase;
   font-family: var(--font-mono);
+}
+
+.section > .sectionTitle {
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
 
-/* ── Account info ── */
+.editBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent2, #8b91f5);
+  background: var(--accent-soft);
+  border: 1px solid rgba(108, 116, 240, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.editBtn:hover {
+  background: rgba(108, 116, 240, 0.15);
+  border-color: rgba(108, 116, 240, 0.35);
+}
+
 .infoGrid {
   display: flex;
   flex-direction: column;
@@ -209,7 +236,52 @@
   color: var(--text);
 }
 
-/* ── Password form ── */
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.editActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.cancelBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius, 10px);
+  color: var(--text2);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.cancelBtn:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+.cancelBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .pwdForm {
   display: flex;
   flex-direction: column;
@@ -262,6 +334,7 @@
     border-color 0.18s,
     box-shadow 0.18s,
     background 0.18s;
+  box-sizing: border-box;
 }
 
 .pwdInput::placeholder {
@@ -294,13 +367,11 @@
     color 0.18s,
     background 0.18s;
 }
-
 .eyeBtn:hover {
   color: var(--text2);
   background: var(--border);
 }
 
-/* ── Message banner ── */
 .msgBanner {
   display: flex;
   align-items: center;
@@ -323,7 +394,6 @@
   border: 1px solid rgba(248, 113, 113, 0.22);
 }
 
-/* ── Update button ── */
 .updateBtn {
   height: 38px;
   background: var(--accent);
@@ -338,25 +408,12 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  position: relative;
-  overflow: hidden;
   transition:
     background 0.18s,
     transform 0.18s,
     box-shadow 0.18s;
   margin-top: 2px;
-}
-
-.updateBtn::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 60%
-  );
-  pointer-events: none;
+  padding: 0 20px;
 }
 
 .updateBtn:hover:not(:disabled) {
@@ -369,7 +426,6 @@
   cursor: not-allowed;
 }
 
-/* ── Spinner ── */
 .spinner {
   width: 13px;
   height: 13px;
@@ -377,6 +433,7 @@
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
 }
 
 @keyframes spin {
@@ -385,7 +442,6 @@
   }
 }
 
-/* ── Theme button ── */
 .themeBtn {
   width: 100%;
   display: flex;
@@ -436,7 +492,6 @@
   margin-top: 1px;
 }
 
-/* ── Toggle switch ── */
 .toggle {
   width: 36px;
   height: 20px;
@@ -473,7 +528,6 @@
   background: #fff;
 }
 
-/* ── Logout ── */
 .logoutBtn {
   width: 100%;
   height: 38px;
@@ -497,54 +551,16 @@
   border-color: rgba(248, 113, 113, 0.35);
 }
 
-/* ── Recent activity ── */
-.activityList {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.activityItem {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border-radius: var(--radius-sm, 6px);
-  transition: background 0.15s;
-}
-
-.activityItem:hover {
-  background: var(--surface2);
-}
-
-.activityIcon {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: var(--accent-soft);
-  border: 1px solid rgba(108, 116, 240, 0.15);
-  color: var(--accent2, #8b91f5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.activityText {
-  font-size: 13px;
-  color: var(--text2);
-  flex: 1;
-}
-.activityTime {
-  font-size: 11px;
-  color: var(--text3);
-  font-family: var(--font-mono);
-  white-space: nowrap;
-}
-
-/* ── Responsive ── */
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+  .editActions {
+    flex-direction: column-reverse;
+  }
+  .cancelBtn,
+  .updateBtn {
+    width: 100%;
+    justify-content: center;
   }
 }

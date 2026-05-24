@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { getInventory } from "../../services/inventoryService";
+import { getInventory, deleteInventory } from "../../services/inventoryService";
 import AddInventory from "./AddInventory";
 import InventoryList from "./InventoryList";
 import styles from "./Inventory.module.css";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
@@ -11,9 +11,12 @@ import {
   FiX,
   FiChevronLeft,
   FiChevronRight,
+  FiTrash2,
 } from "react-icons/fi";
 import { TbPackage, TbAlertTriangle, TbCircleCheck } from "react-icons/tb";
 import { MdOutlineInventory2 } from "react-icons/md";
+import ImportButton from "../../components/common/ImportButton";
+import ExportButton from "../../components/common/ExportButton";
 
 const LIMIT_OPTIONS = [5, 10, 20, 50];
 
@@ -29,6 +32,8 @@ const Inventory = () => {
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+  const [selected, setSelected] = useState(new Set());
+
   const fetchInventory = useCallback(async () => {
     try {
       setLoading(true);
@@ -38,11 +43,11 @@ const Inventory = () => {
         search: debounced || undefined,
         stock: filter !== "all" ? filter : undefined,
       });
-
       const result = res?.data;
       setData(result?.data || []);
       setTotal(result?.total || 0);
       setTotalPages(result?.totalPages || 1);
+      setSelected(new Set());
     } catch {
       toast.error("Failed to load inventory");
     } finally {
@@ -73,6 +78,36 @@ const Inventory = () => {
     };
   }, [show]);
 
+  const handleBulkDelete = useCallback(async () => {
+    if (selected.size === 0) return;
+    if (!window.confirm(`Delete ${selected.size} item(s)?`)) return;
+    try {
+      const productIds = data
+        .filter((i) => selected.has(i._id))
+        .map((i) => i.product._id);
+
+      await deleteInventory(productIds);
+      toast.success(`${selected.size} item(s) archived`);
+      fetchInventory();
+    } catch (err) {
+      toast.error(err.message || "Delete failed");
+    }
+  }, [selected, data, fetchInventory]);
+
+  const toggleSelect = useCallback((id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelected((prev) =>
+      prev.size === data.length ? new Set() : new Set(data.map((i) => i._id)),
+    );
+  }, [data]);
+
   const handlePageChange = (p) => {
     if (p >= 1 && p <= totalPages) setPage(p);
   };
@@ -82,15 +117,11 @@ const Inventory = () => {
       range = [];
     const left = Math.max(2, page - delta);
     const right = Math.min(totalPages - 1, page + delta);
-
     if (totalPages >= 1) range.push(1);
     if (left > 2) range.push("...");
-
     for (let i = left; i <= right; i++) range.push(i);
-
     if (right < totalPages - 1) range.push("...");
     if (totalPages > 1) range.push(totalPages);
-
     return range;
   };
 
@@ -134,11 +165,6 @@ const Inventory = () => {
     },
   ];
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 14 },
-    show: { opacity: 1, y: 0 },
-  };
-
   return (
     <div className={styles.page}>
       <div className={styles.topBar}>
@@ -153,6 +179,22 @@ const Inventory = () => {
         </div>
 
         <div className={styles.controls}>
+          <AnimatePresence>
+            {selected.size > 0 && (
+              <motion.button
+                className={styles.btnDanger}
+                onClick={handleBulkDelete}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.15 }}
+              >
+                <FiTrash2 size={13} />
+                Delete ({selected.size})
+              </motion.button>
+            )}
+          </AnimatePresence>
+
           <div className={styles.searchWrapper}>
             <FiSearch className={styles.searchIcon} size={13} />
             <input
@@ -161,12 +203,14 @@ const Inventory = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-
             <AnimatePresence>
               {search && (
                 <motion.button
                   className={styles.clearBtn}
                   onClick={() => setSearch("")}
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.6 }}
                 >
                   <FiX size={11} />
                 </motion.button>
@@ -196,6 +240,8 @@ const Inventory = () => {
             ))}
           </select>
 
+          <ExportButton entity="inventory" />
+          <ImportButton entity="inventory" onSuccess={fetchInventory} />
           <motion.button
             className={styles.btnPrimary}
             onClick={() => setShow(true)}
@@ -204,6 +250,7 @@ const Inventory = () => {
           </motion.button>
         </div>
       </div>
+
       <motion.div className={styles.kpiRow} initial="hidden" animate="show">
         {kpis.map((k) => (
           <motion.div key={k.label} className={styles.kpiCard}>
@@ -216,7 +263,6 @@ const Inventory = () => {
               </div>
               <span className={styles.kpiLabel}>{k.label}</span>
             </div>
-
             {loading ? (
               <div className={styles.kpiSkeleton} />
             ) : (
@@ -227,6 +273,7 @@ const Inventory = () => {
           </motion.div>
         ))}
       </motion.div>
+
       <AnimatePresence>
         {show && (
           <div className={styles.modalOverlay} onClick={() => setShow(false)}>
@@ -242,15 +289,34 @@ const Inventory = () => {
           </div>
         )}
       </AnimatePresence>
+
       <div className={styles.tableCard}>
         {loading ? (
-          <div>Loading...</div>
+          <div style={{ padding: 24, color: "var(--text3)", fontSize: 13 }}>
+            Loading…
+          </div>
         ) : data.length === 0 ? (
-          <div>No inventory found</div>
+          <div
+            style={{
+              padding: 40,
+              textAlign: "center",
+              color: "var(--text3)",
+              fontSize: 13,
+            }}
+          >
+            No inventory found
+          </div>
         ) : (
-          <InventoryList data={data} refresh={fetchInventory} />
+          <InventoryList
+            data={data}
+            refresh={fetchInventory}
+            selected={selected}
+            toggleSelect={toggleSelect}
+            toggleSelectAll={toggleSelectAll}
+          />
         )}
       </div>
+
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <button
@@ -259,7 +325,6 @@ const Inventory = () => {
           >
             <FiChevronLeft />
           </button>
-
           {getPaginationRange().map((p, i) =>
             p === "..." ? (
               <span key={i}>…</span>
@@ -269,7 +334,6 @@ const Inventory = () => {
               </button>
             ),
           )}
-
           <button
             disabled={page === totalPages}
             onClick={() => handlePageChange(page + 1)}

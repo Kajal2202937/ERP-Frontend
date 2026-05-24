@@ -70,7 +70,7 @@ const AddSupplier = ({ refresh, close }) => {
       toast.success("Supplier added successfully");
       refresh();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to add supplier");
+      toast.error(err.message || "Failed to add supplier");
     } finally {
       setLoading(false);
     }
@@ -105,7 +105,7 @@ const AddSupplier = ({ refresh, close }) => {
               <FiUser size={15} />
             </div>
             <div>
-              <h3 className={styles.headerTitle}>Add supplier</h3>
+              <h3 className={styles.headerTitle}>Add Supplier</h3>
               <p className={styles.headerSub}>
                 Fill in the supplier details below
               </p>
@@ -114,16 +114,18 @@ const AddSupplier = ({ refresh, close }) => {
           <button
             className={styles.closeBtn}
             onClick={handleClose}
-            aria- label=" Close"
+            aria-label="Close"
           >
             <FiX size={14} />
           </button>
         </div>
+
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.grid}>
+            {/* ✅ Fixed: removed leading spaces from all labels */}
             <Field
               icon={<FiUser size={11} />}
-               label=" Supplier name *"
+              label="Supplier Name"
               error={errors.name}
             >
               <input
@@ -136,7 +138,7 @@ const AddSupplier = ({ refresh, close }) => {
 
             <Field
               icon={<FiBriefcase size={11} />}
-               label=" Company *"
+              label="Company"
               error={errors.company}
             >
               <input
@@ -149,7 +151,7 @@ const AddSupplier = ({ refresh, close }) => {
 
             <Field
               icon={<FiMail size={11} />}
-               label=" Email *"
+              label="Email"
               error={errors.email}
             >
               <input
@@ -163,7 +165,7 @@ const AddSupplier = ({ refresh, close }) => {
 
             <Field
               icon={<FiPhone size={11} />}
-               label=" Phone *"
+              label="Phone"
               error={errors.phone}
             >
               <input
@@ -176,9 +178,9 @@ const AddSupplier = ({ refresh, close }) => {
 
             <Field
               icon={<FiHome size={11} />}
-               label=" Address"
+              label="Address"
+              optional
               error={null}
-              className={styles.full}
             >
               <input
                 className={styles.input}
@@ -209,7 +211,7 @@ const AddSupplier = ({ refresh, close }) => {
               ) : (
                 <FiSave size={13} />
               )}
-              {loading ? "Saving…" : "Add supplier"}
+              {loading ? "Saving…" : "Add Supplier"}
             </motion.button>
           </div>
         </form>

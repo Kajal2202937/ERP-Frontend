@@ -3,7 +3,7 @@ import { deleteProduct, updateProduct } from "../../services/ProductService";
 import { getInventory } from "../../services/inventoryService";
 import API from "../../services/api";
 import styles from "./ProductList.module.css";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiEdit2,
@@ -13,6 +13,15 @@ import {
   FiAlertTriangle,
 } from "react-icons/fi";
 
+const EMPTY_FORM = {
+  name: "",
+  price: "",
+  costPrice: "",
+  category: "",
+  quantity: "",
+  supplier: "",
+};
+
 const ProductList = ({
   products = [],
   refresh,
@@ -21,16 +30,7 @@ const ProductList = ({
   loading,
 }) => {
   const [editId, setEditId] = useState(null);
-
-  const [form, setForm] = useState({
-    name: "",
-    price: "",
-    costPrice: "",
-    category: "",
-    quantity: "",
-    supplier: "",
-  });
-
+  const [form, setForm] = useState(EMPTY_FORM);
   const [inventoryMap, setInventoryMap] = useState({});
   const [suppliers, setSuppliers] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -41,29 +41,31 @@ const ProductList = ({
       .then((res) => {
         const map = {};
         (res.data?.data || []).forEach((inv) => {
-          if (inv.product?._id) map[inv.product._id] = inv.isActive;
+          if (inv.product?._id) {
+            map[inv.product._id] = {
+              isActive: inv.isActive,
+              quantity: inv.quantity ?? 0,
+            };
+          }
         });
         setInventoryMap(map);
       })
       .catch(() => {});
-  }, [products]);
+  }, []);
 
   useEffect(() => {
     API.get("/suppliers")
       .then((res) => {
-        const list =
-          res?.data?.data?.data || res?.data?.data || res?.data || [];
-
+        const list = res?.data?.data?.data || [];
         setSuppliers(Array.isArray(list) ? list : []);
       })
       .catch(() => {
         setSuppliers([]);
-        toast.error("Failed to load suppliers");
       });
   }, []);
 
   const isInventoryDisabled = (id) =>
-    id in inventoryMap && inventoryMap[id] === false;
+    id in inventoryMap && inventoryMap[id].isActive === false;
 
   const handleEdit = (p) => {
     setEditId(p._id);
@@ -72,7 +74,7 @@ const ProductList = ({
       price: p.price ?? "",
       costPrice: p.costPrice ?? 0,
       category: p.category || "",
-      quantity: p.quantity ?? "",
+      quantity: inventoryMap[p._id]?.quantity ?? 0,
       supplier: p.supplier?._id || "",
     });
   };
@@ -80,7 +82,6 @@ const ProductList = ({
   const handleUpdate = async (id) => {
     try {
       setSavingId(id);
-
       await updateProduct(id, {
         ...form,
         price: Number(form.price) || 0,
@@ -88,22 +89,12 @@ const ProductList = ({
         quantity: Number(form.quantity) || 0,
         supplier: form.supplier || null,
       });
-
       toast.success("Product updated");
       setEditId(null);
-
-      setForm({
-        name: "",
-        price: "",
-        costPrice: "",
-        category: "",
-        quantity: "",
-        supplier: "",
-      });
-
+      setForm(EMPTY_FORM);
       refresh();
-    } catch {
-      toast.error("Update failed");
+    } catch (err) {
+      toast.error(err.message || "Update failed");
     } finally {
       setSavingId(null);
     }
@@ -115,8 +106,8 @@ const ProductList = ({
       toast.success("Product deleted");
       setDeleteConfirm(null);
       refresh();
-    } catch {
-      toast.error("Delete failed");
+    } catch (err) {
+      toast.error(err.message || "Delete failed");
     }
   };
 
@@ -187,7 +178,6 @@ const ProductList = ({
               <th>Actions</th>
             </tr>
           </thead>
-
           <tbody>
             <AnimatePresence>
               {products.map((p, i) => {
@@ -198,9 +188,7 @@ const ProductList = ({
                 return (
                   <motion.tr
                     key={p._id}
-                    className={`${styles.row}
-                      ${disabled ? styles.disabledRow : ""}
-                      ${isEditing ? styles.editingRow : ""}`}
+                    className={`${styles.row} ${disabled ? styles.disabledRow : ""} ${isEditing ? styles.editingRow : ""}`}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
@@ -218,7 +206,6 @@ const ProductList = ({
                             autoFocus
                           />
                         </td>
-
                         <td>
                           <input
                             className={styles.inlineInput}
@@ -229,7 +216,6 @@ const ProductList = ({
                             }
                           />
                         </td>
-
                         <td>
                           <input
                             className={styles.inlineInput}
@@ -240,7 +226,6 @@ const ProductList = ({
                             }
                           />
                         </td>
-
                         <td>
                           <input
                             className={styles.inlineInput}
@@ -250,7 +235,6 @@ const ProductList = ({
                             }
                           />
                         </td>
-
                         <td>
                           <input
                             className={styles.inlineInput}
@@ -261,7 +245,6 @@ const ProductList = ({
                             }
                           />
                         </td>
-
                         <td>
                           <select
                             className={styles.inlineSelect}
@@ -278,9 +261,7 @@ const ProductList = ({
                             ))}
                           </select>
                         </td>
-
                         <td>—</td>
-
                         <td>
                           <div className={styles.actions}>
                             <motion.button
@@ -296,20 +277,11 @@ const ProductList = ({
                                 <FiSave size={13} />
                               )}
                             </motion.button>
-
                             <motion.button
                               className={`${styles.actionBtn} ${styles.cancelBtn}`}
                               onClick={() => {
                                 setEditId(null);
-
-                                setForm({
-                                  name: "",
-                                  price: "",
-                                  costPrice: "",
-                                  category: "",
-                                  quantity: "",
-                                  supplier: "",
-                                });
+                                setForm(EMPTY_FORM);
                               }}
                               disabled={isSaving}
                               whileHover={{ scale: 1.08 }}
@@ -328,26 +300,22 @@ const ProductList = ({
                             <span className={styles.skuTag}>{p.sku}</span>
                           )}
                         </td>
-
                         <td>₹{p.price.toLocaleString("en-IN")}</td>
-
                         <td>₹{p.costPrice?.toLocaleString("en-IN") || 0}</td>
-
                         <td>{p.category}</td>
-
                         <td>
                           <span
-                            className={`${styles.qty} ${
-                              p.quantity <= 5 ? styles.lowQty : ""
-                            }`}
+                            className={`${styles.qty} ${(inventoryMap[p._id]?.quantity ?? 0) <= 5 ? styles.lowQty : ""}`}
                           >
-                            {p.quantity <= 5 && <FiAlertTriangle size={11} />}
-                            {p.quantity.toLocaleString()}
+                            {(inventoryMap[p._id]?.quantity ?? 0) <= 5 && (
+                              <FiAlertTriangle size={11} />
+                            )}
+                            {(
+                              inventoryMap[p._id]?.quantity ?? 0
+                            ).toLocaleString()}
                           </span>
                         </td>
-
                         <td>{p.supplier?.name || "—"}</td>
-
                         <td>
                           {disabled ? (
                             <span className={styles.badgeDisabled}>
@@ -359,7 +327,6 @@ const ProductList = ({
                             </span>
                           )}
                         </td>
-
                         <td>
                           <div className={styles.actions}>
                             <motion.button
@@ -370,13 +337,16 @@ const ProductList = ({
                                 handleEdit(p);
                                 setEditData(p);
                               }}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
                             >
                               <FiEdit2 size={13} />
                             </motion.button>
-
                             <motion.button
                               className={`${styles.actionBtn} ${styles.deleteBtn}`}
                               onClick={() => setDeleteConfirm(p._id)}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
                             >
                               <FiTrash2 size={13} />
                             </motion.button>
@@ -392,7 +362,7 @@ const ProductList = ({
         </table>
       </div>
 
-      {/* Delete Modal */}
+      {/* ✅ Fixed: delete confirm now uses proper CSS classes */}
       <AnimatePresence>
         {deleteConfirm && (
           <motion.div
@@ -404,12 +374,30 @@ const ProductList = ({
           >
             <motion.div
               className={styles.confirmBox}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h4>Delete Product?</h4>
-              <div>
-                <button onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button onClick={() => handleDelete(deleteConfirm)}>
+              <div className={styles.confirmIcon}>
+                <FiTrash2 size={20} />
+              </div>
+              <h4 className={styles.confirmTitle}>Delete Product?</h4>
+              <p className={styles.confirmDesc}>
+                This action cannot be undone.
+              </p>
+              <div className={styles.confirmActions}>
+                <button
+                  className={styles.confirmCancel}
+                  onClick={() => setDeleteConfirm(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.confirmDelete}
+                  onClick={() => handleDelete(deleteConfirm)}
+                >
                   Delete
                 </button>
               </div>

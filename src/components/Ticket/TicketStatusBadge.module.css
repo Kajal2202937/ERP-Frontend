@@ -1,0 +1,22 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  border-radius: 9999px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* Sizes */
+.sm  { font-size: 11px; padding: 2px 8px; }
+.md  { font-size: 12px; padding: 3px 10px; }
+.lg  { font-size: 13px; padding: 4px 12px; }
+
+/* Status colors */
+.blue   { background: #eff6ff; color: #1d4ed8; }
+.indigo { background: #eef2ff; color: #4338ca; }
+.amber  { background: #fffbeb; color: #b45309; }
+.purple { background: #faf5ff; color: #7e22ce; }
+.green  { background: #f0fdf4; color: #15803d; }
+.gray   { background: #f9fafb; color: #374151; }
+.red    { background: #fef2f2; color: #dc2626; }

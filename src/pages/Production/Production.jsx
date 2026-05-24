@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { getProductions } from "../../services/ProductionService";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,7 +17,6 @@ import {
   Cell,
   CartesianGrid,
 } from "recharts";
-
 import {
   FiSearch,
   FiX,
@@ -77,6 +76,8 @@ const KPI_META = {
   },
 };
 
+const LIMIT = 5;
+
 const Production = () => {
   const [data, setData] = useState([]);
   const [show, setShow] = useState(false);
@@ -84,23 +85,22 @@ const Production = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const limit = 5;
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getProductions();
-      setData(res.data.data);
+      setData(res.data?.data || []);
     } catch {
       toast.error("Failed to load production data");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const kpis = useMemo(
     () => ({
@@ -108,7 +108,7 @@ const Production = () => {
       completed: data.filter((p) => p.status === "completed").length,
       inProgress: data.filter((p) => p.status === "in-progress").length,
       started: data.filter((p) => p.status === "started").length,
-      totalQty: data.reduce((a, b) => a + b.quantityProduced, 0),
+      totalQty: data.reduce((a, b) => a + (b.quantityProduced || 0), 0),
     }),
     [data],
   );
@@ -126,11 +126,11 @@ const Production = () => {
   );
 
   const paginated = useMemo(() => {
-    const start = (page - 1) * limit;
-    return filtered.slice(start, start + limit);
+    const start = (page - 1) * LIMIT;
+    return filtered.slice(start, start + LIMIT);
   }, [filtered, page]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / limit));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / LIMIT));
 
   const chartData = [
     { name: "Started", value: kpis.started },
@@ -140,6 +140,7 @@ const Production = () => {
 
   return (
     <div className={styles.page}>
+      {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
           <div className={styles.titleIcon}>
@@ -181,21 +182,19 @@ const Production = () => {
             </AnimatePresence>
           </div>
 
-          <div className={styles.filterWrap}>
-            <select
-              className={styles.filterSelect}
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="all">All Status</option>
-              <option value="started">Started</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
+          <select
+            className={styles.filterSelect}
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="all">All Status</option>
+            <option value="started">Started</option>
+            <option value="in-progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
 
           <motion.button
             className={styles.btnPrimary}
@@ -220,6 +219,7 @@ const Production = () => {
         </div>
       </div>
 
+      {/* KPI Grid */}
       <div className={styles.kpiGrid}>
         {loading
           ? [...Array(5)].map((_, i) => (
@@ -262,6 +262,8 @@ const Production = () => {
               );
             })}
       </div>
+
+      {/* Create form */}
       <AnimatePresence>
         {show && (
           <motion.div
@@ -278,6 +280,8 @@ const Production = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Chart + Stats */}
       <div className={styles.mainGrid}>
         <motion.div
           className={styles.chartCard}
@@ -289,7 +293,6 @@ const Production = () => {
             <h3 className={styles.cardTitle}>Status Breakdown</h3>
             <p className={styles.cardSub}>Production by stage</p>
           </div>
-
           {loading ? (
             <div
               className={styles.skeleton}
@@ -344,6 +347,7 @@ const Production = () => {
             </ResponsiveContainer>
           )}
         </motion.div>
+
         <div className={styles.statsCol}>
           {[
             {
@@ -386,7 +390,6 @@ const Production = () => {
               </div>
             </motion.div>
           ))}
-
           <motion.div
             className={styles.statCard}
             initial={{ opacity: 0, x: 14 }}
@@ -408,6 +411,8 @@ const Production = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Table */}
       {!loading && (
         <motion.div
           initial={{ opacity: 0, y: 12 }}
@@ -418,6 +423,8 @@ const Production = () => {
           <ProductionList data={paginated} refresh={fetchData} />
         </motion.div>
       )}
+
+      {/* Pagination */}
       {!loading && totalPages > 1 && (
         <div className={styles.pagination}>
           <span className={styles.pageInfo}>

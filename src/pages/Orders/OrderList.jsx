@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { updateOrderStatus } from "../../services/OrderService";
 import { getInventory } from "../../services/inventoryService";
 import styles from "./OrderList.module.css";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
-
 import {
   FiPackage,
   FiAlertTriangle,
@@ -22,19 +21,25 @@ const STATUS_COLORS = {
 
 const OrderList = ({ orders = [], refresh, loading }) => {
   const [disabledProductIds, setDisabledProductIds] = useState(new Set());
+  const [inventoryLoaded, setInventoryLoaded] = useState(false);
 
   useEffect(() => {
-    getInventory()
-      .then((res) => {
+    const load = async () => {
+      try {
+        const res = await getInventory();
         const disabled = new Set(
           (res.data?.data || [])
             .filter((inv) => inv?.isActive === false && inv?.product?._id)
             .map((inv) => inv.product._id),
         );
         setDisabledProductIds(disabled);
-      })
-      .catch(() => {});
-  }, [orders]);
+      } catch {
+      } finally {
+        setInventoryLoaded(true);
+      }
+    };
+    load();
+  }, []);
 
   const handleStatusChange = async (id, status, productId) => {
     if (!productId) return toast.error("Invalid product reference");
@@ -44,8 +49,8 @@ const OrderList = ({ orders = [], refresh, loading }) => {
       await updateOrderStatus(id, status);
       toast.success("Status updated");
       refresh?.();
-    } catch {
-      toast.error("Update failed");
+    } catch (err) {
+      toast.error(err.message || "Update failed");
     }
   };
 
@@ -102,7 +107,8 @@ const OrderList = ({ orders = [], refresh, loading }) => {
       <AnimatePresence>
         {orders.map((o, i) => {
           const productId = o?.product?._id;
-          const isDisabled = disabledProductIds.has(productId);
+          const isDisabled =
+            inventoryLoaded && disabledProductIds.has(productId);
           const statusMeta = STATUS_COLORS[o.status] || STATUS_COLORS.pending;
 
           return (
@@ -131,9 +137,11 @@ const OrderList = ({ orders = [], refresh, loading }) => {
                   </motion.div>
                 )}
               </AnimatePresence>
+
               <div
                 className={`${styles.cardAccent} ${styles[`accent_${statusMeta.cls}`]}`}
               />
+
               <div className={styles.cardHeader}>
                 <div className={styles.productInfo}>
                   <div className={styles.productIconWrap}>
@@ -155,6 +163,7 @@ const OrderList = ({ orders = [], refresh, loading }) => {
                   {statusMeta.label}
                 </div>
               </div>
+
               <div className={styles.statsRow}>
                 <div className={styles.stat}>
                   <span className={styles.statLabel}>Total</span>
@@ -177,6 +186,7 @@ const OrderList = ({ orders = [], refresh, loading }) => {
                   </span>
                 </div>
               </div>
+
               <div className={styles.cardFooter}>
                 {isDisabled ? (
                   <div className={styles.lockedRow}>
@@ -185,8 +195,6 @@ const OrderList = ({ orders = [], refresh, loading }) => {
                   </div>
                 ) : (
                   <select
-                    id={`order-status-${o._id}`}
-                    name="orderStatus"
                     className={`${styles.statusSelect} ${styles[`select_${statusMeta.cls}`]}`}
                     value={o.status}
                     onChange={(e) =>

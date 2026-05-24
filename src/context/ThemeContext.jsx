@@ -1,24 +1,24 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
 
 export const ThemeContext = createContext();
 
+const applyTheme = (theme) => {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+};
+
 const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("theme") || "light";
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem("theme") || "light";
-    setTheme(saved);
-    document.documentElement.setAttribute("data-theme", saved);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
+    applyTheme(theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  };
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

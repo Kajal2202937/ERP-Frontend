@@ -2,14 +2,17 @@ import { Navigate, Outlet } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 
 const ProtectedRoute = ({ allowedRoles = [] }) => {
-  const { user, hasRole } = useAuth();
+  const { user, isAuthenticated, hasRole } = useAuth();
 
-  if (!user) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles.length > 0 && !hasRole(allowedRoles)) {
-    return <Navigate to="/unauthorized" replace />;
+    if (user.role === "staff") {
+      return <Navigate to="/" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

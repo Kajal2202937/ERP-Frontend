@@ -4,9 +4,13 @@ import Sidebar from "../Sidebar/Sidebar";
 import { Outlet, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./MainLayout.module.css";
+import AIChat from "../AI/AIChat";
+import { FiCpu } from "react-icons/fi";
 
 const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const location = useLocation();
 
   return (
@@ -15,10 +19,19 @@ const MainLayout = () => {
       <div className={styles.ambientOrb2} />
       <div className={styles.grain} />
 
-      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+      <Sidebar
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+      />
 
-      <div className={`${styles.main} ${collapsed ? styles.mainCollapsed : ""}`}>
-        <Navbar />
+      <div
+        className={`${styles.main} ${collapsed ? styles.mainCollapsed : ""}`}
+      >
+        {/* Navbar receives setMobileOpen to render hamburger on mobile */}
+        <Navbar onMenuClick={() => setMobileOpen(true)} />
+
         <div className={styles.content}>
           <AnimatePresence mode="wait">
             <motion.div

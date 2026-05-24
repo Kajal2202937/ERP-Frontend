@@ -3,7 +3,7 @@ import { getProducts } from "../../services/ProductService";
 import ProductList from "./ProductList";
 import AddProduct from "./AddProduct";
 import styles from "./Products.module.css";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
@@ -13,7 +13,8 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { MdInventory2 } from "react-icons/md";
-
+import ImportButton from "../../components/common/ImportButton";
+import ExportButton from "../../components/common/ExportButton";
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -143,6 +144,8 @@ const Products = () => {
             </AnimatePresence>
           </div>
 
+          <ExportButton entity="products" />
+          <ImportButton entity="products" onSuccess={handleRefresh} />
           <motion.button
             className={styles.btnPrimary}
             onClick={openAddModal}

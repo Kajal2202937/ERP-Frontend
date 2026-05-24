@@ -59,11 +59,7 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
 
   useEffect(() => {
     API.get("/suppliers")
-      .then((res) => {
-        const list = res?.data?.data?.data || [];
-
-        setSuppliers(list);
-      })
+      .then((res) => setSuppliers(res?.data?.data?.data || []))
       .catch(() => {
         setSuppliers([]);
         toast.error("Failed to load suppliers");
@@ -97,13 +93,10 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
     if (!form.name.trim()) e.name = "Product name is required";
     if (!form.category.trim()) e.category = "Category is required";
     if (!form.supplier) e.supplier = "Please select a supplier";
-
     if (form.price === "" || Number(form.price) <= 0)
       e.price = "Price must be greater than 0";
-
     if (form.costPrice === "" || Number(form.costPrice) < 0)
       e.costPrice = "Cost price is required";
-
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -111,7 +104,6 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-
     setSubmitting(true);
     try {
       const payload = {
@@ -120,7 +112,6 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
         costPrice: Number(form.costPrice),
         quantity: Number(form.quantity) || 0,
       };
-
       if (editData) {
         await updateProduct(editData._id, payload);
         toast.success("Product updated");
@@ -128,21 +119,15 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
         await createProduct(payload);
         toast.success("Product created");
       }
-
       refresh();
       setEditData(null);
       setForm(EMPTY_FORM);
       setErrors({});
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Something went wrong");
+      toast.error(err.message || "Something went wrong");
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleReset = () => {
-    setForm(EMPTY_FORM);
-    setErrors({});
   };
 
   return (
@@ -194,7 +179,7 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
 
         <Field
           icon={<MdCurrencyRupee size={13} />}
-          label="Price (₹)"
+          label="Selling Price (₹)"
           error={errors.price}
         >
           <input
@@ -261,15 +246,18 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
           />
         </Field>
       </div>
+
       <div className={styles.actions}>
         <button
           type="button"
           className={styles.btnSecondary}
-          onClick={handleReset}
+          onClick={() => {
+            setForm(EMPTY_FORM);
+            setErrors({});
+          }}
         >
           <FiX size={13} /> Reset
         </button>
-
         <motion.button
           type="submit"
           className={styles.btnPrimary}
@@ -282,7 +270,6 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
           ) : (
             <FiSave size={13} />
           )}
-
           {submitting
             ? "Saving…"
             : editData

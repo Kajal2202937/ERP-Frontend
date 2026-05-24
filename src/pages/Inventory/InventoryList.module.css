@@ -1,4 +1,6 @@
-.tableWrap { overflow-x: auto; }
+.tableWrap {
+  overflow-x: auto;
+}
 
 .table {
   width: 100%;
@@ -6,7 +8,9 @@
   font-size: 13px;
 }
 
-.table thead tr { border-bottom: 1px solid var(--border); }
+.table thead tr {
+  border-bottom: 1px solid var(--border);
+}
 
 .table thead th {
   padding: 10px 16px;
@@ -20,20 +24,29 @@
   white-space: nowrap;
 }
 
-/* ── Row ── */
 .row {
   border-bottom: 1px solid var(--border);
   transition: background 0.15s;
 }
 
-.row:last-child { border-bottom: none; }
-.row:hover { background: var(--surface2); }
-.row td { padding: 11px 16px; vertical-align: middle; }
+.row:last-child {
+  border-bottom: none;
+}
+.row:hover {
+  background: var(--surface2);
+}
+.row td {
+  padding: 11px 16px;
+  vertical-align: middle;
+}
 
-.disabledRow { opacity: 0.5; }
-.editingRow  { background: rgba(108,116,240,0.04); }
+.disabledRow {
+  opacity: 0.5;
+}
+.editingRow {
+  background: rgba(108, 116, 240, 0.04);
+}
 
-/* ── Product cell ── */
 .productCell {
   display: flex;
   align-items: center;
@@ -47,9 +60,12 @@
   flex-shrink: 0;
 }
 
-.productName { font-weight: 500; color: var(--text); font-size: 13px; }
+.productName {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 13px;
+}
 
-/* ── Quantity ── */
 .qtyValue {
   font-family: var(--font-mono);
   font-size: 13px;
@@ -57,7 +73,9 @@
   color: var(--text);
 }
 
-.qtyAlert { color: var(--red); }
+.qtyAlert {
+  color: var(--red);
+}
 
 .qtyInput {
   width: 90px;
@@ -73,7 +91,6 @@
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* ── Status badges ── */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -86,19 +103,34 @@
 }
 
 .badge::before {
-  content: '';
+  content: "";
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: currentColor;
 }
 
-.normal   { color: var(--green); background: var(--green-soft);          border: 1px solid rgba(62,207,142,0.2);   }
-.low      { color: var(--amber); background: var(--amber-soft);          border: 1px solid rgba(240,168,85,0.2);   }
-.critical { color: var(--red);   background: var(--red-soft);            border: 1px solid rgba(248,113,113,0.2);  }
-.out      { color: var(--text3); background: var(--surface3);            border: 1px solid var(--border);          }
+.normal {
+  color: var(--green);
+  background: var(--green-soft);
+  border: 1px solid rgba(62, 207, 142, 0.2);
+}
+.low {
+  color: var(--amber);
+  background: var(--amber-soft);
+  border: 1px solid rgba(240, 168, 85, 0.2);
+}
+.critical {
+  color: var(--red);
+  background: var(--red-soft);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+}
+.out {
+  color: var(--text3);
+  background: var(--surface3);
+  border: 1px solid var(--border);
+}
 
-/* ── Active pills ── */
 .activePill {
   display: inline-flex;
   align-items: center;
@@ -131,7 +163,6 @@
   border-radius: 999px;
 }
 
-/* ── Action buttons ── */
 .actions {
   display: flex;
   align-items: center;
@@ -152,13 +183,36 @@
   color: var(--text3);
 }
 
-.actionBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-.editBtn:hover      { background: var(--accent-soft);                           border-color: rgba(108,116,240,0.3); color: var(--accent2); }
-.saveBtn:hover      { background: var(--green-soft);                            border-color: rgba(62,207,142,0.3);  color: var(--green);   }
-.cancelBtn:hover    { background: var(--red-soft);                              border-color: rgba(248,113,113,0.3); color: var(--red);     }
-.toggleOnBtn:hover  { background: var(--amber-soft);                            border-color: rgba(240,168,85,0.3);  color: var(--amber);   }
-.toggleOffBtn:hover { background: var(--green-soft);                            border-color: rgba(62,207,142,0.3);  color: var(--green);   }
+.editBtn:hover {
+  background: var(--accent-soft);
+  border-color: rgba(108, 116, 240, 0.3);
+  color: var(--accent2);
+}
+.saveBtn:hover {
+  background: var(--green-soft);
+  border-color: rgba(62, 207, 142, 0.3);
+  color: var(--green);
+}
+.cancelBtn:hover {
+  background: var(--red-soft);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: var(--red);
+}
+.toggleOnBtn:hover {
+  background: var(--amber-soft);
+  border-color: rgba(240, 168, 85, 0.3);
+  color: var(--amber);
+}
+.toggleOffBtn:hover {
+  background: var(--green-soft);
+  border-color: rgba(62, 207, 142, 0.3);
+  color: var(--green);
+}
 
 .spinnerSm {
   width: 11px;
@@ -169,4 +223,17 @@
   animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.selectedRow {
+  background: var(--accent-soft);
+}
+
+.selectedRow:hover {
+  background: rgba(108, 116, 240, 0.1);
+}
+

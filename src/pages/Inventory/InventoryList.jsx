@@ -5,7 +5,7 @@ import {
   enableInventory,
 } from "../../services/inventoryService";
 import styles from "./InventoryList.module.css";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiEdit2,
@@ -29,11 +29,19 @@ const getState = (item) => {
   return "normal";
 };
 
-const InventoryList = ({ data = [], refresh }) => {
+const InventoryList = ({
+  data = [],
+  refresh,
+  selected,
+  toggleSelect,
+  toggleSelectAll,
+}) => {
   const [editId, setEditId] = useState(null);
   const [editData, setEditData] = useState({});
   const [savingId, setSavingId] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
+
+  const allSelected = data.length > 0 && selected?.size === data.length;
 
   const handleUpdate = async (item) => {
     const value = editData[item._id];
@@ -45,17 +53,22 @@ const InventoryList = ({ data = [], refresh }) => {
       await updateStock({
         productId: item.product._id,
         quantity: Number(value),
+        lowStockLimit:
+          editData[item._id + "_limit"] !== undefined
+            ? Number(editData[item._id + "_limit"])
+            : item.lowStockLimit,
       });
       toast.success("Stock updated");
       setEditId(null);
       setEditData((prev) => {
         const u = { ...prev };
         delete u[item._id];
+        delete u[item._id + "_limit"];
         return u;
       });
       refresh();
-    } catch {
-      toast.error("Update failed");
+    } catch (err) {
+      toast.error(err.message || "Update failed");
     } finally {
       setSavingId(null);
     }
@@ -72,8 +85,8 @@ const InventoryList = ({ data = [], refresh }) => {
         toast.success("Inventory enabled");
       }
       refresh();
-    } catch {
-      toast.error("Toggle failed");
+    } catch (err) {
+      toast.error(err.message || "Toggle failed");
     } finally {
       setTogglingId(null);
     }
@@ -86,8 +99,18 @@ const InventoryList = ({ data = [], refresh }) => {
       <table className={styles.table}>
         <thead>
           <tr>
+            <th style={{ width: 36 }}>
+              <input
+                type="checkbox"
+                checked={allSelected}
+                onChange={toggleSelectAll}
+                style={{ cursor: "pointer" }}
+                aria-label="Select all"
+              />
+            </th>
             <th>Product</th>
             <th>Quantity</th>
+            <th>Low Stock Limit</th>
             <th>Status</th>
             <th>Active</th>
             <th>Actions</th>
@@ -102,18 +125,30 @@ const InventoryList = ({ data = [], refresh }) => {
               const isSaving = savingId === item._id;
               const isToggling = togglingId === item.product._id;
               const isEditing = editId === item._id;
+              const isSelected = selected?.has(item._id);
 
               return (
                 <motion.tr
                   key={item._id}
                   className={`${styles.row}
                     ${!item.isActive ? styles.disabledRow : ""}
-                    ${isEditing ? styles.editingRow : ""}`}
+                    ${isEditing ? styles.editingRow : ""}
+                    ${isSelected ? styles.selectedRow : ""}`}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ delay: i * 0.03, duration: 0.2 }}
                 >
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={isSelected || false}
+                      onChange={() => toggleSelect(item._id)}
+                      style={{ cursor: "pointer" }}
+                      aria-label={`Select ${item.product?.name}`}
+                    />
+                  </td>
+
                   <td>
                     <div className={styles.productCell}>
                       <div
@@ -134,8 +169,6 @@ const InventoryList = ({ data = [], refresh }) => {
                     {isEditing ? (
                       <input
                         type="number"
-                        id={`qty-${item._id}`}
-                        name="quantity"
                         min="0"
                         className={styles.qtyInput}
                         value={editData[item._id] ?? ""}
@@ -150,13 +183,34 @@ const InventoryList = ({ data = [], refresh }) => {
                     ) : (
                       <span
                         className={`${styles.qtyValue}
-                        ${
-                          state === "out" || state === "critical"
-                            ? styles.qtyAlert
-                            : ""
-                        }`}
+                        ${state === "out" || state === "critical" ? styles.qtyAlert : ""}`}
                       >
                         {item.quantity.toLocaleString()}
+                      </span>
+                    )}
+                  </td>
+
+                  <td>
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        min="1"
+                        className={styles.qtyInput}
+                        value={
+                          editData[item._id + "_limit"] ??
+                          item.lowStockLimit ??
+                          5
+                        }
+                        onChange={(e) =>
+                          setEditData((prev) => ({
+                            ...prev,
+                            [item._id + "_limit"]: e.target.value,
+                          }))
+                        }
+                      />
+                    ) : (
+                      <span className={styles.qtyValue}>
+                        {item.lowStockLimit ?? 5}
                       </span>
                     )}
                   </td>
@@ -165,6 +219,7 @@ const InventoryList = ({ data = [], refresh }) => {
                       {meta.label}
                     </span>
                   </td>
+
                   <td>
                     {item.isActive ? (
                       <span className={styles.activePill}>
@@ -175,6 +230,7 @@ const InventoryList = ({ data = [], refresh }) => {
                       <span className={styles.disabledPill}>Disabled</span>
                     )}
                   </td>
+
                   <td>
                     <div className={styles.actions}>
                       {isEditing ? (
@@ -190,7 +246,6 @@ const InventoryList = ({ data = [], refresh }) => {
                               <FiSave size={12} />
                             )}
                           </motion.button>
-
                           <motion.button
                             className={`${styles.actionBtn} ${styles.cancelBtn}`}
                             disabled={isSaving}
@@ -221,14 +276,9 @@ const InventoryList = ({ data = [], refresh }) => {
                           >
                             <FiEdit2 size={12} />
                           </motion.button>
-
                           <motion.button
                             className={`${styles.actionBtn}
-                              ${
-                                item.isActive
-                                  ? styles.toggleOnBtn
-                                  : styles.toggleOffBtn
-                              }`}
+                              ${item.isActive ? styles.toggleOnBtn : styles.toggleOffBtn}`}
                             onClick={() => handleToggle(item)}
                             disabled={isToggling}
                           >

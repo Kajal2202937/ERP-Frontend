@@ -8,20 +8,19 @@ const useAuth = () => {
     throw new Error("useAuth must be used inside AuthProvider");
   }
 
-  
-  const token = useMemo(() => {
-    return context.user?.token || localStorage.getItem("token");
-  }, [context.user]);
+  const token = useMemo(() => context.token, [context.token]);
 
-  const userId = useMemo(() => {
-    return context.user?._id || context.user?.id;
-  }, [context.user]);
+  const userId = useMemo(
+    () => context.user?._id || context.user?.id,
+    [context.user],
+  );
 
   return {
     ...context,
     token,
     userId,
-    isAuthenticated: !!context.user,
+
+    isAuthenticated: context.isAuthenticated,
   };
 };
 

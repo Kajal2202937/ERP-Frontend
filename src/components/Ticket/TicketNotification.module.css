@@ -1,0 +1,40 @@
+.container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--color-text-secondary, #6b7280);
+  transition: background 0.15s, color 0.15s;
+}
+
+.container:hover {
+  background: var(--color-bg-hover, #f3f4f6);
+  color: var(--color-text-primary, #111827);
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+}
+
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}

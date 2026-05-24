@@ -1,59 +1,66 @@
-import { useState } from "react";
-import { updateProduction, deleteProduction } from "../../services/ProductionService";
-import { toast } from "react-toastify";
-import { motion, AnimatePresence } from "framer-motion";
-import styles from "./ProductionList.module.css";
-
+import { useState as useStateP } from "react";
+import {
+  updateProduction,
+  deleteProduction,
+} from "../../services/ProductionService";
+import { toast as toastP } from "react-toastify";
+import { motion as motionP, AnimatePresence as AP } from "framer-motion";
+import stylesP from "./ProductionList.module.css";
 import { FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
 
 const STATUS_META = {
-  "started":     { label: "Started",     cls: "started"    },
+  started: { label: "Started", cls: "started" },
   "in-progress": { label: "In Progress", cls: "inprogress" },
-  "completed":   { label: "Completed",   cls: "completed"  },
+  completed: { label: "Completed", cls: "completed" },
 };
 
-const ProductionList = ({ data, refresh }) => {
-  const [editId, setEditId] = useState(null);
-  const [status, setStatus] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+export const ProductionListComponent = ({ data, refresh }) => {
+  const [editId, setEditId] = useStateP(null);
+  const [editStatus, setEditStatus] = useStateP("");
+  const [deleteConfirm, setDeleteConfirm] = useStateP(null);
+
+  const startEdit = (p) => {
+    setEditId(p._id);
+    setEditStatus(p.status);
+  };
 
   const handleUpdate = async (id) => {
-    if (!status) return toast.warning("Select a status");
+    if (!editStatus) return toastP.warning("Select a status");
     try {
-      await updateProduction(id, { status });
-      toast.success("Status updated");
+      await updateProduction(id, { status: editStatus });
+      toastP.success("Status updated");
       setEditId(null);
       refresh();
     } catch {
-      toast.error("Update failed");
+      toastP.error("Update failed");
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteProduction(id);
-      toast.success("Production deleted");
+      toastP.success("Production deleted");
       setDeleteConfirm(null);
       refresh();
     } catch {
-      toast.error("Delete failed");
+      toastP.error("Delete failed");
     }
   };
 
   if (!data.length) {
     return (
-      <div className={styles.empty}>
-        <div className={styles.emptyIcon}>🏭</div>
-        <p className={styles.emptyTitle}>No production runs</p>
-        <p className={styles.emptyDesc}>Create a new run to get started.</p>
+      <div className={stylesP.empty}>
+        <div className={stylesP.emptyIcon}>🏭</div>
+        <p className={stylesP.emptyTitle}>No production runs</p>
+        <p className={stylesP.emptyDesc}>Create a new run to get started.</p>
       </div>
     );
   }
 
   return (
     <>
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
+      <div className={stylesP.tableWrap}>
+        <table className={stylesP.table}>
           <thead>
             <tr>
               <th>Product</th>
@@ -63,118 +70,147 @@ const ProductionList = ({ data, refresh }) => {
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence>
+            <AP>
               {data.map((p, i) => {
                 const isEditing = editId === p._id;
                 const meta = STATUS_META[p.status] || STATUS_META["started"];
                 return (
-                  <motion.tr
+                  <motionP.tr
                     key={p._id}
-                    className={`${styles.row} ${isEditing ? styles.editingRow : ""}`}
+                    className={`${stylesP.row} ${isEditing ? stylesP.editingRow : ""}`}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.2 }}
                   >
                     <td>
-                      <span className={styles.productName}>{p.product?.name || "—"}</span>
+                      <span className={stylesP.productName}>
+                        {p.product?.name || "—"}
+                      </span>
                     </td>
-
                     <td>
-                      <span className={styles.qty}>{p.quantityProduced.toLocaleString()}</span>
+                      <span className={stylesP.qty}>
+                        {p.quantityProduced.toLocaleString()}
+                      </span>
                     </td>
-
                     <td>
                       {isEditing ? (
                         <select
-                          className={styles.inlineSelect}
-                          defaultValue={p.status}
-                          onChange={(e) => setStatus(e.target.value)}
+                          className={stylesP.inlineSelect}
+                          value={editStatus}
+                          onChange={(e) => setEditStatus(e.target.value)}
                         >
                           <option value="started">Started</option>
                           <option value="in-progress">In Progress</option>
                           <option value="completed">Completed</option>
                         </select>
                       ) : (
-                        <span className={`${styles.badge} ${styles[meta.cls]}`}>
+                        <span
+                          className={`${stylesP.badge} ${stylesP[meta.cls]}`}
+                        >
                           {meta.label}
                         </span>
                       )}
                     </td>
-
                     <td>
-                      <div className={styles.actions}>
+                      <div className={stylesP.actions}>
                         {isEditing ? (
                           <>
-                            <motion.button
-                              className={`${styles.actionBtn} ${styles.saveBtn}`}
+                            <motionP.button
+                              className={`${stylesP.actionBtn} ${stylesP.saveBtn}`}
                               onClick={() => handleUpdate(p._id)}
-                              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
                               title="Save"
                             >
                               <FiSave size={13} />
-                            </motion.button>
-                            <motion.button
-                              className={`${styles.actionBtn} ${styles.cancelBtn}`}
+                            </motionP.button>
+                            <motionP.button
+                              className={`${stylesP.actionBtn} ${stylesP.cancelBtn}`}
                               onClick={() => setEditId(null)}
-                              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
                               title="Cancel"
                             >
                               <FiX size={13} />
-                            </motion.button>
+                            </motionP.button>
                           </>
                         ) : (
                           <>
-                            <motion.button
-                              className={`${styles.actionBtn} ${styles.editBtn}`}
-                              onClick={() => { setEditId(p._id); setStatus(p.status); }}
-                              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+                            <motionP.button
+                              className={`${stylesP.actionBtn} ${stylesP.editBtn}`}
+                              onClick={() => startEdit(p)}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
                               title="Edit"
                             >
                               <FiEdit2 size={13} />
-                            </motion.button>
-                            <motion.button
-                              className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                            </motionP.button>
+                            <motionP.button
+                              className={`${stylesP.actionBtn} ${stylesP.deleteBtn}`}
                               onClick={() => setDeleteConfirm(p._id)}
-                              whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
                               title="Delete"
                             >
                               <FiTrash2 size={13} />
-                            </motion.button>
+                            </motionP.button>
                           </>
                         )}
                       </div>
                     </td>
-                  </motion.tr>
+                  </motionP.tr>
                 );
               })}
-            </AnimatePresence>
+            </AP>
           </tbody>
         </table>
       </div>
-      <AnimatePresence>
+
+      <AP>
         {deleteConfirm && (
-          <motion.div className={styles.confirmOverlay}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setDeleteConfirm(null)}>
-            <motion.div className={styles.confirmBox}
-              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          <motionP.div
+            className={stylesP.confirmOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDeleteConfirm(null)}
+          >
+            <motionP.div
+              className={stylesP.confirmBox}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              onClick={(e) => e.stopPropagation()}>
-              <div className={styles.confirmIcon}><FiTrash2 size={20} /></div>
-              <h4 className={styles.confirmTitle}>Delete Production Run?</h4>
-              <p className={styles.confirmDesc}>This action cannot be undone.</p>
-              <div className={styles.confirmActions}>
-                <button className={styles.confirmCancel} onClick={() => setDeleteConfirm(null)}>Cancel</button>
-                <button className={styles.confirmDelete} onClick={() => handleDelete(deleteConfirm)}>Delete</button>
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={stylesP.confirmIcon}>
+                <FiTrash2 size={20} />
               </div>
-            </motion.div>
-          </motion.div>
+              <h4 className={stylesP.confirmTitle}>Delete Production Run?</h4>
+              <p className={stylesP.confirmDesc}>
+                This action cannot be undone.
+              </p>
+              <div className={stylesP.confirmActions}>
+                <button
+                  className={stylesP.confirmCancel}
+                  onClick={() => setDeleteConfirm(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={stylesP.confirmDelete}
+                  onClick={() => handleDelete(deleteConfirm)}
+                >
+                  Delete
+                </button>
+              </div>
+            </motionP.div>
+          </motionP.div>
         )}
-      </AnimatePresence>
+      </AP>
     </>
   );
 };
 
-export default ProductionList;
+export default ProductionListComponent;

@@ -1,17 +1,5 @@
-import { useState } from "react";
+import toast from "react-hot-toast";
 
-const useToast = () => {
-  const [toast, setToast] = useState(null);
-
-  const showToast = (message, type = "success") => {
-    setToast({ message, type });
-
-    setTimeout(() => {
-      setToast(null);
-    }, 3000);
-  };
-
-  return { toast, showToast };
-};
+const useToast = () => toast;
 
 export default useToast;

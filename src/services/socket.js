@@ -1,41 +1,46 @@
 import { io } from "socket.io-client";
 
+// ─── Singleton ────────────────────────────────────────────────────────────────
 let socket = null;
 
+/**
+ * initSocket
+ * Creates or reconnects the single Socket.IO instance.
+ * Called once from AuthContext on login.
+ */
 export const initSocket = (token = null) => {
-  const BASE_URL = import.meta.env.VITE_SOCKET_URL;
+  const BASE_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:10000";
 
-  if (socket?.connected) {
-    if (token && socket.auth?.token !== token) {
-      socket.auth.token = token;
-    }
+  // Already connected — nothing to do
+  if (socket?.connected) return socket;
+
+  // Socket exists but disconnected — update token and reconnect
+  if (socket) {
+    socket.auth = { token };
+    socket.connect();
     return socket;
   }
 
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
-
+  // Create fresh instance
   socket = io(BASE_URL, {
-    transports: ["websocket"],
-    autoConnect: false,
+    transports: ["websocket", "polling"],
+    autoConnect: true,
     reconnection: true,
-    reconnectionAttempts: Infinity,
-    reconnectionDelay: 1500,
-    reconnectionDelayMax: 10000,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
     timeout: 20000,
-    auth: { token },
+    path: "/socket.io",
+    auth: token ? { token } : {},
+    withCredentials: true,
   });
 
-  socket.connect();
-
   socket.on("connect", () => {
-    console.log(`⚡ Socket connected: ${socket.id}`);
+    console.log("⚡ Socket connected:", socket.id);
   });
 
   socket.on("disconnect", (reason) => {
-    console.log(`❌ Socket disconnected: ${reason}`);
+    console.warn("❌ Socket disconnected:", reason);
   });
 
   socket.on("connect_error", (err) => {
@@ -45,17 +50,17 @@ export const initSocket = (token = null) => {
   return socket;
 };
 
-export const getSocket = () => {
-  if (!socket)
-    throw new Error("Socket not initialized. Call initSocket() first.");
-  return socket;
-};
+/** Returns current socket instance (may be null before login). */
+export const getSocket = () => socket;
 
+/**
+ * disconnectSocket
+ * Cleans up the singleton. Called on logout.
+ * Only removes app-level listeners — does NOT call removeAllListeners()
+ * which would break Socket.IO internal event handling.
+ */
 export const disconnectSocket = () => {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
+  if (!socket) return;
+  socket.disconnect();
+  socket = null;
 };
-
-export const isSocketConnected = () => socket?.connected || false;

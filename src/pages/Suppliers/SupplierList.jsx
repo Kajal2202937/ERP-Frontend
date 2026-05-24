@@ -5,8 +5,10 @@ import {
   toggleSupplierStatus,
 } from "../../services/SupplierService";
 import styles from "./SupplierList.module.css";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+
+import { FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
 
 const AVATAR_PALETTE = [
   { bg: "rgba(108,116,240,0.12)", color: "#8b91f5" },
@@ -55,15 +57,14 @@ const SupplierList = ({
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-
     try {
       setDeletingId(deleteTarget);
       await deleteSupplier(deleteTarget);
       toast.success("Supplier deleted");
       setDeleteTarget(null);
       refresh();
-    } catch {
-      toast.error("Delete failed");
+    } catch (err) {
+      toast.error(err.message || "Delete failed");
     } finally {
       setDeletingId(null);
     }
@@ -72,7 +73,6 @@ const SupplierList = ({
   const handleUpdate = async (id) => {
     if (!editForm.name?.trim()) return toast.error("Name is required");
     if (!editForm.email?.trim()) return toast.error("Email is required");
-
     try {
       setSavingId(id);
       await updateSupplier(id, editForm);
@@ -80,8 +80,8 @@ const SupplierList = ({
       setEditId(null);
       setEditForm({});
       refresh();
-    } catch {
-      toast.error("Update failed");
+    } catch (err) {
+      toast.error(err.message || "Update failed");
     } finally {
       setSavingId(null);
     }
@@ -93,8 +93,8 @@ const SupplierList = ({
       await toggleSupplierStatus(id);
       toast.success("Status updated");
       refresh();
-    } catch {
-      toast.error("Status update failed");
+    } catch (err) {
+      toast.error(err.message || "Status update failed");
     } finally {
       setTogglingId(null);
     }
@@ -111,7 +111,14 @@ const SupplierList = ({
   };
 
   if (loading) {
-    return <div className={styles.skeletonWrap}>Loading...</div>;
+    return (
+      <div
+        className={styles.skeletonWrap}
+        style={{ padding: 24, color: "var(--text3)", fontSize: 13 }}
+      >
+        Loading…
+      </div>
+    );
   }
 
   if (!data.length) {
@@ -133,8 +140,9 @@ const SupplierList = ({
                 <input
                   type="checkbox"
                   className={styles.checkbox}
-                  checked={selected.length === data.length}
+                  checked={selected.length === data.length && data.length > 0}
                   onChange={toggleAll}
+                  aria-label="Select all"
                 />
               </th>
               <th>Supplier</th>
@@ -154,21 +162,21 @@ const SupplierList = ({
             <AnimatePresence>
               {data.map((s) => {
                 const pStats = s.stats || {};
-
                 const score =
                   (pStats.qty > 0 ? 40 : 0) +
                   (pStats.lowStock === 0 ? 30 : 10) +
                   (pStats.profit > 0 ? 30 : 0);
+                const isEditing = editId === s._id;
+                const isSaving = savingId === s._id;
 
                 return (
                   <motion.tr
                     key={s._id}
                     layout
-                    className={`${styles.row} ${
-                      selected.includes(s._id) ? styles.selectedRow : ""
-                    } ${!s.active ? styles.inactiveRow : ""} ${
-                      editId === s._id ? styles.editingRow : ""
-                    }`}
+                    className={`${styles.row}
+                      ${selected.includes(s._id) ? styles.selectedRow : ""}
+                      ${!s.active ? styles.inactiveRow : ""}
+                      ${isEditing ? styles.editingRow : ""}`}
                   >
                     <td>
                       <input
@@ -176,6 +184,7 @@ const SupplierList = ({
                         className={styles.checkbox}
                         checked={selected.includes(s._id)}
                         onChange={() => toggleRow(s._id)}
+                        aria-label={`Select ${s.name}`}
                       />
                     </td>
 
@@ -187,16 +196,12 @@ const SupplierList = ({
                         >
                           {initials(s.name)}
                         </div>
-
-                        {editId === s._id ? (
+                        {isEditing ? (
                           <input
                             className={styles.editInput}
                             value={editForm.name}
                             onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                name: e.target.value,
-                              })
+                              setEditForm({ ...editForm, name: e.target.value })
                             }
                           />
                         ) : (
@@ -206,7 +211,7 @@ const SupplierList = ({
                     </td>
 
                     <td>
-                      {editId === s._id ? (
+                      {isEditing ? (
                         <input
                           className={styles.editInput}
                           value={editForm.company}
@@ -223,15 +228,12 @@ const SupplierList = ({
                     </td>
 
                     <td>
-                      {editId === s._id ? (
+                      {isEditing ? (
                         <input
                           className={styles.editInput}
                           value={editForm.email}
                           onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              email: e.target.value,
-                            })
+                            setEditForm({ ...editForm, email: e.target.value })
                           }
                         />
                       ) : (
@@ -240,15 +242,12 @@ const SupplierList = ({
                     </td>
 
                     <td>
-                      {editId === s._id ? (
+                      {isEditing ? (
                         <input
                           className={styles.editInput}
                           value={editForm.phone}
                           onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              phone: e.target.value,
-                            })
+                            setEditForm({ ...editForm, phone: e.target.value })
                           }
                         />
                       ) : (
@@ -259,22 +258,19 @@ const SupplierList = ({
                     <td className={styles.numCell}>
                       {(pStats.qty || 0).toLocaleString()}
                     </td>
-
                     <td className={styles.valCell}>
                       ₹{(pStats.value || 0).toLocaleString("en-IN")}
                     </td>
 
                     <td>
                       <button
-                        className={`${styles.statusPill} ${
-                          s.active ? styles.pillActive : styles.pillInactive
-                        }`}
+                        className={`${styles.statusPill} ${s.active ? styles.pillActive : styles.pillInactive}`}
                         onClick={() => handleToggleStatus(s._id)}
                         disabled={togglingId === s._id}
                       >
-                        <span className={styles.pillDot}></span>
+                        <span className={styles.pillDot} />
                         {togglingId === s._id
-                          ? "..."
+                          ? "…"
                           : s.active
                             ? "Active"
                             : "Inactive"}
@@ -298,42 +294,52 @@ const SupplierList = ({
 
                     <td>
                       <div className={styles.actions}>
-                        {editId === s._id ? (
+                        {isEditing ? (
                           <>
-                            <button
+                            <motion.button
                               className={`${styles.actionBtn} ${styles.saveBtn}`}
                               onClick={() => handleUpdate(s._id)}
-                              disabled={savingId === s._id}
+                              disabled={isSaving}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
+                              title="Save"
                             >
-                              {savingId === s._id ? (
-                                <span className={styles.spinnerSm}></span>
+                              {isSaving ? (
+                                <span className={styles.spinnerSm} />
                               ) : (
-                                "✓"
+                                <FiSave size={13} />
                               )}
-                            </button>
-
-                            <button
+                            </motion.button>
+                            <motion.button
                               className={`${styles.actionBtn} ${styles.cancelBtn}`}
                               onClick={() => setEditId(null)}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
+                              title="Cancel"
                             >
-                              ✕
-                            </button>
+                              <FiX size={13} />
+                            </motion.button>
                           </>
                         ) : (
                           <>
-                            <button
+                            <motion.button
                               className={`${styles.actionBtn} ${styles.editBtn}`}
                               onClick={() => startEdit(s)}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
+                              title="Edit"
                             >
-                              ✎
-                            </button>
-
-                            <button
+                              <FiEdit2 size={13} />
+                            </motion.button>
+                            <motion.button
                               className={`${styles.actionBtn} ${styles.deleteBtn}`}
                               onClick={() => setDeleteTarget(s._id)}
+                              whileHover={{ scale: 1.08 }}
+                              whileTap={{ scale: 0.92 }}
+                              title="Delete"
                             >
-                              🗑
-                            </button>
+                              <FiTrash2 size={13} />
+                            </motion.button>
                           </>
                         )}
                       </div>
@@ -346,32 +352,50 @@ const SupplierList = ({
         </table>
       </div>
 
-      {deleteTarget && (
-        <div className={styles.confirmOverlay}>
-          <div className={styles.confirmBox}>
-            <div className={styles.confirmTitle}>Delete supplier?</div>
-            <div className={styles.confirmDesc}>
-              This action cannot be undone.
-            </div>
-
-            <div className={styles.confirmActions}>
-              <button
-                className={styles.confirmCancel}
-                onClick={() => setDeleteTarget(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className={styles.confirmDelete}
-                onClick={handleDelete}
-                disabled={deletingId === deleteTarget}
-              >
-                {deletingId === deleteTarget ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete confirm */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <motion.div
+            className={styles.confirmOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setDeleteTarget(null)}
+          >
+            <motion.div
+              className={styles.confirmBox}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.confirmIcon}>
+                <FiTrash2 size={20} />
+              </div>
+              <div className={styles.confirmTitle}>Delete Supplier?</div>
+              <div className={styles.confirmDesc}>
+                This action cannot be undone.
+              </div>
+              <div className={styles.confirmActions}>
+                <button
+                  className={styles.confirmCancel}
+                  onClick={() => setDeleteTarget(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className={styles.confirmDelete}
+                  onClick={handleDelete}
+                  disabled={deletingId === deleteTarget}
+                >
+                  {deletingId === deleteTarget ? "Deleting…" : "Delete"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
