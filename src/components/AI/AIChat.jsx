@@ -5,6 +5,8 @@ import { FiSend, FiX, FiCpu, FiAlertCircle } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 
 const MAX_INPUT = 2000;
+const MAX_MESSAGES = 50;
+const COOLDOWN_MS = 3000;
 
 const WELCOME = {
   role: "assistant",
@@ -75,9 +77,16 @@ const applyInline = (text) => {
 const AIChat = ({ context = {}, onClose }) => {
   const [messages, setMessages] = useState([WELCOME]);
   const [input, setInput] = useState("");
+  const [cooldown, setCooldown] = useState(false);
 
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
+  const cooldownRef = useRef(null);
+
+  const contextRef = useRef(context);
+  useEffect(() => {
+    contextRef.current = context;
+  }, [context]);
 
   const { chat, chatLoading, chatError } = useAI();
 
@@ -85,30 +94,50 @@ const AIChat = ({ context = {}, onClose }) => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatLoading]);
 
+  useEffect(
+    () => () => {
+      if (cooldownRef.current) clearTimeout(cooldownRef.current);
+    },
+    [],
+  );
+
   const handleSend = useCallback(async () => {
     const text = input.trim();
-    if (!text || chatLoading) return;
+
+    if (!text || chatLoading || cooldown) return;
+
+    setCooldown(true);
+    cooldownRef.current = setTimeout(() => setCooldown(false), COOLDOWN_MS);
 
     const userMsg = { role: "user", content: text };
-    const updated = [...messages, userMsg];
 
-    setMessages(updated);
+    setMessages((prev) => {
+      const withUser = [...prev, userMsg];
+      if (withUser.length <= MAX_MESSAGES) return withUser;
+
+      return [WELCOME, ...withUser.slice(-(MAX_MESSAGES - 1))];
+    });
+
     setInput("");
     textareaRef.current?.focus();
 
-    const history = updated
+    const history = [...messages, userMsg]
       .filter((m) => m !== WELCOME)
       .map(({ role, content }) => ({ role, content }));
 
-    const result = await chat(history, context);
+    const result = await chat(history, contextRef.current);
 
     const reply =
       result?.data?.reply ||
       (typeof result === "string" ? result : null) ||
       "I couldn't generate a response. Please try again.";
 
-    setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-  }, [input, chatLoading, messages, chat, context]);
+    setMessages((prev) => {
+      const withAssistant = [...prev, { role: "assistant", content: reply }];
+      if (withAssistant.length <= MAX_MESSAGES) return withAssistant;
+      return [WELCOME, ...withAssistant.slice(-(MAX_MESSAGES - 1))];
+    });
+  }, [input, chatLoading, cooldown, messages, chat]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -118,6 +147,7 @@ const AIChat = ({ context = {}, onClose }) => {
   };
 
   const remaining = MAX_INPUT - input.length;
+  const isSendDisabled = chatLoading || cooldown || !input.trim();
 
   return (
     <div className={styles.panel}>
@@ -172,6 +202,16 @@ const AIChat = ({ context = {}, onClose }) => {
         <div ref={bottomRef} />
       </div>
 
+      {/* Cooldown indicator */}
+      {cooldown && !chatLoading && (
+        <p
+          className={styles.cooldownNote}
+          style={{ fontSize: 11, color: "var(--text3)", padding: "0 12px" }}
+        >
+          Please wait a moment before sending another message…
+        </p>
+      )}
+
       {/* Error */}
       {chatError && (
         <p className={styles.error}>
@@ -210,9 +250,10 @@ const AIChat = ({ context = {}, onClose }) => {
         <button
           className={styles.sendBtn}
           onClick={handleSend}
-          disabled={chatLoading || !input.trim()}
+          disabled={isSendDisabled}
           aria-label="Send message"
           type="button"
+          title={cooldown ? "Please wait before sending again" : "Send"}
         >
           <FiSend />
         </button>

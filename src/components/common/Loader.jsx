@@ -1,13 +1,16 @@
 export default function Loader({
   fullscreen = false,
   size = "md",
-  text = "Loading...",
+  text = null,
+  label = "Loading",
 }) {
   const sizes = { sm: 20, md: 36, lg: 56 };
-  const px = sizes[size] || 36;
+  const px = sizes[size] ?? 36;
 
   const spinner = (
     <div
+      role="status"
+      aria-label={label}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -19,6 +22,7 @@ export default function Loader({
         width={px}
         height={px}
         viewBox="0 0 50 50"
+        aria-hidden="true"
         style={{ animation: "spin 0.9s linear infinite" }}
       >
         <circle
@@ -26,19 +30,26 @@ export default function Loader({
           cy="25"
           r="20"
           fill="none"
-          stroke="var(--color-primary, #6366f1)"
+          stroke="var(--accent)"
           strokeWidth="5"
           strokeLinecap="round"
           strokeDasharray="90 150"
           strokeDashoffset="0"
         />
       </svg>
+
       {text && (
-        <span style={{ color: "var(--color-muted, #888)", fontSize: 14 }}>
+        <span
+          aria-hidden="true"
+          style={{
+            color: "var(--text3)",
+            fontSize: "var(--text-sm)",
+            fontFamily: "var(--font)",
+          }}
+        >
           {text}
         </span>
       )}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 
@@ -51,7 +62,7 @@ export default function Loader({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "var(--color-bg, #fff)",
+          background: "var(--bg)",
           zIndex: 9999,
         }}
       >

@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import {
   fetchTickets,
   fetchTicketStats,
@@ -11,6 +17,7 @@ import { TICKET_EVENTS } from "../../services/socketEvents";
 import TicketStatusBadge from "../Ticket/TicketStatusBadge";
 import TicketChat from "../Ticket/TicketChat";
 import styles from "./TicketInbox.module.css";
+import ConfirmDialog from "../common/ConfirmDialog";
 
 const TABS = [
   { key: "all", label: "All" },
@@ -32,6 +39,14 @@ const TABS = [
  * - Opens TicketChat panel on row click
  * - Delete tickets
  *
+ * Fixes applied:
+ *   1. selectedTicket is mirrored in a ref so socket handlers (inside useMemo)
+ *      can read the current value without being in the dep array. Previously,
+ *      adding selectedTicket to the dep array caused handlers to be recreated
+ *      and re-registered on every ticket selection, causing socket churn.
+ *   2. handlers useMemo dep array is now [] (stable) — all state mutations use
+ *      functional updater form or the ref.
+ *
  * Props:
  *   token   {string} - Admin JWT
  */
@@ -46,6 +61,12 @@ const TicketInbox = ({ token }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [dialog, setDialog] = useState(null);
+
+  const selectedTicketRef = useRef(selectedTicket);
+  useEffect(() => {
+    selectedTicketRef.current = selectedTicket;
+  }, [selectedTicket]);
 
   const loadTickets = useCallback(async () => {
     setLoading(true);
@@ -98,7 +119,7 @@ const TicketInbox = ({ token }) => {
           total: (prev.total || 0) + 1,
           unread: (prev.unread || 0) + 1,
         }));
-        toast.info(`📩 New ticket from ${payload.name}`, { autoClose: 4000 });
+        toast.info(`📩 New ticket from ${payload.name}`, { duration: 4000 });
       },
 
       [TICKET_EVENTS.TICKET_UPDATED]: (payload) => {
@@ -113,31 +134,38 @@ const TicketInbox = ({ token }) => {
 
       [TICKET_EVENTS.TICKET_DELETED]: (payload) => {
         setTickets((prev) => prev.filter((t) => t._id !== payload._id));
-        if (selectedTicket?._id === payload._id) {
+
+        if (selectedTicketRef.current?._id === payload._id) {
           setSelectedTicket(null);
         }
       },
     }),
-    [selectedTicket],
+    [],
   );
 
   useTicketSocket({ token, isAdmin: true, handlers });
 
-  const handleDelete = async (e, ticketId) => {
+  const handleDelete = (e, ticketId) => {
     e.stopPropagation();
-    if (!window.confirm("Delete this ticket? This cannot be undone.")) return;
-
-    setDeletingId(ticketId);
-    try {
-      await deleteTicket(ticketId);
-      setTickets((prev) => prev.filter((t) => t._id !== ticketId));
-      if (selectedTicket?._id === ticketId) setSelectedTicket(null);
-      toast.success("Ticket deleted");
-    } catch (err) {
-      toast.error(err.message || "Failed to delete ticket");
-    } finally {
-      setDeletingId(null);
-    }
+    setDialog({
+      title: "Delete this ticket?",
+      message: "The ticket and all its messages will be permanently removed.",
+      variant: "danger",
+      confirmLabel: "Delete Ticket",
+      onConfirm: async () => {
+        setDeletingId(ticketId);
+        try {
+          await deleteTicket(ticketId);
+          setTickets((prev) => prev.filter((t) => t._id !== ticketId));
+          if (selectedTicketRef.current?._id === ticketId) setSelectedTicket(null);
+          toast.success("Ticket deleted");
+        } catch (err) {
+          toast.error(err?.response?.data?.message || err.message || "Delete failed");
+        } finally {
+          setDeletingId(null);
+        }
+      },
+    });
   };
 
   const handleResolved = () => {
@@ -316,6 +344,7 @@ const TicketInbox = ({ token }) => {
           </div>
         )}
       </div>
+      <ConfirmDialog config={dialog} onClose={() => setDialog(null)} />
     </div>
   );
 };

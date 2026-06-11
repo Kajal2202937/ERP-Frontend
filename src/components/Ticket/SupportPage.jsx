@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import { submitTicket } from "../../services/ticketService";
 import TicketChat from "../../components/Ticket/TicketChat";
 import styles from "./SupportPage.module.css";
@@ -21,8 +21,8 @@ const SupportPage = () => {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim())    e.name    = "Name is required";
-    if (!form.email.trim())   e.email   = "Email is required";
+    if (!form.name.trim()) e.name = "Name is required";
+    if (!form.email.trim()) e.email = "Email is required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Enter a valid email";
     if (!form.message.trim()) e.message = "Message is required";
     return e;
@@ -44,9 +44,11 @@ const SupportPage = () => {
     setSubmitting(true);
     try {
       const res = await submitTicket(form);
-      setTicket(res.data);
+      setTicket(res);
       setView("chat");
-      toast.success(`Ticket ${res.data.ticketId} created! You can now chat with us.`);
+      toast.success(
+        `Ticket ${res.ticketId} created! You can now chat with us.`,
+      );
     } catch (err) {
       toast.error(err.message || "Failed to submit ticket. Please try again.");
     } finally {
@@ -69,11 +71,19 @@ const SupportPage = () => {
               <div className={styles.formHeader}>
                 <h1 className={styles.formTitle}>Contact Support</h1>
                 <p className={styles.formSubtitle}>
-                  Fill out the form below and our team will get back to you shortly.
+                  Fill out the form below and our team will get back to you
+                  shortly.
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} noValidate>
+              {/* FIX: added className={styles.formBody} — the original bare
+                  `form {}` selector in the CSS was global and leaked padding
+                  to every <form> on the page. */}
+              <form
+                onSubmit={handleSubmit}
+                noValidate
+                className={styles.formBody}
+              >
                 <div className={styles.row}>
                   <div className={styles.field}>
                     <label className={styles.label} htmlFor="name">

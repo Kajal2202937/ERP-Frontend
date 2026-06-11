@@ -1,11 +1,14 @@
 .sidebar {
-  width: var(--sidebar-width, 220px);
+  width: var(--sidebar-width);
   height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  transition: width var(--transition-slow);
+  transition:
+    width var(--transition-slow),
+    background-color var(--theme-tx),
+    border-color var(--theme-tx);
   overflow: hidden;
   position: relative;
   will-change: width;
@@ -29,7 +32,7 @@
 }
 
 .collapsed {
-  width: var(--sidebar-collapsed, 60px);
+  width: var(--sidebar-collapsed);
 }
 
 .desktopWrapper {
@@ -38,10 +41,11 @@
   left: 0;
   z-index: 50;
   height: 100vh;
+  isolation: isolate;
 }
 
 .brand {
-  height: var(--navbar-height, 52px);
+  height: var(--navbar-height);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -54,16 +58,16 @@
 .brandMark {
   width: 30px;
   height: 30px;
-  border-radius: 8px;
-  background: var(--gradient-accent, var(--accent));
+  border-radius: var(--radius-sm);
+  background: var(--gradient-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 0 14px var(--accent-glow, rgba(108, 116, 240, 0.35));
+  box-shadow: 0 0 14px var(--accent-glow);
   letter-spacing: -0.5px;
 }
 
@@ -76,11 +80,12 @@
 }
 
 .brandName {
-  font-size: 13.5px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.3px;
   line-height: 1.2;
+  transition: color var(--theme-tx);
 }
 
 .brandVersion {
@@ -90,6 +95,58 @@
   letter-spacing: 0.4px;
   text-transform: uppercase;
   margin-top: 1px;
+  transition: color var(--theme-tx);
+}
+
+.collapseToggle {
+  position: fixed;
+  top: 12px;
+  left: calc(var(--sidebar-width) - 12px);
+  z-index: 51;
+
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  box-shadow:
+    2px 0 8px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  transition:
+    left var(--transition-slow),
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition);
+}
+
+.collapseToggle:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent2);
+  box-shadow:
+    2px 0 12px rgba(108, 116, 240, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.desktopWrapper:has(.collapsed) .collapseToggle {
+  left: calc(var(--sidebar-collapsed) - 12px);
+}
+
+@media (max-width: 768px) {
+  .collapseToggle {
+    display: none;
+  }
 }
 
 .iconBtn {
@@ -97,7 +154,7 @@
   flex-shrink: 0;
   width: 24px;
   height: 24px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text3);
@@ -106,9 +163,9 @@
   align-items: center;
   justify-content: center;
   transition:
-    background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
+    background var(--t-fast),
+    color var(--t-fast),
+    border-color var(--t-fast);
 }
 
 .iconBtn:hover {
@@ -130,16 +187,19 @@
 .userAvatar {
   width: 32px;
   height: 32px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   border: 1.5px solid;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 700;
   font-family: var(--font-mono);
   flex-shrink: 0;
   letter-spacing: 0.03em;
+  transition:
+    background var(--theme-tx),
+    border-color var(--theme-tx);
 }
 
 .userInfo {
@@ -152,7 +212,7 @@
 }
 
 .userName {
-  font-size: 12.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.2px;
@@ -160,6 +220,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   line-height: 1;
+  transition: color var(--theme-tx);
 }
 
 .userRole {
@@ -171,10 +232,14 @@
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   border: 1px solid;
   line-height: 1.4;
   width: fit-content;
+  transition:
+    background var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx);
 }
 
 .divider {
@@ -182,11 +247,12 @@
   background: var(--border);
   margin: 0 12px;
   flex-shrink: 0;
+  transition: background var(--theme-tx);
 }
 
 .nav {
   flex: 1;
-  padding: 8px 8px 4px;
+  padding: var(--space-2) var(--space-2) var(--space-1);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;
@@ -197,7 +263,7 @@
 }
 
 .group {
-  margin-bottom: 4px;
+  margin-bottom: var(--space-1);
 }
 
 .groupLabel {
@@ -207,10 +273,11 @@
   color: var(--text3);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 10px 10px 4px;
+  padding: 10px 10px var(--space-1);
   overflow: hidden;
   white-space: nowrap;
   line-height: 1;
+  transition: color var(--theme-tx);
 }
 
 .groupList {
@@ -218,6 +285,9 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+
+  margin: 0;
+  padding: 0;
 }
 
 .link {
@@ -225,38 +295,45 @@
   align-items: center;
   gap: 9px;
   padding: 7px 10px;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   color: var(--text2);
   text-decoration: none;
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 400;
   line-height: 1;
-  transition:
-    background var(--transition),
-    color var(--transition),
-    border-color var(--transition);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   white-space: nowrap;
   min-width: 0;
   cursor: pointer;
+  transition:
+    background var(--t-fast),
+    color var(--t-fast),
+    border-color var(--t-fast);
 }
 
-.link:hover {
+.link:hover,
+.link:focus-visible {
   background: var(--surface2);
   border-color: var(--border);
   color: var(--text);
+  outline: none;
 }
 
-.link:hover .linkIcon {
-  color: var(--accent2, #8b91f5);
+.link:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.link:hover .linkIcon,
+.link:focus-visible .linkIcon {
+  color: var(--accent2);
 }
 
 .linkActive {
   background: var(--accent-soft);
-  border-color: rgba(108, 116, 240, 0.18);
-  color: var(--accent2, #8b91f5);
+  border-color: var(--accent-border);
+  color: var(--accent2);
   font-weight: 500;
 }
 
@@ -278,7 +355,7 @@
   justify-content: center;
   flex-shrink: 0;
   color: inherit;
-  transition: color var(--transition);
+  transition: color var(--t-fast);
   width: 16px;
 }
 
@@ -291,25 +368,29 @@
 }
 
 .tooltip {
-  position: fixed;
-  left: calc(var(--sidebar-collapsed, 60px) + 10px);
-  background: var(--surface3, var(--surface2));
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+
+  background: var(--surface3);
   border: 1px solid var(--border2);
   color: var(--text);
-  font-size: 12px;
+  font-size: var(--text-xs);
   font-weight: 500;
+  font-family: var(--font);
   padding: 5px 10px;
-  border-radius: var(--radius-sm, 6px);
+  border-radius: var(--radius-sm);
   white-space: nowrap;
   pointer-events: none;
   opacity: 0;
   box-shadow: var(--shadow-md);
   z-index: 999;
   transition: opacity 0.12s ease;
-  transform: translateY(-50%);
 }
 
-.link:hover .tooltip {
+.link:hover .tooltip,
+.link:focus-visible .tooltip {
   opacity: 1;
 }
 
@@ -320,6 +401,7 @@
   display: flex;
   align-items: center;
   min-height: 36px;
+  transition: border-color var(--theme-tx);
 }
 
 .footerText {
@@ -328,6 +410,7 @@
   font-family: var(--font-mono);
   white-space: nowrap;
   overflow: hidden;
+  transition: color var(--theme-tx);
 }
 
 .footerDot {
@@ -342,7 +425,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--bg-overlay);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 90;
@@ -357,7 +440,7 @@
 }
 
 .mobile {
-  width: var(--sidebar-width, 220px) !important;
+  width: var(--sidebar-width) !important;
   height: 100vh;
   box-shadow: var(--shadow-xl);
 }

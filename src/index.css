@@ -1,5 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500&display=swap");
 
+/* ═══════════════════════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════════════════════ */
 *,
 *::before,
 *::after {
@@ -8,148 +11,128 @@
   padding: 0;
 }
 
-/* ═══════════════════════════════════════════════════════
-   DARK THEME  (default — also applied via [data-theme="dark"])
-═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   DARK THEME (default)
+═══════════════════════════════════════════════════════════════ */
 :root,
 [data-theme="dark"] {
-  /* ── Dashboard var names ── */
+  /* Backgrounds */
   --bg: #0c0d10;
+  --bg-base: #0c0d10;
+  --bg-surface: #12141a;
+  --bg-surface2: #181b23;
+  --bg-surface3: #1e2130;
+  --bg-surface4: #252a38;
   --surface: #12141a;
   --surface2: #181b23;
   --surface3: #1e2130;
   --surface4: #252a38;
 
+  /* Glassmorphism */
+  --bg-glass: rgba(18, 20, 26, 0.8);
+  --bg-glass2: rgba(24, 27, 35, 0.7);
+  --bg-overlay: rgba(0, 0, 0, 0.65);
+
+  /* Borders */
   --border: rgba(255, 255, 255, 0.06);
   --border2: rgba(255, 255, 255, 0.1);
   --border3: rgba(255, 255, 255, 0.18);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.22);
 
+  /* Text */
   --text: #eef0f7;
   --text2: #8e96aa;
   --text3: #525a6e;
-  --bg-base: #0c0d10;
-  --bg-surface: #12141a;
-  --bg-surface2: #181b23;
-  --bg-surface3: #1e2130;
-  --bg-surface4: #252a38;
-  --bg-glass: rgba(18, 20, 26, 0.75);
-  --bg-glass2: rgba(24, 27, 35, 0.65);
-  --bg-overlay: rgba(0, 0, 0, 0.65);
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
   --text-primary: #eef0f7;
   --text-secondary: #8e96aa;
   --text-muted: #525a6e;
   --text-ghost: rgba(238, 240, 247, 0.25);
 
-  /* ── Public pages var names ── */
-  --bg-base: #0c0d10;
-  --bg-surface: #12141a;
-  --bg-surface2: #181b23;
-  --bg-surface3: #1e2130;
-  --bg-surface4: #252a38;
-  --bg-glass: rgba(18, 20, 26, 0.75);
-  --bg-glass2: rgba(24, 27, 35, 0.65);
-  --bg-overlay: rgba(0, 0, 0, 0.65);
-
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-default: rgba(255, 255, 255, 0.08);
-  --border-medium: rgba(255, 255, 255, 0.12);
-  --border-strong: rgba(255, 255, 255, 0.2);
-
-  --text-primary: #eef0f7;
-  --text-secondary: #8e96aa;
-  --text-muted: #525a6e;
-  --text-ghost: rgba(238, 240, 247, 0.25);
+  /* Shadows */
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.26);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.32);
+  --shadow-xl: 0 16px 52px rgba(0, 0, 0, 0.42);
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
    LIGHT THEME
-═══════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════ */
 [data-theme="light"] {
-  /* ── Dashboard var names ── */
   --bg: #f6f7fb;
+  --bg-base: #f6f7fb;
+  --bg-surface: #ffffff;
+  --bg-surface2: #f1f3f9;
+  --bg-surface3: #e9ecf5;
+  --bg-surface4: #dde2ee;
   --surface: #ffffff;
   --surface2: #f1f3f9;
   --surface3: #e9ecf5;
   --surface4: #dde2ee;
 
+  --bg-glass: rgba(255, 255, 255, 0.88);
+  --bg-glass2: rgba(241, 243, 249, 0.78);
+  --bg-overlay: rgba(0, 0, 0, 0.36);
+
   --border: rgba(0, 0, 0, 0.06);
   --border2: rgba(0, 0, 0, 0.1);
   --border3: rgba(0, 0, 0, 0.18);
+  --border-subtle: rgba(0, 0, 0, 0.05);
+  --border-default: rgba(0, 0, 0, 0.08);
+  --border-medium: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.22);
 
   --text: #0f172a;
   --text2: #475569;
   --text3: #94a3b8;
-  --bg-base: #f6f7fb;
-  --bg-surface: #ffffff;
-  --bg-surface2: #f1f3f9;
-  --bg-surface3: #e9ecf5;
-  --bg-surface4: #dde2ee;
-  --bg-glass: rgba(255, 255, 255, 0.85);
-  --bg-glass2: rgba(241, 243, 249, 0.75);
-  --bg-overlay: rgba(0, 0, 0, 0.35);
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-medium: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.2);
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
   --text-ghost: rgba(15, 23, 42, 0.3);
 
-  /* ── Public pages var names ── */
-  --bg-base: #f6f7fb;
-  --bg-surface: #ffffff;
-  --bg-surface2: #f1f3f9;
-  --bg-surface3: #e9ecf5;
-  --bg-surface4: #dde2ee;
-  --bg-glass: rgba(255, 255, 255, 0.8);
-  --bg-glass2: rgba(241, 243, 249, 0.7);
-  --bg-overlay: rgba(0, 0, 0, 0.4);
-
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-default: rgba(0, 0, 0, 0.08);
-  --border-medium: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.2);
-
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-ghost: rgba(15, 23, 42, 0.3);
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.07);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 16px 52px rgba(0, 0, 0, 0.16);
 }
 
-/* ═══════════════════════════════════════════════════════
-   SHARED — never change with theme
-═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL DESIGN TOKENS (theme-independent)
+═══════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Accent (same in both themes) ── */
+  /* ── Brand Accent ── */
   --accent: #6c74f0;
-  --accent2: #8b91f5; /* dashboard alias */
-  --accent-light: #8b91f5; /* public alias */
+  --accent2: #8b91f5;
+  --accent-light: #8b91f5;
   --accent-soft: rgba(108, 116, 240, 0.1);
-  --accent-glow: rgba(108, 116, 240, 0.2);
-  --accent-border: rgba(108, 116, 240, 0.25);
+  --accent-glow: rgba(108, 116, 240, 0.22);
+  --accent-border: rgba(108, 116, 240, 0.28);
   --accent-hover: #7c84f2;
 
-  /* ── Semantic colors ── */
+  /* ── Status Colors ── */
   --green: #3ecf8e;
   --green-soft: rgba(62, 207, 142, 0.1);
-  --green-border: rgba(62, 207, 142, 0.22);
+  --green-border: rgba(62, 207, 142, 0.24);
+
   --amber: #f0a855;
   --amber-soft: rgba(240, 168, 85, 0.1);
-  --amber-border: rgba(240, 168, 85, 0.22);
+  --amber-border: rgba(240, 168, 85, 0.24);
+
   --red: #f87171;
   --red-soft: rgba(248, 113, 113, 0.1);
+  --red-border: rgba(248, 113, 113, 0.24);
+
   --blue: #4da8f5;
   --blue-soft: rgba(77, 168, 245, 0.1);
-  --blue-border: rgba(77, 168, 245, 0.22);
+  --blue-border: rgba(77, 168, 245, 0.24);
+
   --purple: #a78bfa;
   --purple-soft: rgba(167, 139, 250, 0.1);
 
-  /* ── Module accent map ── */
+  /* ── Module Colors ── */
   --mod-inventory: #6c74f0;
   --mod-inventory-soft: rgba(108, 116, 240, 0.1);
   --mod-production: #f0a855;
@@ -168,6 +151,7 @@
   );
   --gradient-green: linear-gradient(135deg, #1d9e75 0%, #3ecf8e 100%);
   --gradient-logo: linear-gradient(135deg, #6c74f0 0%, #8b91f5 100%);
+
   --glow-line-accent: linear-gradient(
     90deg,
     transparent,
@@ -185,65 +169,82 @@
     transparent
   );
 
-  /* ── Shadows ── */
-  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 16px 56px rgba(0, 0, 0, 0.6);
-  --shadow: 0 4px 16px rgba(0, 0, 0, 0.4); /* dashboard alias */
-  --shadow-card: 0 0 0 1px var(--accent-soft), 0 24px 64px rgba(0, 0, 0, 0.55);
-
-  /* ── Radii — two alias sets, same values ── */
+  /* ── Radius ── */
+  --radius-xs: 4px;
   --radius-sm: 6px;
-  --r-xs: 5px;
-  --radius: 10px;
-  --r-sm: 7px;
-  --radius-md: 12px;
-  --r: 10px;
-  --radius-lg: 16px;
-  --r-md: 12px;
+  --radius: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-xl: 20px;
-  --r-lg: 16px;
-  --r-xl: 20px;
+  --radius-full: 9999px;
 
-  /* ── Transitions — two alias sets ── */
+  /* ── Spacing ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Typography Scale ── */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+
+  /* ── Transitions ── */
+  --theme-tx: 0.22s ease; /* override by theme-transitions.css */
   --transition: 0.18s cubic-bezier(0.22, 1, 0.36, 1);
-  --transition-slow: 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-slow: 0.32s cubic-bezier(0.22, 1, 0.36, 1);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --t-fast: 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  --t-fast: 0.14s cubic-bezier(0.22, 1, 0.36, 1);
   --t: 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-  --t-slow: 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  --t-slow: 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* ── Layout dimensions ── */
+  /* ── Layout ── */
   --sidebar-width: 220px;
-  --sidebar-w: 220px;
   --sidebar-collapsed: 60px;
-  --sidebar-w-col: 60px;
-  --navbar-height: 52px;
-  --navbar-h: 60px;
 
-  /* ── Font ── */
-  --font: "Geist", -apple-system, sans-serif;
-  --font-mono: "Geist Mono", monospace;
+  /* Navbar height used across ALL landing pages */
+  --navbar-h: 58px;
+  --navbar-height: 58px; /* alias kept for compatibility */
+
+  /* ── Fonts ── */
+  --font: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", "Fira Code", monospace;
 }
 
-/* ── Base styles ── */
+/* ═══════════════════════════════════════════════════════════════
+   BASE HTML
+═══════════════════════════════════════════════════════════════ */
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
 body {
   font-family: var(--font);
-  background: var(--bg-base, var(--bg));
-  color: var(--text-primary, var(--text));
+  background-color: var(--bg);
+  color: var(--text-primary);
   line-height: 1.5;
-  min-height: 100vh;
+  min-height: 100dvh;
   transition:
-    background 0.25s ease,
-    color 0.25s ease;
+    background-color var(--theme-tx),
+    color var(--theme-tx);
 }
 
+/* Form elements inherit font */
 input,
 select,
 textarea,
@@ -251,6 +252,7 @@ button {
   font-family: var(--font);
 }
 
+/* ─── Scrollbar ─────────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -259,14 +261,82 @@ button {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--surface4, var(--bg-surface4));
+  background: var(--surface4);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--border3, var(--border-strong));
+  background: var(--border3);
 }
 
+/* ─── Selection ─────────────────────────────────────────────── */
 ::selection {
   background: var(--accent-soft);
-  color: var(--accent-light, var(--accent2));
+  color: var(--accent2);
+}
+
+/* ─── Focus ring ────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Reduced motion ────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -3,7 +3,8 @@ import { getProducts } from "../../services/ProductService";
 import ProductList from "./ProductList";
 import AddProduct from "./AddProduct";
 import styles from "./Products.module.css";
-import toast from "react-hot-toast";
+import { toast } from "../../../utils/toast";
+import { useDebounce } from "../../hooks/useDebounce";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiPlus,
@@ -15,57 +16,52 @@ import {
 import { MdInventory2 } from "react-icons/md";
 import ImportButton from "../../components/common/ImportButton";
 import ExportButton from "../../components/common/ExportButton";
+
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState(null);
-  const [search, setSearch] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
+
   const searchInputRef = useRef(null);
   const limit = 6;
 
-  const fetchProducts = useCallback(
-    async (pageNo = page, searchText = activeSearch) => {
-      setLoading(true);
-      try {
-        const res = await getProducts({
-          page: pageNo,
-          limit,
-          search: searchText,
-        });
-        const data = res?.data;
-        setProducts(data?.data || []);
-        setTotalPages(data?.pages || 1);
-        setTotalCount(data?.total || 0);
-      } catch {
-        toast.error("Failed to load products");
-        setProducts([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, activeSearch],
-  );
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await getProducts({ page, limit, search: debouncedSearch });
+      const data = res?.data;
+      setProducts(data?.data || []);
+      setTotalPages(data?.pages || 1);
+      setTotalCount(data?.total || 0);
+    } catch {
+      toast.error("Failed to load products");
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, debouncedSearch]);
 
   useEffect(() => {
-    fetchProducts(page, activeSearch);
-  }, [page, activeSearch]);
+    fetchProducts();
+  }, [fetchProducts]);
 
-  const handleSearch = () => {
-    setActiveSearch(search.trim());
+  useEffect(() => {
     setPage(1);
-  };
+  }, [debouncedSearch]);
+
   const handleClearSearch = () => {
     setSearch("");
-    setActiveSearch("");
     setPage(1);
     searchInputRef.current?.focus();
   };
+
   const handlePageChange = (p) => {
     if (p >= 1 && p <= totalPages) setPage(p);
   };
@@ -78,21 +74,30 @@ const Products = () => {
     setEditData(null);
   };
   const handleRefresh = () => {
-    fetchProducts(page, activeSearch);
+    fetchProducts();
     setShowForm(false);
   };
 
   const getPaginationRange = () => {
-    const delta = 2,
-      range = [];
+    if (totalPages <= 1) return [];
+    const delta = 2;
     const left = Math.max(2, page - delta);
     const right = Math.min(totalPages - 1, page + delta);
-    range.push(1);
-    if (left > 2) range.push("...");
-    for (let i = left; i <= right; i++) range.push(i);
-    if (right < totalPages - 1) range.push("...");
-    if (totalPages > 1) range.push(totalPages);
-    return range;
+    const items = [];
+    items.push({ type: "page", value: 1, key: "page-1" });
+    if (left > 2)
+      items.push({ type: "ellipsis", value: "...", key: "ellipsis-start" });
+    for (let i = left; i <= right; i++)
+      items.push({ type: "page", value: i, key: `page-${i}` });
+    if (right < totalPages - 1)
+      items.push({ type: "ellipsis", value: "...", key: "ellipsis-end" });
+    items.push({ type: "page", value: totalPages, key: `page-${totalPages}` });
+    const seen = new Set();
+    return items.filter(({ key }) => {
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   };
 
   return (
@@ -105,9 +110,17 @@ const Products = () => {
           <div>
             <h2 className={styles.title}>Products</h2>
             <p className={styles.subtitle}>
-              {totalCount} item{totalCount !== 1 ? "s" : ""}
-              {activeSearch && (
-                <span className={styles.searchTag}>"{activeSearch}"</span>
+              {loading ? (
+                <span style={{ opacity: 0.4 }}>Loading…</span>
+              ) : (
+                <>
+                  {totalCount} item{totalCount !== 1 ? "s" : ""}
+                  {debouncedSearch && (
+                    <span className={styles.searchTag}>
+                      "{debouncedSearch}"
+                    </span>
+                  )}
+                </>
               )}
             </p>
           </div>
@@ -115,18 +128,14 @@ const Products = () => {
 
         <div className={styles.controls}>
           <div className={styles.searchWrapper}>
-            <FiSearch
-              className={styles.searchIcon}
-              size={13}
-              onClick={handleSearch}
-            />
+            {/* Icon is now decorative — no onClick needed, search fires on type */}
+            <FiSearch className={styles.searchIcon} size={13} />
             <input
               ref={searchInputRef}
               className={styles.searchInput}
               placeholder="Search products…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             />
             <AnimatePresence>
               {search && (
@@ -156,6 +165,7 @@ const Products = () => {
           </motion.button>
         </div>
       </div>
+
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -192,7 +202,6 @@ const Products = () => {
                   <FiX size={14} />
                 </motion.button>
               </div>
-
               <div className={styles.modalBody}>
                 <AddProduct
                   refresh={handleRefresh}
@@ -204,6 +213,7 @@ const Products = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
       <motion.div
         className={styles.card}
         initial={{ opacity: 0, y: 12 }}
@@ -213,11 +223,12 @@ const Products = () => {
         <ProductList
           products={products}
           loading={loading}
-          refresh={() => fetchProducts(page, activeSearch)}
+          refresh={fetchProducts}
           setEditData={setEditData}
           setShowForm={setShowForm}
         />
       </motion.div>
+
       <AnimatePresence>
         {!loading && totalPages > 1 && (
           <motion.div
@@ -238,18 +249,18 @@ const Products = () => {
               >
                 <FiChevronLeft size={13} />
               </button>
-              {getPaginationRange().map((p, i) =>
-                p === "..." ? (
-                  <span key={i} className={styles.ellipsis}>
+              {getPaginationRange().map(({ type, value, key }) =>
+                type === "ellipsis" ? (
+                  <span key={key} className={styles.ellipsis}>
                     …
                   </span>
                 ) : (
                   <button
-                    key={p}
-                    className={`${styles.pageBtn} ${page === p ? styles.activeBtn : ""}`}
-                    onClick={() => handlePageChange(p)}
+                    key={key}
+                    className={`${styles.pageBtn} ${page === value ? styles.activeBtn : ""}`}
+                    onClick={() => handlePageChange(value)}
                   >
-                    {p}
+                    {value}
                   </button>
                 ),
               )}

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { createProduction } from "../../services/ProductionService";
 import API from "../../services/api";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import { motion } from "framer-motion";
 import styles from "./CreateProduction.module.css";
 import { FiPackage, FiHash, FiSave, FiX } from "react-icons/fi";
+import SearchableSelect from "../../components/common/SearchableSelect";
 
 const CreateProduction = ({ refresh, onClose }) => {
   const [form, setForm] = useState({ product: "", quantityProduced: "" });
@@ -12,7 +13,7 @@ const CreateProduction = ({ refresh, onClose }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    API.get("/products")
+    API.get("/products", { params: { limit: 1000 } })
       .then((res) => setProducts(res.data.data || []))
       .catch(() => toast.error("Failed to load products"));
   }, []);
@@ -44,8 +45,12 @@ const CreateProduction = ({ refresh, onClose }) => {
         <div className={styles.cardHeader}>
           <h4 className={styles.cardTitle}>New Production Run</h4>
           {onClose && (
-            <motion.button className={styles.closeBtn} onClick={onClose}
-              whileHover={{ scale: 1.1, rotate: 90 }} transition={{ duration: 0.18 }}>
+            <motion.button
+              className={styles.closeBtn}
+              onClick={onClose}
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              transition={{ duration: 0.18 }}
+            >
               <FiX size={14} />
             </motion.button>
           )}
@@ -58,19 +63,14 @@ const CreateProduction = ({ refresh, onClose }) => {
                 <FiPackage size={12} className={styles.labelIcon} />
                 Product
               </label>
-              <select
-                className={styles.select}
+              <SearchableSelect
+                options={products.map((p) => ({ value: p._id, label: p.name }))}
                 value={form.product}
-                onChange={(e) => setForm({ ...form, product: e.target.value })}
-              >
-                <option value="">Select a product…</option>
-                {products.map((p) => (
-                  <option key={p._id} value={p._id}>{p.name}</option>
-                ))}
-              </select>
+                onChange={(val) => setForm({ ...form, product: val })}
+                placeholder="Select a product…"
+              />
             </div>
 
-            
             <div className={styles.field}>
               <label className={styles.label}>
                 <FiHash size={12} className={styles.labelIcon} />
@@ -82,7 +82,9 @@ const CreateProduction = ({ refresh, onClose }) => {
                 min="1"
                 placeholder="e.g. 100"
                 value={form.quantityProduced}
-                onChange={(e) => setForm({ ...form, quantityProduced: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, quantityProduced: e.target.value })
+                }
               />
             </div>
 
@@ -92,9 +94,14 @@ const CreateProduction = ({ refresh, onClose }) => {
                 type="submit"
                 className={styles.btnSubmit}
                 disabled={loading}
-                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
               >
-                {loading ? <span className={styles.spinner} /> : <FiSave size={14} />}
+                {loading ? (
+                  <span className={styles.spinner} />
+                ) : (
+                  <FiSave size={14} />
+                )}
                 {loading ? "Creating…" : "Create Run"}
               </motion.button>
             </div>

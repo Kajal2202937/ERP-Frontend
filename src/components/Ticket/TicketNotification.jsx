@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchTicketStats } from "../../services/ticketService";
 import useTicketSocket from "../../hooks/useTicketSocket";
 import { TICKET_EVENTS } from "../../services/socketEvents";
@@ -13,9 +13,18 @@ import styles from "./TicketNotification.module.css";
  * Props:
  *   token     {string}   - Admin JWT token
  *   onClick   {function} - Called when badge is clicked (navigate to inbox)
+ *
+ * Fixes applied:
+ *   1. handlers wrapped in useMemo — stable reference prevents the socket
+ *      from re-subscribing on every render.
+ *   2. TICKET_UPDATED handler now decrements `open` (not `unread`).
+ *      Resolving a ticket reduces the open count; it has no effect on
+ *      whether the admin has read a message.
+ *   3. No stale-closure risk — setStats uses the functional updater form
+ *      throughout, so handlers never need `stats` in their closure.
  */
 const TicketNotification = ({ token, onClick }) => {
-  const [stats, setStats] = useState({ unread: 0, new: 0, total: 0 });
+  const [stats, setStats] = useState({ unread: 0, new: 0, open: 0, total: 0 });
   const [loading, setLoading] = useState(true);
 
   const loadStats = useCallback(async () => {
@@ -33,33 +42,37 @@ const TicketNotification = ({ token, onClick }) => {
     loadStats();
   }, [loadStats]);
 
-  // Socket handlers for live updates
-  const handlers = {
-    [TICKET_EVENTS.TICKET_NEW]: () => {
-      setStats((prev) => ({
-        ...prev,
-        new: prev.new + 1,
-        unread: prev.unread + 1,
-        total: prev.total + 1,
-      }));
-    },
-    [TICKET_EVENTS.TICKET_UPDATED]: (payload) => {
-      // If ticket resolved/closed, reduce active count
-      if (["resolved", "closed"].includes(payload.status)) {
+  const handlers = useMemo(
+    () => ({
+      [TICKET_EVENTS.TICKET_NEW]: () => {
         setStats((prev) => ({
           ...prev,
-          unread: Math.max(0, prev.unread - 1),
+          new: prev.new + 1,
+          open: prev.open + 1,
+          unread: prev.unread + 1,
+          total: prev.total + 1,
         }));
-      }
-    },
-    [TICKET_EVENTS.TICKET_DELETED]: () => {
-      setStats((prev) => ({
-        ...prev,
-        total: Math.max(0, prev.total - 1),
-        unread: Math.max(0, prev.unread - 1),
-      }));
-    },
-  };
+      },
+
+      [TICKET_EVENTS.TICKET_UPDATED]: (payload) => {
+        if (["resolved", "closed"].includes(payload.status)) {
+          setStats((prev) => ({
+            ...prev,
+            open: Math.max(0, prev.open - 1),
+          }));
+        }
+      },
+
+      [TICKET_EVENTS.TICKET_DELETED]: () => {
+        setStats((prev) => ({
+          ...prev,
+          total: Math.max(0, prev.total - 1),
+          open: Math.max(0, prev.open - 1),
+        }));
+      },
+    }),
+    [],
+  );
 
   useTicketSocket({ token, isAdmin: true, handlers });
 

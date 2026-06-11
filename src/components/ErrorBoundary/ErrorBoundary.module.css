@@ -1,0 +1,116 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  gap: 1rem;
+  background-color: var(--bg-base, var(--bg));
+  color: var(--text-primary, var(--text));
+  font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx);
+}
+
+.icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--red-soft);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--red);
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  transition:
+    background-color var(--theme-tx),
+    border-color var(--theme-tx);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary, var(--text));
+  transition: color var(--theme-tx);
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary, var(--text2));
+  margin: 0;
+  max-width: 340px;
+  line-height: 1.6;
+  transition: color var(--theme-tx);
+}
+
+.errorBox {
+  background: var(--bg-surface2, var(--surface2));
+  border: 1px solid var(--border-default, var(--border));
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.78rem;
+  color: var(--text-secondary, var(--text2));
+  max-width: 480px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  text-align: left;
+  font-family: var(--font-mono, monospace);
+  transition:
+    background-color var(--theme-tx),
+    border-color var(--theme-tx),
+    color var(--theme-tx);
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.btnPrimary {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm, 6px);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font);
+  transition:
+    background-color var(--transition),
+    opacity var(--transition);
+}
+
+.btnPrimary:hover {
+  background: var(--accent-hover, var(--accent2));
+}
+
+.btnSecondary {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-medium, var(--border2));
+  background: transparent;
+  color: var(--text-secondary, var(--text2));
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font);
+  transition:
+    background-color var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.btnSecondary:hover {
+  background: var(--bg-surface2, var(--surface2));
+  border-color: var(--border-strong, var(--border3));
+  color: var(--text-primary, var(--text));
+}

@@ -1,12 +1,13 @@
-import {
-  FiShoppingCart,
-  FiTrendingUp,
-  FiRefreshCw,
-  FiZap,
-  FiFileText,
-} from "react-icons/fi";
-import { TbCurrencyRupee } from "react-icons/tb";
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import {
+  ShoppingCart,
+  TrendingUp,
+  RefreshCw,
+  Zap,
+  FileText,
+  IndianRupee,
+  AlertTriangle,
+} from "lucide-react";
 import styles from "./Reports.module.css";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -25,10 +26,13 @@ import {
 } from "../../services/ReportService";
 import ExportButton from "../../components/common/ExportButton";
 import InsightsPanel from "../../components/AI/InsightsPanel";
+import DateRangePicker from "../../components/common/DateRangePicker";
+import { formatCurrency } from "../../../utils/format";
+import { useDebounce } from "../../hooks/useDebounce";
+import useAuth from "../../hooks/useAuth";
 
-// ─── Formatters (module-level — never recreated) ──────────────────────────────
-
-const formatINR = (num) => Number(num || 0).toLocaleString("en-IN");
+import { initSocket } from "../../services/socket";
+import { ORDER_EVENTS } from "../../services/socketEvents";
 
 const formatDate = (date) => {
   const d = new Date(date);
@@ -36,45 +40,16 @@ const formatDate = (date) => {
   return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 };
 
-// FIX 1: Removed the broken modulo checks. The old `value % 10000000 === 0`
-//         was almost never true (e.g. 92106500 % 10000000 = 2106500 ≠ 0).
-//         Use a simple threshold-based formatter with a consistent 1-decimal rule.
-const formatCompactINR = (value) => {
-  const n = Number(value) || 0;
-  if (n >= 10_000_000) return `₹${(n / 10_000_000).toFixed(1)}Cr`;
-  if (n >= 100_000) return `₹${(n / 100_000).toFixed(1)}L`;
-  if (n >= 1_000) return `₹${(n / 1_000).toFixed(1)}K`;
-  return `₹${n}`;
-};
-
-// FIX 2: Moved out of the component so it isn't recreated on every render.
 const generateFallbackInsight = (summary = {}) => {
   const revenue = summary.totalRevenue || 0;
   const orders = summary.totalOrders || 0;
-
   if (!orders && !revenue) return "No sufficient data available for insights.";
-
-  let msg = `You generated ₹${formatINR(revenue)} from ${orders} orders. `;
-
-  if (orders > 50) msg += "Strong order volume detected.";
-  else if (orders > 0) msg += "Moderate activity detected.";
-  if (revenue > 100000) msg += " Revenue performance is strong.";
-
-  return msg.split(". ").join(".\n");
+  let msg = `You generated ${formatCurrency(revenue)} from ${orders} orders.`;
+  if (orders > 50) msg += "\nStrong order volume detected.";
+  else if (orders > 0) msg += "\nModerate activity detected.";
+  if (revenue > 100000) msg += "\nRevenue performance is strong.";
+  return msg;
 };
-
-// FIX 3: Debounce helper — prevents an API call on every keystroke in the
-//         date inputs. 500 ms feels instant but avoids mid-type fetches.
-function useDebounce(value, delay = 500) {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
-}
-
-// ─── Tooltip ─────────────────────────────────────────────────────────────────
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -82,209 +57,184 @@ const CustomTooltip = ({ active, payload, label }) => {
     <div className={styles.tooltip}>
       <p>{formatDate(label)}</p>
       <span>
-        <TbCurrencyRupee size={12} />
-        {formatINR(payload?.[0]?.value)}
+        <IndianRupee size={12} aria-hidden="true" />
+        {Number(payload?.[0]?.value || 0).toLocaleString("en-IN")}
       </span>
     </div>
   );
 };
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 const Reports = () => {
+  const { socketReady } = useAuth();
   const [data, setData] = useState({ summary: {}, trend: [], insight: "" });
 
-  const [filters, setFilters] = useState({ startDate: "", endDate: "" });
-
+  const [range, setRange] = useState({ from: "", to: "" });
   const [ui, setUI] = useState({
     loading: false,
     error: null,
     activeCard: null,
   });
 
-  // FIX 4: Validate date range before accepting it. If endDate precedes
-  //         startDate, set an error and skip the fetch.
-  const [dateError, setDateError] = useState("");
-
-  // FIX 5: Debounce filters so typing in a date field doesn't fire a new
-  //         request on every character.
-  const debouncedFilters = useDebounce(filters, 500);
-
-  // FIX 6: Abort controller ref — cancels in-flight requests on unmount.
+  const debouncedRange = useDebounce(range, 500);
   const abortRef = useRef(null);
 
-  const handleDateChange = (field, value) => {
-    setFilters((prev) => {
-      const next = { ...prev, [field]: value };
-
-      // Validate: both dates present and start > end
-      if (next.startDate && next.endDate && next.startDate > next.endDate) {
-        setDateError("Start date must be before end date.");
-      } else {
-        setDateError("");
-      }
-
-      return next;
-    });
-  };
-
-  const fetchReports = useCallback(
-    async (filtersArg) => {
-      // Skip if dates are invalid
-      if (dateError) return;
-
-      abortRef.current?.abort();
-      abortRef.current = new AbortController();
-
-      setUI((p) => ({ ...p, loading: true, error: null }));
-
-      try {
-        const [summaryRes, trendRes, insightRes] = await Promise.allSettled([
-          getSalesSummary(filtersArg),
-          getSalesTrend(filtersArg),
-          getInsights(),
-        ]);
-
-        if (abortRef.current.signal.aborted) return;
-
-        const summary =
-          summaryRes.status === "fulfilled"
-            ? (summaryRes.value?.data ?? {})
-            : {};
-
-        const trend =
-          trendRes.status === "fulfilled" ? (trendRes.value?.data ?? []) : [];
-
-        // FIX 7: Simplified insight resolution — no need to probe every sub-field.
-        //         getInsights() resolves to either { data: string } or throws.
-        const rawInsight =
-          insightRes.status === "fulfilled"
-            ? (insightRes.value?.data ?? insightRes.value ?? null)
-            : null;
-
-        const insight =
-          typeof rawInsight === "string" && rawInsight.trim()
-            ? rawInsight
-            : generateFallbackInsight(summary);
-
-        setData({ summary, trend, insight });
-      } catch (err) {
-        if (err?.name === "AbortError" || err?.name === "CanceledError") return;
-        console.error("[Reports] fetchReports error:", err);
-        setUI((p) => ({ ...p, error: "Unable to load reports" }));
-      } finally {
-        if (!abortRef.current.signal.aborted) {
-          setUI((p) => ({ ...p, loading: false }));
-        }
-      }
-    },
-    [dateError],
-  );
-
-  // Re-fetch when debounced filters change (not on every keystroke).
+  const rangeRef = useRef(debouncedRange);
   useEffect(() => {
-    fetchReports(debouncedFilters);
-    return () => abortRef.current?.abort();
-  }, [debouncedFilters, fetchReports]);
+    rangeRef.current = debouncedRange;
+  }, [debouncedRange]);
 
-  // FIX 8: Memoize the cards array — it only changes when summary data changes.
+  const fetchReports = useCallback(async (rangeArg) => {
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+    setUI((p) => ({ ...p, loading: true, error: null }));
+
+    try {
+      const filters = {
+        startDate: rangeArg?.from || undefined,
+        endDate: rangeArg?.to || undefined,
+      };
+
+      const [summaryRes, trendRes, insightRes] = await Promise.allSettled([
+        getSalesSummary(filters),
+        getSalesTrend(filters),
+        getInsights(),
+      ]);
+
+      if (abortRef.current.signal.aborted) return;
+
+      const summary =
+        summaryRes.status === "fulfilled" ? (summaryRes.value?.data ?? {}) : {};
+      const trend =
+        trendRes.status === "fulfilled" ? (trendRes.value?.data ?? []) : [];
+      const rawInsight =
+        insightRes.status === "fulfilled"
+          ? (insightRes.value?.data ?? insightRes.value ?? null)
+          : null;
+      const insight =
+        typeof rawInsight === "string" && rawInsight.trim()
+          ? rawInsight
+          : generateFallbackInsight(summary);
+
+      setData({ summary, trend, insight });
+    } catch (err) {
+      if (err?.name === "AbortError" || err?.name === "CanceledError") return;
+      setUI((p) => ({ ...p, error: "Unable to load reports" }));
+    } finally {
+      if (!abortRef.current.signal.aborted) {
+        setUI((p) => ({ ...p, loading: false }));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchReports(debouncedRange);
+    return () => abortRef.current?.abort();
+  }, [debouncedRange, fetchReports]);
+
+  useEffect(() => {
+    if (!socketReady) return;
+
+    const socket = initSocket();
+    if (!socket) return;
+
+    const handleOrderChange = () => {
+      fetchReports(rangeRef.current);
+    };
+
+    socket.on(ORDER_EVENTS.ORDER_CREATED, handleOrderChange);
+    socket.on(ORDER_EVENTS.ORDER_UPDATED, handleOrderChange);
+    socket.on(ORDER_EVENTS.ORDER_DELETED, handleOrderChange);
+
+    return () => {
+      socket.off(ORDER_EVENTS.ORDER_CREATED, handleOrderChange);
+      socket.off(ORDER_EVENTS.ORDER_UPDATED, handleOrderChange);
+      socket.off(ORDER_EVENTS.ORDER_DELETED, handleOrderChange);
+    };
+  }, [fetchReports, socketReady]);
+
   const cards = useMemo(
     () => [
       {
         key: "orders",
         label: "Orders",
         value: data.summary?.totalOrders || 0,
-        icon: <FiShoppingCart />,
-        color: "#6366f1",
+        Icon: ShoppingCart,
+        color: "var(--accent)",
       },
       {
         key: "revenue",
         label: "Revenue",
-        value: `₹${formatINR(data.summary?.totalRevenue)}`,
-        icon: <TbCurrencyRupee />,
-        color: "#f59e0b",
+        value: formatCurrency(data.summary?.totalRevenue),
+        Icon: IndianRupee,
+        color: "var(--amber)",
       },
       {
         key: "profit",
         label: "Profit",
-        value: `₹${formatINR(data.summary?.profit || 0)}`,
-        icon: <FiTrendingUp />,
-        color: (data.summary?.profit || 0) >= 0 ? "#22c55e" : "#ef4444",
+        value: formatCurrency(data.summary?.profit || 0),
+        Icon: TrendingUp,
+        color: (data.summary?.profit || 0) >= 0 ? "var(--green)" : "var(--red)",
       },
       {
         key: "margin",
         label: "Profit Margin",
-        // FIX 9: toFixed(2) for margin — prevents ugly floats like -178.9734…
         value: `${Number(data.summary?.profitMargin || 0).toFixed(2)}%`,
-        icon: <FiTrendingUp />,
-        color: (data.summary?.profitMargin || 0) >= 0 ? "#10b981" : "#ef4444",
+        Icon: TrendingUp,
+        color:
+          (data.summary?.profitMargin || 0) >= 0
+            ? "var(--green)"
+            : "var(--red)",
       },
     ],
     [data.summary],
   );
 
-  // FIX 10: Memoize analyticsData so InsightsPanel doesn't re-render when
-  //          unrelated state (ui.activeCard, dateError, etc.) changes.
   const analyticsData = useMemo(
     () => ({
       totalRevenue: data.summary?.totalRevenue,
       totalOrders: data.summary?.totalOrders,
       profit: data.summary?.profit,
       profitMargin: data.summary?.profitMargin,
-      startDate: filters.startDate,
-      endDate: filters.endDate,
+      startDate: range.from,
+      endDate: range.to,
     }),
-    [data.summary, filters.startDate, filters.endDate],
+    [data.summary, range],
   );
 
   return (
     <div className={styles.container}>
-      {/* HEADER */}
+      {/* ── Header ── */}
       <div className={styles.header}>
         <div>
-          <h2>Reports Dashboard</h2>
-          <p>Analytics &amp; performance overview</p>
+          <h2 className={styles.title}>Reports</h2>
+          <p className={styles.subtitle}>
+            Analytics &amp; performance overview
+          </p>
         </div>
 
         <div className={styles.actions}>
-          <div className={styles.filters}>
-            <input
-              type="date"
-              value={filters.startDate}
-              max={filters.endDate || undefined}
-              onChange={(e) => handleDateChange("startDate", e.target.value)}
-            />
-            <input
-              type="date"
-              value={filters.endDate}
-              min={filters.startDate || undefined}
-              onChange={(e) => handleDateChange("endDate", e.target.value)}
-            />
-          </div>
-
-          {/* FIX 11: Show date validation error inline instead of silently
-                       sending a bad request to the API. */}
-          {dateError && (
-            <p className={styles.dateError} role="alert">
-              {dateError}
-            </p>
-          )}
+          <DateRangePicker value={range} onChange={setRange} />
 
           <div className={styles.exportWrapper}>
             <ExportButton
               reportType="sales-report"
-              filters={filters}
+              filters={{ startDate: range.from, endDate: range.to }}
               disableExcel
             />
           </div>
 
           <button
+            type="button"
             className={styles.refreshBtn}
-            onClick={() => fetchReports(filters)}
+            onClick={() => fetchReports(range)}
             disabled={ui.loading}
             aria-label="Refresh reports"
           >
-            <FiRefreshCw className={ui.loading ? styles.spinning : undefined} />
+            <RefreshCw
+              size={15}
+              className={ui.loading ? styles.spinning : undefined}
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>
@@ -293,18 +243,19 @@ const Reports = () => {
         {ui.error && (
           <motion.div
             className={styles.error}
+            role="alert"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            role="alert"
           >
+            <AlertTriangle size={14} aria-hidden="true" />
             {ui.error}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* KPI CARDS */}
-      <div className={styles.kpiGrid}>
+      {/* ── KPI Cards ── */}
+      <div className={styles.kpiGrid} role="region" aria-label="KPI summary">
         {cards.map((card) => {
           const active = ui.activeCard === card.key;
           return (
@@ -312,73 +263,134 @@ const Reports = () => {
               key={card.key}
               className={`${styles.card} ${active ? styles.active : ""}`}
               onClick={() =>
-                setUI((p) => ({
-                  ...p,
-                  activeCard: active ? null : card.key,
-                }))
+                setUI((p) => ({ ...p, activeCard: active ? null : card.key }))
               }
-              whileHover={{ scale: 1.04 }}
+              whileHover={{ scale: 1.03 }}
+              role="button"
+              tabIndex={0}
+              aria-pressed={active}
+              aria-label={`${card.label}: ${card.value}`}
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                setUI((p) => ({ ...p, activeCard: active ? null : card.key }))
+              }
             >
               <div className={styles.cardTop}>
-                <span style={{ color: card.color }}>{card.icon}</span>
+                <card.Icon
+                  size={16}
+                  style={{ color: card.color }}
+                  aria-hidden="true"
+                />
                 <p>{card.label}</p>
               </div>
-              {/* FIX 12: Show a proper pulse skeleton div instead of bare "..." */}
               {ui.loading ? (
-                <div className={styles.cardSkeleton} aria-hidden />
+                <div className={styles.cardSkeleton} aria-hidden="true" />
               ) : (
-                <h3>{card.value}</h3>
+                <h3 style={{ color: card.color }}>{card.value}</h3>
               )}
             </motion.div>
           );
         })}
       </div>
 
-      {/* CHART */}
+      {/* ── Sales Trend Chart ── */}
       <div className={styles.chartBox}>
         <h3>Sales Trend</h3>
-
         {ui.loading ? (
-          <div className={styles.loader} />
+          <div className={styles.loader} aria-hidden="true" />
         ) : data.trend.length === 0 ? (
-          <div className={styles.empty}>No Data Available</div>
+          <div className={styles.empty} role="status">
+            <FileText size={20} aria-hidden="true" />
+            <span>No data for this period</span>
+          </div>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data.trend}>
-              <defs>
-                <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.3} />
-                  <stop offset="100%" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={formatDate} />
-              <YAxis tickFormatter={formatCompactINR} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="total"
-                stroke="#f59e0b"
-                strokeWidth={2}
-                fill="url(#grad)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div role="img" aria-label="Sales trend area chart">
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart
+                data={data.trend}
+                margin={{ top: 10, right: 16, bottom: 0, left: 16 }}
+              >
+                <defs>
+                  <linearGradient id="reportGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor="var(--amber)"
+                      stopOpacity={0.28}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--amber)"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={formatDate}
+                  height={40}
+                  tick={{
+                    fontSize: 11,
+                    fill: "var(--text3)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  tickFormatter={formatCurrency}
+                  width={76}
+                  tick={{
+                    fontSize: 11,
+                    fill: "var(--text3)",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{
+                    stroke: "var(--amber)",
+                    strokeWidth: 1,
+                    strokeDasharray: "4 4",
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="total"
+                  stroke="var(--amber)"
+                  strokeWidth={2}
+                  fill="url(#reportGrad)"
+                  dot={false}
+                  activeDot={{ r: 4, fill: "var(--amber)", strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </div>
 
-      {/* AI PANEL */}
+      {/* ── AI Insights ── */}
       <InsightsPanel analyticsData={analyticsData} />
 
-      {/* FALLBACK INSIGHT */}
+      {/* ── Fallback Insight ── */}
       {data.insight && (
         <div className={styles.insight}>
           <div className={styles.insightHeader}>
-            <FiZap />
+            <Zap
+              size={15}
+              style={{ color: "var(--amber)" }}
+              aria-hidden="true"
+            />
             <h4>Quick Insight</h4>
           </div>
           <p className={styles.insightText}>
-            <FiTrendingUp className={styles.insightIcon} />
+            <TrendingUp
+              size={14}
+              className={styles.insightIcon}
+              aria-hidden="true"
+            />
             <span className={styles.insightContent}>{data.insight}</span>
           </p>
         </div>

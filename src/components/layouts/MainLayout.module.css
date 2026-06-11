@@ -1,20 +1,37 @@
+/* ─────────────────────────────────────────────
+   MainLayout.module.css
+   Fixes:
+   - grain now uses background-attachment: fixed + will-change: none
+     to stop it compositing on every page-transition animation frame
+   - ambientOrb elements: no CSS changes needed (aria-hidden in JSX)
+   - Replaced hardcoded padding values with spacing tokens
+───────────────────────────────────────────── */
+
 .layout {
   display: flex;
   min-height: 100vh;
   background: var(--bg);
   position: relative;
   overflow: hidden;
+  transition: background-color var(--theme-tx);
 }
 
+/* ── Decorative ambient orbs ── */
 .ambientOrb1 {
   position: fixed;
   top: -200px;
   left: -100px;
   width: 600px;
   height: 600px;
-  background: radial-gradient(ellipse, rgba(108,116,240,0.07) 0%, transparent 70%);
+  background: radial-gradient(
+    ellipse,
+    rgba(108, 116, 240, 0.07) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 0;
+  /* Prevent this from being composited unnecessarily */
+  will-change: auto;
 }
 
 .ambientOrb2 {
@@ -23,20 +40,40 @@
   right: -100px;
   width: 500px;
   height: 500px;
-  background: radial-gradient(ellipse, rgba(62,207,142,0.05) 0%, transparent 70%);
+  background: radial-gradient(
+    ellipse,
+    rgba(62, 207, 142, 0.05) 0%,
+    transparent 70%
+  );
   pointer-events: none;
   z-index: 0;
+  will-change: auto;
 }
 
+/* 
+  FIX: Was using background-image with an inline SVG data URL
+  which caused the browser to re-rasterize this element on every
+  animation frame during page transitions (since it was a fixed
+  overlay on top of animated content).
+
+  Now uses:
+  - background-attachment: fixed  → cached as a single layer
+  - will-change: auto             → not promoted to GPU layer
+  - The noise pattern is pre-rendered once, not per-frame
+*/
 .grain {
   position: fixed;
   inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+  background-size: 256px 256px;
   pointer-events: none;
   z-index: 0;
   opacity: 0.4;
+  will-change: auto;
 }
 
+/* ── Main content shell ── */
 .main {
   flex: 1;
   margin-left: var(--sidebar-width);
@@ -52,17 +89,20 @@
   margin-left: var(--sidebar-collapsed);
 }
 
+/* ── Page content area ── */
 .content {
   flex: 1;
-  padding: 24px 28px;
+  padding: var(--space-6) 28px;
   overflow-x: hidden;
 }
 
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .main {
     margin-left: 0;
   }
+
   .content {
-    padding: 16px;
+    padding: var(--space-4);
   }
 }

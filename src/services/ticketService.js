@@ -1,30 +1,4 @@
-import axios from "axios";
-
-const API = axios.create({
-  baseURL: import.meta.env.VITE_URL || "http://localhost:10000/api",
-  withCredentials: true,
-});
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-API.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    const message =
-      err.response?.data?.message ||
-      err.response?.data?.error ||
-      err.message ||
-      "Something went wrong";
-    return Promise.reject(new Error(message));
-  },
-);
-
+import API from "./api";
 
 export const submitTicket = (data) =>
   API.post("/tickets", data).then((r) => r.data);
@@ -34,7 +8,6 @@ export const replyToTicket = (id, data) =>
 
 export const markTicketSeen = (id) =>
   API.post(`/tickets/${id}/seen`).then((r) => r.data);
-
 
 export const fetchTickets = (params = {}) =>
   API.get("/tickets", { params }).then((r) => r.data);

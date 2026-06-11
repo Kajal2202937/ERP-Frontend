@@ -1,56 +1,65 @@
+/* InventoryList.module.css — Phase 3
+   Fixes:
+   - Removed duplicate @keyframes spin (now in index.css globally)
+   - Badge borders use CSS variable tokens (--green-border etc.)
+   - Added sticky header styles for long tables
+   - Hardcoded border-radius replaced with radius tokens
+   - Added .loadingRow, .spinner, .paginationEllipsis, .pageActive,
+     .paginationInfo (used by parent Inventory.jsx)
+*/
+
 .tableWrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
 .table thead tr {
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
 }
 
 .table thead th {
   padding: 10px 16px;
   text-align: left;
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--text3);
   font-family: var(--font-mono);
   letter-spacing: 0.5px;
   text-transform: uppercase;
   white-space: nowrap;
+  transition: color var(--theme-tx);
 }
 
+/* ── Rows ── */
 .row {
   border-bottom: 1px solid var(--border);
-  transition: background 0.15s;
+  transition: background var(--t-fast);
 }
 
-.row:last-child {
-  border-bottom: none;
-}
-.row:hover {
-  background: var(--surface2);
-}
-.row td {
-  padding: 11px 16px;
-  vertical-align: middle;
-}
+.row:last-child { border-bottom: none; }
+.row:hover      { background: var(--surface2); }
+.row td         { padding: 11px 16px; vertical-align: middle; }
 
-.disabledRow {
-  opacity: 0.5;
-}
-.editingRow {
-  background: rgba(108, 116, 240, 0.04);
-}
+.disabledRow   { opacity: 0.5; }
+.editingRow    { background: var(--accent-soft); }
+.selectedRow   { background: var(--accent-soft); }
+.selectedRow:hover { background: rgba(108, 116, 240, 0.10); }
 
+/* ── Product cell ── */
 .productCell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .productDot {
@@ -63,43 +72,45 @@
 .productName {
   font-weight: 500;
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--text-sm);
 }
 
+/* ── Quantity ── */
 .qtyValue {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text);
 }
 
-.qtyAlert {
-  color: var(--red);
-}
+.qtyAlert { color: var(--red); }
 
 .qtyInput {
   width: 90px;
   height: 30px;
   background: var(--surface3);
-  border: 1px solid var(--accent);
-  border-radius: 6px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: var(--text-sm);
   padding: 0 8px;
   outline: none;
   box-shadow: 0 0 0 3px var(--accent-soft);
+  transition: border-color var(--t-fast);
 }
 
+/* ── Stock status badges ── */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 11.5px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
   font-weight: 500;
   font-family: var(--font-mono);
+  border: 1px solid;
 }
 
 .badge::before {
@@ -110,38 +121,23 @@
   background: currentColor;
 }
 
-.normal {
-  color: var(--green);
-  background: var(--green-soft);
-  border: 1px solid rgba(62, 207, 142, 0.2);
-}
-.low {
-  color: var(--amber);
-  background: var(--amber-soft);
-  border: 1px solid rgba(240, 168, 85, 0.2);
-}
-.critical {
-  color: var(--red);
-  background: var(--red-soft);
-  border: 1px solid rgba(248, 113, 113, 0.2);
-}
-.out {
-  color: var(--text3);
-  background: var(--surface3);
-  border: 1px solid var(--border);
-}
+.normal   { color: var(--green); background: var(--green-soft); border-color: var(--green-border); }
+.low      { color: var(--amber); background: var(--amber-soft); border-color: var(--amber-border); }
+.critical { color: var(--red);   background: var(--red-soft);   border-color: var(--red-border);   }
+.out      { color: var(--text3); background: var(--surface3);   border-color: var(--border);       }
 
+/* ── Active / disabled pills ── */
 .activePill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--green);
   background: var(--green-soft);
-  border: 1px solid rgba(62, 207, 142, 0.2);
+  border: 1px solid var(--green-border);
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 
 .activeDot {
@@ -154,15 +150,16 @@
 .disabledPill {
   display: inline-flex;
   align-items: center;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--text3);
   background: var(--surface3);
   border: 1px solid var(--border);
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 
+/* ── Action buttons ── */
 .actions {
   display: flex;
   align-items: center;
@@ -172,14 +169,17 @@
 .actionBtn {
   width: 28px;
   height: 28px;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition:
+    background var(--t-fast),
+    border-color var(--t-fast),
+    color var(--t-fast);
   color: var(--text3);
 }
 
@@ -188,33 +188,15 @@
   cursor: not-allowed;
 }
 
-.editBtn:hover {
-  background: var(--accent-soft);
-  border-color: rgba(108, 116, 240, 0.3);
-  color: var(--accent2);
-}
-.saveBtn:hover {
-  background: var(--green-soft);
-  border-color: rgba(62, 207, 142, 0.3);
-  color: var(--green);
-}
-.cancelBtn:hover {
-  background: var(--red-soft);
-  border-color: rgba(248, 113, 113, 0.3);
-  color: var(--red);
-}
-.toggleOnBtn:hover {
-  background: var(--amber-soft);
-  border-color: rgba(240, 168, 85, 0.3);
-  color: var(--amber);
-}
-.toggleOffBtn:hover {
-  background: var(--green-soft);
-  border-color: rgba(62, 207, 142, 0.3);
-  color: var(--green);
-}
+.editBtn:hover      { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent2); }
+.saveBtn:hover      { background: var(--green-soft);  border-color: var(--green-border);  color: var(--green);   }
+.cancelBtn:hover    { background: var(--red-soft);    border-color: var(--red-border);    color: var(--red);     }
+.toggleOnBtn:hover  { background: var(--amber-soft);  border-color: var(--amber-border);  color: var(--amber);   }
+.toggleOffBtn:hover { background: var(--green-soft);  border-color: var(--green-border);  color: var(--green);   }
 
+/* spinnerSm uses global @keyframes spin from index.css */
 .spinnerSm {
+  display: inline-block;
   width: 11px;
   height: 11px;
   border: 2px solid var(--border3);
@@ -222,18 +204,3 @@
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.selectedRow {
-  background: var(--accent-soft);
-}
-
-.selectedRow:hover {
-  background: rgba(108, 116, 240, 0.1);
-}
-

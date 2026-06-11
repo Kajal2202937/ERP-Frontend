@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { deleteProduct, updateProduct } from "../../services/ProductService";
 import { getInventory } from "../../services/inventoryService";
 import API from "../../services/api";
 import styles from "./ProductList.module.css";
-import toast from "react-hot-toast";
+import { toast } from "../../../utils/toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiEdit2,
@@ -31,12 +31,13 @@ const ProductList = ({
 }) => {
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [originalForm, setOriginalForm] = useState(EMPTY_FORM);
   const [inventoryMap, setInventoryMap] = useState({});
   const [suppliers, setSuppliers] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [savingId, setSavingId] = useState(null);
 
-  useEffect(() => {
+  const refreshInventory = useCallback(() => {
     getInventory()
       .then((res) => {
         const map = {};
@@ -54,44 +55,67 @@ const ProductList = ({
   }, []);
 
   useEffect(() => {
+    refreshInventory();
+  }, [refreshInventory]);
+
+  useEffect(() => {
     API.get("/suppliers")
       .then((res) => {
-        const list = res?.data?.data?.data || [];
-        setSuppliers(Array.isArray(list) ? list : []);
+        const raw = res?.data?.data?.data ?? res?.data?.data ?? res?.data ?? [];
+        setSuppliers(Array.isArray(raw) ? raw : []);
       })
-      .catch(() => {
-        setSuppliers([]);
-      });
+      .catch(() => setSuppliers([]));
   }, []);
 
   const isInventoryDisabled = (id) =>
     id in inventoryMap && inventoryMap[id].isActive === false;
 
   const handleEdit = (p) => {
-    setEditId(p._id);
-    setForm({
+    const initial = {
       name: p.name || "",
       price: p.price ?? "",
       costPrice: p.costPrice ?? 0,
       category: p.category || "",
-      quantity: inventoryMap[p._id]?.quantity ?? 0,
+
+      quantity: inventoryMap[p._id]?.quantity ?? p.quantity ?? 0,
       supplier: p.supplier?._id || "",
-    });
+    };
+    setEditId(p._id);
+    setForm(initial);
+    setOriginalForm(initial);
   };
 
   const handleUpdate = async (id) => {
+    const changed = {};
+    Object.keys(form).forEach((key) => {
+      if (String(form[key]) !== String(originalForm[key])) {
+        changed[key] = form[key];
+      }
+    });
+
+    if (!Object.keys(changed).length) {
+      setEditId(null);
+      setForm(EMPTY_FORM);
+      return;
+    }
+
+    const payload = { ...changed };
+    if (payload.price !== undefined) payload.price = Number(payload.price) || 0;
+    if (payload.costPrice !== undefined)
+      payload.costPrice = Number(payload.costPrice) || 0;
+    if (payload.quantity !== undefined)
+      payload.quantity = Number(payload.quantity) || 0;
+    if (payload.supplier !== undefined)
+      payload.supplier = payload.supplier || null;
+
     try {
       setSavingId(id);
-      await updateProduct(id, {
-        ...form,
-        price: Number(form.price) || 0,
-        costPrice: Number(form.costPrice) || 0,
-        quantity: Number(form.quantity) || 0,
-        supplier: form.supplier || null,
-      });
+      await updateProduct(id, payload);
       toast.success("Product updated");
       setEditId(null);
       setForm(EMPTY_FORM);
+      setOriginalForm(EMPTY_FORM);
+      refreshInventory();
       refresh();
     } catch (err) {
       toast.error(err.message || "Update failed");
@@ -105,6 +129,7 @@ const ProductList = ({
       await deleteProduct(id);
       toast.success("Product deleted");
       setDeleteConfirm(null);
+      refreshInventory();
       refresh();
     } catch (err) {
       toast.error(err.message || "Delete failed");
@@ -185,8 +210,12 @@ const ProductList = ({
                 const isEditing = editId === p._id;
                 const isSaving = savingId === p._id;
 
+                const qty = inventoryMap[p._id]?.quantity ?? p.quantity ?? 0;
+                const isLow = qty <= (p.lowStockLimit ?? 5);
+
                 return (
                   <motion.tr
+                    layout
                     key={p._id}
                     className={`${styles.row} ${disabled ? styles.disabledRow : ""} ${isEditing ? styles.editingRow : ""}`}
                     initial={{ opacity: 0, y: 6 }}
@@ -210,6 +239,7 @@ const ProductList = ({
                           <input
                             className={styles.inlineInput}
                             type="number"
+                            min="0"
                             value={form.price}
                             onChange={(e) =>
                               setForm({ ...form, price: e.target.value })
@@ -220,6 +250,7 @@ const ProductList = ({
                           <input
                             className={styles.inlineInput}
                             type="number"
+                            min="0"
                             value={form.costPrice}
                             onChange={(e) =>
                               setForm({ ...form, costPrice: e.target.value })
@@ -239,6 +270,7 @@ const ProductList = ({
                           <input
                             className={styles.inlineInput}
                             type="number"
+                            min="0"
                             value={form.quantity}
                             onChange={(e) =>
                               setForm({ ...form, quantity: e.target.value })
@@ -253,7 +285,7 @@ const ProductList = ({
                               setForm({ ...form, supplier: e.target.value })
                             }
                           >
-                            <option value="">Select…</option>
+                            <option value="">No supplier</option>
                             {suppliers.map((s) => (
                               <option key={s._id} value={s._id}>
                                 {s.name}
@@ -300,19 +332,16 @@ const ProductList = ({
                             <span className={styles.skuTag}>{p.sku}</span>
                           )}
                         </td>
-                        <td>₹{p.price.toLocaleString("en-IN")}</td>
-                        <td>₹{p.costPrice?.toLocaleString("en-IN") || 0}</td>
+                        {/* null guard: price/costPrice may be undefined on malformed docs */}
+                        <td>₹{(p.price ?? 0).toLocaleString("en-IN")}</td>
+                        <td>₹{(p.costPrice ?? 0).toLocaleString("en-IN")}</td>
                         <td>{p.category}</td>
                         <td>
                           <span
-                            className={`${styles.qty} ${(inventoryMap[p._id]?.quantity ?? 0) <= 5 ? styles.lowQty : ""}`}
+                            className={`${styles.qty} ${isLow ? styles.lowQty : ""}`}
                           >
-                            {(inventoryMap[p._id]?.quantity ?? 0) <= 5 && (
-                              <FiAlertTriangle size={11} />
-                            )}
-                            {(
-                              inventoryMap[p._id]?.quantity ?? 0
-                            ).toLocaleString()}
+                            {isLow && <FiAlertTriangle size={11} />}
+                            {qty.toLocaleString()}
                           </span>
                         </td>
                         <td>{p.supplier?.name || "—"}</td>
@@ -335,7 +364,6 @@ const ProductList = ({
                               onClick={() => {
                                 if (disabled) return;
                                 handleEdit(p);
-                                setEditData(p);
                               }}
                               whileHover={{ scale: 1.08 }}
                               whileTap={{ scale: 0.92 }}
@@ -362,7 +390,7 @@ const ProductList = ({
         </table>
       </div>
 
-      {/* ✅ Fixed: delete confirm now uses proper CSS classes */}
+      {/* Delete confirmation modal */}
       <AnimatePresence>
         {deleteConfirm && (
           <motion.div

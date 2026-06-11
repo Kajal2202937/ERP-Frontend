@@ -11,55 +11,84 @@ import {
   FiMapPin,
 } from "react-icons/fi";
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.48, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
 const Footer = () => {
   const navigate = useNavigate();
 
   return (
-    <footer className={styles.footer}>
+    <footer className={styles.footer} role="contentinfo">
       <div className={styles.container}>
+        {/* ── Brand ── */}
         <motion.div
           className={styles.brand}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
           viewport={{ once: true }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className={styles.brandLogo} onClick={() => navigate("/")}>
-            <div className={styles.brandMark}>
+          <div
+            className={styles.brandLogo}
+            onClick={() => navigate("/")}
+            role="link"
+            tabIndex={0}
+            aria-label="ERP System — go to homepage"
+            onKeyDown={(e) => e.key === "Enter" && navigate("/")}
+          >
+            <div className={styles.brandMark} aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M2 20h20M6 20V10l6-6 6 6v10M10 20v-5h4v5" />
               </svg>
             </div>
             <span className={styles.brandName}>ERP System</span>
           </div>
+
           <p className={styles.brandDesc}>
             Manage inventory, production, sales, and reports in one place with a
-            simple, structured system.
+            simple, structured system built for growing businesses.
           </p>
-          <div className={styles.statusRow}>
-            <span className={styles.statusDot} />
+
+          <div className={styles.statusRow} role="status" aria-live="polite">
+            <span className={styles.statusDot} aria-hidden="true" />
             <span className={styles.statusText}>All systems operational</span>
           </div>
-          <div className={styles.socials}>
-            {[FiFacebook, FiTwitter, FiLinkedin, FiGithub].map((Icon, i) => (
+
+          <div className={styles.socials} aria-label="Social media links">
+            {[
+              { Icon: FiFacebook, label: "Facebook" },
+              { Icon: FiTwitter, label: "Twitter / X" },
+              { Icon: FiLinkedin, label: "LinkedIn" },
+              { Icon: FiGithub, label: "GitHub" },
+            ].map(({ Icon, label }) => (
               <motion.button
-                key={i}
+                key={label}
                 className={styles.socialBtn}
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.92 }}
+                aria-label={label}
               >
-                <Icon />
+                <Icon aria-hidden="true" />
               </motion.button>
             ))}
           </div>
         </motion.div>
 
-        <motion.div
+        {/* ── Company links ── */}
+        <motion.nav
           className={styles.col}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          aria-label="Company navigation"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.06 }}
         >
           <h4 className={styles.colTitle}>Company</h4>
           {[
@@ -75,13 +104,17 @@ const Footer = () => {
               {label}
             </button>
           ))}
-        </motion.div>
-        <motion.div
+        </motion.nav>
+
+        {/* ── Module links ── */}
+        <motion.nav
           className={styles.col}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          aria-label="Module navigation"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.12 }}
         >
           <h4 className={styles.colTitle}>Modules</h4>
           {[
@@ -98,40 +131,56 @@ const Footer = () => {
               {label}
             </button>
           ))}
-        </motion.div>
-        <motion.div
+        </motion.nav>
+
+        {/* ── Contact ── */}
+        <motion.address
           className={styles.col}
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          style={{ fontStyle: "normal" }}
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.18 }}
         >
           <h4 className={styles.colTitle}>Contact</h4>
           {[
-            { icon: <FiMail />, val: "support@example.com" },
-            { icon: <FiPhone />, val: "+91 XXXXX XXXXX" },
-            { icon: <FiMapPin />, val: "India" },
-          ].map((item) => (
-            <div key={item.val} className={styles.contactItem}>
-              <span className={styles.contactIcon}>{item.icon}</span>
-              {item.val}
+            {
+              Icon: FiMail,
+              val: "support@example.com",
+              label: "Email support",
+            },
+            { Icon: FiPhone, val: "+91 XXXXX XXXXX", label: "Phone" },
+            { Icon: FiMapPin, val: "India", label: "Location" },
+          ].map(({ Icon, val, label }) => (
+            <div key={val} className={styles.contactItem} aria-label={label}>
+              <span className={styles.contactIcon} aria-hidden="true">
+                <Icon />
+              </span>
+              {val}
             </div>
           ))}
-          <span className={styles.versionBadge}>v2.4.1 · Enterprise</span>
-        </motion.div>
+          <span
+            className={styles.versionBadge}
+            aria-label="Version 2.4.1 Enterprise"
+          >
+            v2.4.1 · Enterprise
+          </span>
+        </motion.address>
       </div>
 
+      {/* ── Bottom bar ── */}
       <div className={styles.bottom}>
         <p className={styles.bottomLeft}>
           © {new Date().getFullYear()} ERP System. All rights reserved.
         </p>
-        <div className={styles.bottomRight}>
+        <nav className={styles.bottomRight} aria-label="Legal navigation">
           {["Privacy", "Terms", "Security"].map((label) => (
             <button key={label} className={styles.bottomLink}>
               {label}
             </button>
           ))}
-        </div>
+        </nav>
       </div>
     </footer>
   );

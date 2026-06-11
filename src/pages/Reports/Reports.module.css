@@ -1,77 +1,69 @@
+/* ─────────────────────────────────────────────
+   Reports.module.css — Fixed
+   Changes:
+   1. Removed duplicate @keyframes fadeIn — now global in index.css
+   2. Removed duplicate @keyframes spin  — now global in index.css
+   3. Removed duplicate @keyframes shimmer (was used by .loader and
+      .cardSkeleton) — now global in index.css; both still work
+   4. .container: removed radial-gradient background — pages get
+      their bg from the app shell, not from individual page containers.
+      Prevents a jarring gradient flash on page transition.
+   5. .container: removed min-height: 100vh — causes double-scrollbar
+      with MainLayout already being full height
+   6. Replaced --radius (undefined) with --radius-md (correct token)
+   7. Hardcoded color in .insightIcon changed to CSS variable
+   8. .error: added flex + gap for icon alignment (AlertTriangle added in JSX)
+   9. .empty: converted to flex-col with gap for icon + text layout
+  10. Verbose 6-property transition consolidated to 2-property shorthand
+─────────────────────────────────────────────── */
+
 .container {
-  padding: 24px;
+  padding: var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  min-height: 100vh;
-  background: radial-gradient(circle at top, var(--surface3), var(--bg));
+  gap: var(--space-5);
   color: var(--text);
-  animation: fadeIn 0.4s ease;
+  /* FIX: removed radial-gradient background and min-height:100vh */
+  /* FIX: animation replaced by MainLayout's AnimatePresence page transition */
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* ── Header ── */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
-.header h2 {
-  font-size: 22px;
+.title {
+  font-size: var(--text-xl);
   font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.4px;
+  margin: 0;
+  transition: color var(--theme-tx);
 }
 
-.header p {
-  font-size: 13px;
+.subtitle {
+  font-size: var(--text-sm);
   color: var(--text2);
   margin-top: 3px;
+  margin-bottom: 0;
+  transition: color var(--theme-tx);
 }
 
 .actions {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
 }
 
-.filters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.filters input {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  padding: 9px 12px;
-  border-radius: var(--radius-sm);
-  color: var(--text);
-  font-size: 12px;
-  transition: all 0.25s ease;
-}
-
-.filters input:hover {
-  border-color: var(--amber);
-}
-
-.filters input:focus {
-  outline: none;
-  border-color: var(--amber);
-  box-shadow: 0 0 0 3px var(--amber-soft);
-}
-
+/* ── Export button override ── */
 .exportWrapper {
   display: flex;
   align-items: center;
@@ -80,70 +72,96 @@
 .exportWrapper button {
   height: 35px;
   padding: 0 16px !important;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, #f59e0b, #f97416d6) !important;
+  border-radius: var(--radius-sm) !important;
+  background: linear-gradient(135deg, var(--amber), #f97316) !important;
   border: none !important;
   color: #fff !important;
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.25s ease;
-  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.2);
+  font-size: var(--text-sm) !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: 0 4px 14px rgba(240, 168, 85, 0.28) !important;
+  transition: transform var(--t-fast), box-shadow var(--t-fast) !important;
 }
 
 .exportWrapper button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(245, 158, 11, 0.3);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(240, 168, 85, 0.36) !important;
 }
 
+/* ── Refresh button ── */
 .refreshBtn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   background: var(--surface2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border2);
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.25s ease;
   color: var(--text2);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  transition:
+    background var(--t-fast),
+    border-color var(--t-fast),
+    color var(--t-fast),
+    transform var(--t-fast);
 }
 
-.refreshBtn:hover {
+.refreshBtn:hover:not(:disabled) {
   background: var(--amber-soft);
-  border-color: var(--amber);
+  border-color: var(--amber-border);
   color: var(--amber);
   transform: rotate(15deg);
 }
 
-.error {
-  padding: 12px;
-  border-radius: var(--radius);
-  background: var(--red-soft);
-  border: 1px solid var(--red);
-  color: var(--red);
-  backdrop-filter: blur(8px);
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
+/* FIX: uses global @keyframes spin from index.css */
+.spinning {
+  animation: spin 0.8s linear infinite;
+}
+
+/* ── Error banner ── */
+.error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 12px 14px;
+  /* FIX: replaced --radius (undefined) with --radius-md */
+  border-radius: var(--radius-md);
+  background: var(--red-soft);
+  border: 1px solid var(--red-border);
+  color: var(--red);
+  font-size: var(--text-sm);
+}
+
+/* ── KPI Grid ── */
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
 }
 
+/* ── KPI Card ── */
 .card {
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: var(--space-5);
   border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  transition:
+    border-color var(--t),
+    box-shadow var(--t),
+    transform var(--t),
+    background-color var(--theme-tx);
 }
 
 .card::before {
@@ -151,95 +169,118 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(
-    120deg,
-    transparent,
-    var(--amber-soft),
-    transparent
-  );
+  background: linear-gradient(120deg, transparent, var(--amber-soft), transparent);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--t);
+  pointer-events: none;
 }
 
-.card:hover::before {
-  opacity: 1;
-}
+.card:hover::before { opacity: 1; }
 
 .card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
+  border-color: var(--border2);
 }
 
 .active {
-  border-color: var(--amber);
-  box-shadow: 0 0 0 1px var(--amber-soft);
+  border-color: var(--amber-border);
+  box-shadow: 0 0 0 2px var(--amber-soft);
 }
 
 .cardTop {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: var(--space-2);
 }
 
 .cardTop p {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--text2);
+  margin: 0;
+  transition: color var(--theme-tx);
 }
 
 .card h3 {
-  margin-top: 8px;
-  font-size: 26px;
+  font-size: clamp(14px, 2.2vw, 22px);
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  margin: 0;
+  transition: color var(--theme-tx);
 }
 
+/* FIX: uses global @keyframes shimmer from index.css */
+.cardSkeleton {
+  height: 28px;
+  width: 65%;
+  margin-top: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface2), var(--surface3), var(--surface2));
+  background-size: 200%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ── Chart box ── */
 .chartBox {
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: var(--space-5);
   border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
-  transition: 0.3s;
+  transition:
+    background-color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--t);
 }
 
 .chartBox:hover {
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
 }
 
 .chartBox h3 {
-  margin-bottom: 16px;
-  font-size: 15px;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-md);
   font-weight: 600;
+  color: var(--text);
+  transition: color var(--theme-tx);
 }
 
+/* FIX: uses global @keyframes shimmer from index.css */
 .loader {
   height: 300px;
-  border-radius: var(--radius);
-  background: linear-gradient(
-    90deg,
-    var(--surface2),
-    var(--surface3),
-    var(--surface2)
-  );
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--surface2), var(--surface3), var(--surface2));
   background-size: 200%;
-  animation: shimmer 1.2s infinite;
+  animation: shimmer 1.4s ease-in-out infinite;
 }
 
+/* ── Empty state ── */
 .empty {
   height: 300px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: var(--space-3);
   color: var(--text3);
-  font-size: 14px;
+  font-size: var(--text-sm);
+  transition: color var(--theme-tx);
 }
 
+/* ── Quick Insight panel ── */
 .insight {
   background: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 20px;
-  border: 1px solid var(--border);
+  padding: var(--space-5);
+  border: 1px solid var(--amber-border);
   position: relative;
   overflow: hidden;
+  transition:
+    background-color var(--theme-tx),
+    border-color var(--theme-tx);
 }
 
 .insight::before {
@@ -250,126 +291,94 @@
   width: 200%;
   height: 200%;
   background: radial-gradient(circle, var(--amber-soft), transparent 60%);
+  pointer-events: none;
 }
 
 .insightHeader {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-3);
 }
 
 .insightHeader h4 {
-  font-size: 14px;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  transition: color var(--theme-tx);
 }
 
 .insightText {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  font-size: 14px;
+  gap: var(--space-3);
+  font-size: var(--text-base);
   line-height: 1.7;
   color: var(--text);
+  margin: 0;
+  transition: color var(--theme-tx);
 }
 
+/* FIX: white-space:pre-line ensures \n from generateFallbackInsight renders */
 .insightContent {
   flex: 1;
   display: block;
   color: var(--text2);
   word-break: break-word;
   white-space: pre-line;
+  transition: color var(--theme-tx);
 }
 
 .insightIcon {
-  color: var(--green, #22c55e);
+  /* FIX: was var(--green, #22c55e) — fallback unnecessary with correct token */
+  color: var(--green);
   margin-top: 3px;
   flex-shrink: 0;
+  transition: color var(--theme-tx);
 }
 
+/* ── Chart tooltip ── */
 .tooltip {
-  padding: 10px;
-  background: var(--surface4);
-  border-radius: var(--radius-sm);
-  backdrop-filter: blur(6px);
-  font-size: 12px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
   color: var(--text);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-md);
+  transition:
+    background-color var(--theme-tx),
+    border-color var(--theme-tx);
 }
+
+.tooltip p { margin: 0 0 4px; color: var(--text3); }
 
 .tooltip span {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 4px;
   color: var(--amber);
+  font-weight: 600;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--surface3);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--amber);
-}
-
-.recharts-cartesian-axis-tick-value {
-  fill: var(--text2);
-  font-size: 11px;
-}
-
-.recharts-tooltip-wrapper {
-  outline: none;
-}
-
+/* ── Responsive ── */
 @media (max-width: 900px) {
-  .kpiGrid {
-    grid-template-columns: 1fr 1fr;
-  }
+  .kpiGrid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 600px) {
-  .kpiGrid {
-    grid-template-columns: 1fr;
-  }
+  .container { padding: var(--space-4); }
+
+  .kpiGrid { grid-template-columns: 1fr; }
 
   .header {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .actions {
-    width: 100%;
-  }
+  .actions { width: 100%; }
 
-  .filters {
-    width: 100%;
-  }
-
-  .filters input {
-    flex: 1;
-    min-width: 140px;
-  }
-
-  .exportWrapper {
-    width: 100%;
-  }
-
-  .exportWrapper button {
-    width: 100%;
-    justify-content: center;
-  }
+  .exportWrapper,
+  .exportWrapper button { width: 100%; justify-content: center; }
 }

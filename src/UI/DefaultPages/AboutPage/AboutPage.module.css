@@ -1,17 +1,19 @@
-/* ─── Page ──────────────────────────────────────────────── */
 .page {
   font-family: var(--font);
   background: var(--bg-base);
   color: var(--text-primary);
   padding-top: var(--navbar-h);
   overflow-x: hidden;
+  transition: background-color var(--theme-tx), color var(--theme-tx);
 }
 
-/* ─── Hero ──────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════ */
 .hero {
   position: relative;
-  padding: 96px 32px 80px;
-  max-width: 880px;
+  padding: 100px 40px 88px;
+  max-width: 900px;
   margin: 0 auto;
   text-align: center;
   display: flex;
@@ -20,30 +22,23 @@
   overflow: hidden;
 }
 
-.heroBgImage {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-.heroBgImage img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  opacity: 0.6;
-  filter: saturate(0.4);
-}
-
-.heroBgImage::after {
+/* Atmospheric orb behind hero */
+.hero::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 30%, var(--bg-base) 100%);
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(108,116,240,0.07) 0%, transparent 68%);
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .eyebrow {
   display: inline-block;
-  font-family: var(--font);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -52,22 +47,23 @@
   background: var(--accent-soft);
   border: 1px solid var(--accent-border);
   border-radius: 100px;
-  padding: 5px 15px;
-  margin-bottom: 26px;
+  padding: 5px 16px;
+  margin-bottom: 28px;
   position: relative;
   z-index: 1;
 }
 
 .heroTitle {
   font-family: var(--font);
-  font-size: clamp(30px, 5vw, 54px);
+  font-size: clamp(32px, 5.2vw, 56px);
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.06;
   color: var(--text-primary);
-  margin: 0 0 22px;
-  letter-spacing: -0.035em;
+  margin: 0 0 24px;
+  letter-spacing: -0.038em;
   position: relative;
   z-index: 1;
+  transition: color var(--theme-tx);
 }
 
 .heroTitle span {
@@ -78,35 +74,36 @@
 }
 
 .heroDesc {
-  font-family: var(--font);
-  font-size: 15.5px;
-  line-height: 1.75;
+  font-size: 16px;
+  line-height: 1.78;
   color: var(--text-secondary);
-  max-width: 600px;
+  max-width: 620px;
   margin: 0;
   position: relative;
   z-index: 1;
+  transition: color var(--theme-tx);
 }
 
-/* ─── What section ──────────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   WHAT IS ERP SECTION
+══════════════════════════════════════════════ */
 .whatSection {
-  padding: 96px 32px;
+  padding: 96px 40px;
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 80px;
+  gap: 88px;
   align-items: center;
 }
 
 .whatLeft {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 .sectionLabel {
-  font-family: var(--font);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -115,26 +112,27 @@
   background: var(--accent-soft);
   border: 1px solid var(--accent-border);
   border-radius: 100px;
-  padding: 4px 13px;
+  padding: 4px 14px;
   width: fit-content;
 }
 
 .sectionTitle {
   font-family: var(--font);
-  font-size: clamp(22px, 3vw, 36px);
+  font-size: clamp(24px, 3.2vw, 38px);
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.03em;
-  line-height: 1.15;
+  letter-spacing: -0.032em;
+  line-height: 1.14;
+  transition: color var(--theme-tx);
 }
 
 .sectionText {
-  font-family: var(--font);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 15.5px;
+  line-height: 1.76;
   color: var(--text-secondary);
   margin: 0;
+  transition: color var(--theme-tx);
 }
 
 .whatRight {
@@ -145,54 +143,62 @@
 
 .statBox {
   display: flex;
-  align-items: center;
-  gap: 13px;
+  align-items: flex-start;
+  gap: 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 15px 17px;
-  transition:
-    border-color var(--t),
-    transform var(--t);
+  border-radius: 14px;
+  padding: 16px 18px;
+  transition: border-color var(--t), transform var(--t), box-shadow var(--t);
 }
 
 .statBox:hover {
   border-color: var(--border-medium);
-  transform: translateX(3px);
+  transform: translateX(4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
 }
 
 .statBoxIcon {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
   font-size: 16px;
   flex-shrink: 0;
+  margin-top: 1px;
+  transition: transform var(--t);
+}
+
+.statBox:hover .statBoxIcon {
+  transform: scale(1.1);
 }
 
 .statBoxVal {
-  font-family: var(--font);
   font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.018em;
+  transition: color var(--theme-tx);
 }
 
 .statBoxLabel {
-  font-family: var(--font);
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--text-muted);
-  line-height: 1.5;
-  margin-top: 2px;
+  line-height: 1.55;
+  margin-top: 3px;
+  transition: color var(--theme-tx);
 }
 
-/* ─── Modules section ───────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   MODULES SECTION
+══════════════════════════════════════════════ */
 .modulesSection {
-  padding: 80px 32px;
+  padding: 88px 40px;
   background: var(--border-subtle);
   border-top: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
+  transition: background-color var(--theme-tx);
 }
 
 .modulesInner {
@@ -202,53 +208,56 @@
 
 .sectionHeader {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 52px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 13px;
+  gap: 14px;
 }
 
 .moduleGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 .moduleCard {
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: 26px 20px;
+  border-radius: 16px;
+  padding: 28px 22px;
   cursor: pointer;
-  transition:
-    border-color var(--t),
-    transform var(--t),
-    box-shadow var(--t);
+  transition: border-color var(--t), transform var(--t), box-shadow var(--t);
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 12px;
   position: relative;
   overflow: hidden;
+  outline: none;
 }
 
+.moduleCard:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Animated color stripe on hover */
 .moduleCard::after {
   content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   background: var(--c);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform var(--t-slow);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .moduleCard:hover {
   border-color: var(--border-medium);
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 16px 40px rgba(0,0,0,0.10);
 }
 
 .moduleCard:hover::after {
@@ -256,33 +265,40 @@
 }
 
 .moduleIconWrap {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius);
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
   display: grid;
   place-items: center;
-  font-size: 17px;
+  font-size: 18px;
+  transition: transform var(--t);
+}
+
+.moduleCard:hover .moduleIconWrap {
+  transform: scale(1.1);
 }
 
 .moduleName {
-  font-family: var(--font);
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.018em;
+  transition: color var(--theme-tx);
 }
 
 .moduleDesc {
-  font-family: var(--font);
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: 13.5px;
+  line-height: 1.68;
   color: var(--text-muted);
+  transition: color var(--theme-tx);
 }
 
-/* ─── Workflow section ──────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   WORKFLOW SECTION
+══════════════════════════════════════════════ */
 .workflowSection {
-  padding: 96px 32px;
-  max-width: 880px;
+  padding: 100px 40px;
+  max-width: 920px;
   margin: 0 auto;
 }
 
@@ -293,78 +309,82 @@
   position: relative;
 }
 
+/* Connector line */
 .stepsGrid::before {
   content: "";
   position: absolute;
   top: 17px;
-  left: 6%;
-  right: 6%;
+  left: 7%;
+  right: 7%;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--border-medium),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--border-medium), transparent);
   pointer-events: none;
 }
 
 .step {
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  padding: 0 14px;
+  gap: 12px;
+  padding: 0 16px;
   text-align: center;
   align-items: center;
 }
 
 .stepNum {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--bg-surface);
   border: 1px solid var(--accent-border);
   display: grid;
   place-items: center;
-  font-family: var(--font);
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 800;
   color: var(--accent);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   flex-shrink: 0;
   position: relative;
   z-index: 1;
+  transition: box-shadow var(--t), background-color var(--theme-tx);
+}
+
+.step:hover .stepNum {
+  box-shadow: 0 0 0 4px var(--accent-soft);
 }
 
 .stepTitle {
-  font-family: var(--font);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.018em;
+  transition: color var(--theme-tx);
 }
 
 .stepDesc {
-  font-family: var(--font);
-  font-size: 12.5px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.66;
   color: var(--text-muted);
+  transition: color var(--theme-tx);
 }
 
-/* ─── CTA section ───────────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   CTA SECTION
+══════════════════════════════════════════════ */
 .ctaSection {
-  padding: 80px 32px 96px;
+  padding: 80px 40px 100px;
 }
 
 .ctaBox {
-  max-width: 720px;
+  max-width: 740px;
   margin: 0 auto;
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: 60px 48px;
+  border-radius: 20px;
+  padding: 64px 52px;
   text-align: center;
   position: relative;
   overflow: hidden;
+  transition: border-color var(--theme-tx), background-color var(--theme-tx);
 }
 
 .ctaBox::before {
@@ -373,27 +393,42 @@
   inset: 0;
   background: radial-gradient(
     ellipse 80% 50% at 50% 0%,
-    var(--accent-soft) 0%,
-    transparent 65%
+    rgba(108, 116, 240, 0.08) 0%,
+    transparent 68%
   );
   pointer-events: none;
 }
 
+/* Decorative grid */
+.ctaBox::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.5;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black, transparent);
+}
+
 .ctaTitle {
   font-family: var(--font);
-  font-size: clamp(20px, 2.8vw, 32px);
+  font-size: clamp(22px, 3vw, 34px);
   font-weight: 800;
   color: var(--text-primary);
   margin: 0 0 30px;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.032em;
   position: relative;
   z-index: 1;
-  line-height: 1.2;
+  line-height: 1.18;
+  transition: color var(--theme-tx);
 }
 
 .ctaActions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
   position: relative;
@@ -402,41 +437,47 @@
 
 .btnPrimary {
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 600;
   color: #fff;
   background: var(--gradient-accent);
   border: 1px solid var(--accent-border);
-  border-radius: var(--radius-md);
-  padding: 11px 26px;
+  border-radius: 10px;
+  padding: 13px 28px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   box-shadow: 0 4px 20px var(--accent-glow);
-  transition:
-    box-shadow var(--t),
-    transform var(--t);
+  transition: box-shadow var(--t), transform var(--t);
+  outline: none;
+}
+
+.btnPrimary:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent), 0 4px 20px var(--accent-glow);
 }
 
 .btnPrimary:hover {
-  box-shadow: 0 8px 30px rgba(108, 116, 240, 0.38);
+  box-shadow: 0 8px 32px rgba(108, 116, 240, 0.42);
+  transform: translateY(-1px);
 }
 
 .btnSecondary {
   font-family: var(--font);
-  font-size: 14px;
+  font-size: 14.5px;
   font-weight: 500;
   color: var(--text-secondary);
   background: var(--border-subtle);
   border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
-  padding: 11px 22px;
+  border-radius: 10px;
+  padding: 13px 24px;
   cursor: pointer;
-  transition:
-    color var(--t),
-    background var(--t),
-    border-color var(--t);
+  transition: color var(--t), background var(--t), border-color var(--t);
+  outline: none;
+}
+
+.btnSecondary:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .btnSecondary:hover {
@@ -445,11 +486,13 @@
   border-color: var(--border-strong);
 }
 
-/* ─── Responsive ────────────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
 @media (max-width: 1024px) {
   .whatSection {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 52px;
   }
   .moduleGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -464,13 +507,11 @@
 }
 
 @media (max-width: 600px) {
-  .hero {
-    padding: 60px 20px 44px;
-  }
-  .moduleGrid {
-    grid-template-columns: 1fr;
-  }
-  .ctaBox {
-    padding: 36px 22px;
-  }
+  .hero { padding: 64px 20px 52px; }
+  .whatSection,
+  .ctaSection { padding-left: 20px; padding-right: 20px; }
+  .modulesSection { padding: 60px 20px; }
+  .workflowSection { padding: 72px 20px; }
+  .moduleGrid { grid-template-columns: 1fr; }
+  .ctaBox { padding: 40px 24px; }
 }

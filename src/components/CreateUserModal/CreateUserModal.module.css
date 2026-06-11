@@ -16,6 +16,11 @@
   background: var(--bg-overlay, rgba(0, 0, 0, 0.65));
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .modal {
@@ -32,6 +37,11 @@
     0 0 0 1px var(--border),
     0 24px 64px rgba(0, 0, 0, 0.55),
     0 4px 16px rgba(0, 0, 0, 0.3);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .header {
@@ -42,6 +52,11 @@
   border-bottom: 1px solid var(--border);
   background: var(--surface2);
   flex-shrink: 0;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .headerLeft {
@@ -70,6 +85,11 @@
   color: var(--text);
   letter-spacing: -0.01em;
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .subtitle {
@@ -78,6 +98,11 @@
   color: var(--text2);
   margin-top: 2px;
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .closeBtn {
@@ -124,6 +149,11 @@
 .body::-webkit-scrollbar-thumb {
   background: var(--surface3);
   border-radius: 99px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .errorBanner {
@@ -167,6 +197,11 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-family: var(--font-mono);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .required {
@@ -182,6 +217,11 @@
   letter-spacing: 0;
   margin-left: auto;
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .fieldErrorMsg {
@@ -235,9 +275,19 @@
   color: var(--text);
   min-width: 0;
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .inputWrap input::placeholder {
   color: var(--text3);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .inputWrap input:disabled {
   opacity: 0.5;
@@ -271,6 +321,11 @@
   background: var(--surface4);
   border-radius: 99px;
   overflow: hidden;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .strengthFill {
   height: 100%;
@@ -354,12 +409,22 @@
   font-weight: 600;
   color: var(--text);
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .roleDesc {
   font-size: 0.67rem;
   color: var(--text3);
   line-height: 1.3;
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .statusToggle {
@@ -536,10 +601,20 @@
   font-weight: 700;
   color: var(--text);
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .successSub {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--text2);
   font-family: var(--font);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }

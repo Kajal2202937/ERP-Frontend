@@ -12,11 +12,11 @@ import {
   ChevronLeft,
   X,
   TicketCheck,
-  Settings,
   UserCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./Sidebar.module.css";
+import { getInitials } from "../../../utils/string";
 
 const NAV_GROUPS = [
   {
@@ -85,18 +85,6 @@ const NAV_GROUPS = [
       },
     ],
   },
-  {
-    id: "account",
-    label: "Account",
-    items: [
-      {
-        to: "/profile",
-        icon: UserCircle,
-        label: "Profile",
-        roles: ["admin", "manager", "staff", "employee"],
-      },
-    ],
-  },
 ];
 
 const ROLE_CONFIG = {
@@ -125,14 +113,6 @@ const ROLE_CONFIG = {
     border: "rgba(52,211,153,0.2)",
   },
 };
-
-const getInitials = (name = "") =>
-  name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "U";
 
 const NavItem = ({ item, collapsed, mobile }) => {
   const Icon = item.icon;
@@ -257,17 +237,7 @@ const SidebarShell = ({
           >
             <X size={14} />
           </button>
-        ) : (
-          <motion.button
-            className={styles.iconBtn}
-            onClick={handleCollapse}
-            animate={{ rotate: collapsed ? 180 : 0 }}
-            transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <ChevronLeft size={14} />
-          </motion.button>
-        )}
+        ) : null}
       </div>
 
       {/* ── User card ── */}
@@ -373,6 +343,20 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
           mobile={false}
           setMobileOpen={setMobileOpen}
         />
+
+        {/* Floating collapse toggle — lives OUTSIDE the sidebar's
+            overflow:hidden so it's always visible even when collapsed */}
+        <motion.button
+          className={styles.collapseToggle}
+          onClick={() => setCollapsed((p) => !p)}
+          animate={{ rotate: collapsed ? 180 : 0 }}
+          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <ChevronLeft size={12} />
+        </motion.button>
       </div>
 
       {/* Mobile drawer */}

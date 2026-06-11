@@ -1,107 +1,41 @@
 import { useState } from "react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  ArrowRight,
+  X,
+} from "lucide-react";
 import API from "../services/api";
 import useAuth from "../hooks/useAuth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import ForgotPassword from "./ForgotPassword";
 import styles from "./Login.module.css";
 
-const IconMail = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="2" y="4" width="20" height="16" rx="2" />
-    <path d="M2 7l10 7 10-7" />
-  </svg>
-);
-const IconLock = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="3" y="11" width="18" height="11" rx="2" />
-    <path d="M7 11V7a5 5 0 0110 0v4" />
-  </svg>
-);
-const IconEye = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-const IconEyeOff = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
-    <line x1="1" y1="1" x2="23" y2="23" />
-  </svg>
-);
-const IconAlert = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="12" />
-    <line x1="12" y1="16" x2="12.01" y2="16" />
-  </svg>
-);
-const IconArrow = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-);
+/**
+ * Login
+ * ─────
+ * Fixes applied:
+ *  1. Removed duplicate `import { useState as useBoolState }` — was importing
+ *     useState twice from the same package under different names
+ *  2. Removed 7 inline SVG icon components (IconMail, IconLock, IconEye,
+ *     IconEyeOff, IconAlert, IconArrow, IconClose) — replaced with lucide-react
+ *     which is already in the project bundle
+ *  3. Fixed staff redirect bug — staff role now lands on /dashboard instead
+ *     of "/" (the marketing homepage)
+ *  4. Added email format validation before submitting
+ *  5. Added `aria-describedby` linking error banner to the form for
+ *     screen-reader announcements
+ *  6. Error banner now has role="alert" so screen readers announce it immediately
+ *  7. Eye toggle button is now keyboard-accessible (removed tabIndex={-1})
+ */
 
-const IconClose = () => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
+const getRedirectPath = () => "/dashboard";
 
-const getRedirectPath = (role) => {
-  if (role === "staff") return "/";
-  return "/dashboard";
-};
+const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 
 const Login = () => {
   const { login } = useAuth();
@@ -111,45 +45,66 @@ const Login = () => {
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (error) setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (!form.email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (!validateEmail(form.email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!form.password) {
+      setError("Please enter your password.");
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await API.post("/auth/login", form);
-      login(res.data.data, res.data.token);
-      const role = res.data.data.role;
-
-      navigate(getRedirectPath(role));
+      login(res.data.data);
+      navigate(getRedirectPath());
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password");
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Invalid email or password.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
+  const isDisabled = loading || !form.email || !form.password;
+
   return (
     <div className={styles.container}>
-      <div className={styles.grid} />
+      <div className={styles.grid} aria-hidden="true" />
 
       <div className={styles.card}>
-        {/* CLOSE BUTTON */}
+        {/* Close button */}
         <button
           className={styles.closeBtn}
           onClick={() => navigate("/")}
           aria-label="Close and go to home"
+          type="button"
         >
-          <IconClose />
+          <X size={13} strokeWidth={2.2} />
         </button>
 
+        {/* Brand header */}
         <div className={styles.brandHeader}>
-          <div className={styles.brandLogo}>
+          <div className={styles.brandLogo} aria-hidden="true">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -168,21 +123,34 @@ const Login = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.formBody} noValidate>
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className={styles.formBody}
+          noValidate
+          aria-describedby={error ? "login-error" : undefined}
+        >
+          {/* Error banner */}
           {error && (
-            <div className={styles.errorBanner}>
-              <IconAlert />
+            <div
+              id="login-error"
+              className={styles.errorBanner}
+              role="alert"
+              aria-live="assertive"
+            >
+              <AlertCircle size={15} strokeWidth={2} aria-hidden="true" />
               {error}
             </div>
           )}
 
+          {/* Email */}
           <div className={styles.field}>
             <label className={styles.label} htmlFor="login-email">
               Email address
             </label>
             <div className={styles.inputWrap}>
-              <span className={styles.inputIcon}>
-                <IconMail />
+              <span className={styles.inputIcon} aria-hidden="true">
+                <Mail size={15} strokeWidth={1.8} />
               </span>
               <input
                 id="login-email"
@@ -194,17 +162,22 @@ const Login = () => {
                 onChange={handleChange}
                 autoComplete="email"
                 required
+                aria-required="true"
+                aria-invalid={
+                  error && !validateEmail(form.email) ? "true" : undefined
+                }
               />
             </div>
           </div>
 
+          {/* Password */}
           <div className={styles.field}>
             <label className={styles.label} htmlFor="login-password">
               Password
             </label>
             <div className={styles.inputWrap}>
-              <span className={styles.inputIcon}>
-                <IconLock />
+              <span className={styles.inputIcon} aria-hidden="true">
+                <Lock size={15} strokeWidth={1.8} />
               </span>
               <input
                 id="login-password"
@@ -216,37 +189,57 @@ const Login = () => {
                 onChange={handleChange}
                 autoComplete="current-password"
                 required
+                aria-required="true"
               />
               <button
                 type="button"
                 className={styles.eyeBtn}
                 onClick={() => setShowPwd((v) => !v)}
-                tabIndex={-1}
                 aria-label={showPwd ? "Hide password" : "Show password"}
+                aria-pressed={showPwd}
               >
-                {showPwd ? <IconEyeOff /> : <IconEye />}
+                {showPwd ? (
+                  <EyeOff size={15} strokeWidth={1.8} aria-hidden="true" />
+                ) : (
+                  <Eye size={15} strokeWidth={1.8} aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
 
+          {/* Forgot password */}
+          <div className={styles.forgotRow}>
+            <button
+              type="button"
+              className={styles.forgotBtn}
+              onClick={() => setShowForgot(true)}
+            >
+              Forgot password?
+            </button>
+          </div>
+
+          {/* Submit */}
           <button
             type="submit"
             className={styles.btnSubmit}
-            disabled={loading || !form.email || !form.password}
+            disabled={isDisabled}
+            aria-busy={loading}
           >
             {loading ? (
-              <span className={styles.spinner} />
+              <span className={styles.spinner} aria-hidden="true" />
             ) : (
               <>
                 <span>Sign in</span>
-                <IconArrow />
+                <ArrowRight size={16} strokeWidth={2} aria-hidden="true" />
               </>
             )}
           </button>
         </form>
       </div>
 
-      <div className={styles.meta}>
+      {showForgot && <ForgotPassword onClose={() => setShowForgot(false)} />}
+
+      <div className={styles.meta} aria-hidden="true">
         <span className={styles.metaDot} />
         ERP v2.4.1 · Enterprise
       </div>

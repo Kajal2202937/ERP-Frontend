@@ -4,9 +4,11 @@ import {
   useMemo,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { initSocket, disconnectSocket } from "../services/socket";
-import { TICKET_EVENTS } from "../services/socketEvents";
+import { TICKET_EVENTS, ORDER_EVENTS } from "../services/socketEvents";
 
 export const AuthContext = createContext();
 
@@ -19,55 +21,75 @@ const getStoredUser = () => {
   }
 };
 
-const getStoredToken = () => {
-  const t = localStorage.getItem("token");
-  return t && t !== "undefined" ? t : null;
-};
-
 export const AuthProvider = ({ children }) => {
+  const navigate = useNavigate();
+
   const [user, setUser] = useState(getStoredUser);
-  const [token, setToken] = useState(getStoredToken);
 
-  const login = useCallback((userData, tokenData) => {
+  const [socketReady, setSocketReady] = useState(false);
+  const joinedRef = useRef(false);
+
+  const login = useCallback((userData) => {
     setUser(userData);
-    setToken(tokenData);
     localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", tokenData);
-    initSocket(tokenData);
   }, []);
-
-  useEffect(() => {
-    if (!token || !user) return;
-
-    const socket = initSocket(token);
-
-    const handleConnect = () => {
-      console.log("⚡ Socket connected/reconnected");
-
-      if (user?.role === "admin") {
-        socket.emit(TICKET_EVENTS.JOIN_ADMIN);
-        console.log("✅ Admin joined admin_room via ticket:join_admin");
-      }
-    };
-
-    socket.on("connect", handleConnect);
-
-    if (socket.connected) {
-      handleConnect();
-    }
-
-    return () => {
-      socket.off("connect", handleConnect);
-    };
-  }, [token, user]);
 
   const logout = useCallback(() => {
     setUser(null);
-    setToken(null);
+    joinedRef.current = false;
+    setSocketReady(false);
     localStorage.removeItem("user");
-    localStorage.removeItem("token");
     disconnectSocket();
   }, []);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+      navigate("/login", { replace: true });
+    };
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    return () =>
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+  }, [logout, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    joinedRef.current = false;
+    setSocketReady(false);
+
+    const socket = initSocket();
+
+    const joinRooms = () => {
+      if (user?.role === "admin") {
+        socket.emit(TICKET_EVENTS.JOIN_ADMIN);
+      }
+      if (["admin", "manager"].includes(user?.role)) {
+        socket.emit(ORDER_EVENTS.JOIN_MANAGER);
+      }
+
+      setTimeout(() => {
+        joinedRef.current = true;
+        setSocketReady(true);
+      }, 150);
+    };
+
+    const handleReconnect = () => {
+      joinedRef.current = false;
+      setSocketReady(false);
+      joinRooms();
+    };
+
+    socket.on("connect", joinRooms);
+    socket.on("reconnect", handleReconnect);
+
+    if (socket.connected) joinRooms();
+
+    return () => {
+      socket.off("connect", joinRooms);
+      socket.off("reconnect", handleReconnect);
+    };
+  }, [user]);
 
   const hasRole = useCallback(
     (roles) => (user ? roles.includes(user.role) : false),
@@ -77,13 +99,13 @@ export const AuthProvider = ({ children }) => {
   const value = useMemo(
     () => ({
       user,
-      token,
       login,
       logout,
       hasRole,
-      isAuthenticated: !!user && !!token,
+      isAuthenticated: !!user,
+      socketReady,
     }),
-    [user, token, login, logout, hasRole],
+    [user, login, logout, hasRole, socketReady],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

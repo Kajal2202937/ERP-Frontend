@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import API from "../../services/api";
 import { addStock } from "../../services/inventoryService";
 import styles from "./AddInventory.module.css";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSave, FiPackage, FiHash, FiX } from "react-icons/fi";
 import { MdOutlineInventory2 } from "react-icons/md";
+import SearchableSelect from "../../components/common/SearchableSelect";
 
 const AddInventory = ({ refresh, onClose }) => {
   const [products, setProducts] = useState([]);
@@ -13,7 +14,7 @@ const AddInventory = ({ refresh, onClose }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    API.get("/products")
+    API.get("/products", { params: { limit: 1000 } })
       .then((res) => setProducts(res?.data?.data || []))
       .catch(() => toast.error("Failed to load products"));
   }, []);
@@ -70,20 +71,12 @@ const AddInventory = ({ refresh, onClose }) => {
           <label className={styles.label}>
             <FiPackage size={11} /> Product
           </label>
-          <select
-            className={styles.select}
-            id="order-product"
-            name="product"
+          <SearchableSelect
+            options={products.map((p) => ({ value: p._id, label: p.name }))}
             value={form.productId}
-            onChange={(e) => setForm({ ...form, productId: e.target.value })}
-          >
-            <option value="">Choose a product…</option>
-            {products.map((p) => (
-              <option key={p._id} value={p._id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setForm({ ...form, productId: val })}
+            placeholder="Choose a product…"
+          />
         </div>
         <AnimatePresence>
           {selectedProduct && (

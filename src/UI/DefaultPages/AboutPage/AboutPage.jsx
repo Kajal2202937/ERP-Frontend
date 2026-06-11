@@ -15,7 +15,7 @@ const modules = [
   {
     icon: <FiBox />,
     name: "Inventory",
-    desc: "Keep track of your stock without confusion. Know what’s available, what’s running low, and what needs attention.",
+    desc: "Keep track of your stock without confusion. Know what's available, what's running low, and what needs attention.",
     path: "/inventory/info",
     color: "var(--mod-inventory)",
     dim: "var(--mod-inventory-soft)",
@@ -94,7 +94,7 @@ const statItems = [
   {
     icon: <FiBarChart2 />,
     val: "Data Insights",
-    label: "Understand what’s working and where improvements are needed",
+    label: "Understand what's working and where improvements are needed",
     color: "var(--mod-reports)",
     dim: "var(--mod-reports-soft)",
   },
@@ -102,25 +102,17 @@ const statItems = [
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
+  show: { transition: { staggerChildren: 0.07 } },
 };
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-  },
+  show: { opacity: 1, y: 0, transition: { duration: 0.52, ease: [0.22, 1, 0.36, 1] } },
 };
 
 const slideIn = {
   hidden: { opacity: 0, x: 16 },
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-  },
+  show:   { opacity: 1, x: 0,  transition: { duration: 0.44, ease: [0.22, 1, 0.36, 1] } },
 };
 
 const AboutPage = () => {
@@ -128,7 +120,8 @@ const AboutPage = () => {
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      {/* ══ HERO ══ */}
+      <section className={styles.hero} aria-labelledby="about-hero-heading">
         <motion.span
           className={styles.eyebrow}
           initial={{ opacity: 0, y: -10 }}
@@ -139,9 +132,11 @@ const AboutPage = () => {
         </motion.span>
 
         <motion.h1
+          id="about-hero-heading"
           className={styles.heroTitle}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.06, duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
         >
           Built to make everyday
           <br />
@@ -152,6 +147,7 @@ const AboutPage = () => {
           className={styles.heroDesc}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12, duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
         >
           Managing inventory, production, sales, and reports separately can get
           overwhelming. This system brings everything together so you can work
@@ -160,15 +156,18 @@ const AboutPage = () => {
         </motion.p>
       </section>
 
-      <section>
+      {/* ══ WHAT IS ERP ══ */}
+      <section aria-labelledby="what-erp-heading">
         <div className={styles.whatSection}>
           <motion.div
             className={styles.whatLeft}
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.54, ease: [0.22, 1, 0.36, 1] }}
           >
             <span className={styles.sectionLabel}>What is ERP?</span>
-            <h2 className={styles.sectionTitle}>
+            <h2 id="what-erp-heading" className={styles.sectionTitle}>
               One system instead of many disconnected tools
             </h2>
             <p className={styles.sectionText}>
@@ -184,16 +183,18 @@ const AboutPage = () => {
             variants={container}
             initial="hidden"
             whileInView="show"
+            viewport={{ once: true }}
           >
             {statItems.map((s) => (
               <motion.div
-                key={s.label}
+                key={s.val}
                 className={styles.statBox}
                 variants={slideIn}
               >
                 <div
                   className={styles.statBoxIcon}
                   style={{ background: s.dim, color: s.color }}
+                  aria-hidden="true"
                 >
                   {s.icon}
                 </div>
@@ -207,11 +208,18 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className={styles.modulesSection}>
+      {/* ══ MODULES ══ */}
+      <section className={styles.modulesSection} aria-labelledby="about-modules-heading">
         <div className={styles.modulesInner}>
-          <motion.div className={styles.sectionHeader}>
+          <motion.div
+            className={styles.sectionHeader}
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+          >
             <span className={styles.eyebrow}>Core Modules</span>
-            <h2 className={styles.sectionTitle}>
+            <h2 id="about-modules-heading" className={styles.sectionTitle}>
               Built around how businesses actually work
             </h2>
           </motion.div>
@@ -221,6 +229,7 @@ const AboutPage = () => {
             variants={container}
             initial="hidden"
             whileInView="show"
+            viewport={{ once: true }}
           >
             {modules.map((m) => (
               <motion.div
@@ -229,10 +238,15 @@ const AboutPage = () => {
                 style={{ "--c": m.color }}
                 variants={fadeUp}
                 onClick={() => navigate(m.path)}
+                role="button"
+                tabIndex={0}
+                aria-label={`Explore ${m.name} module`}
+                onKeyDown={(e) => e.key === "Enter" && navigate(m.path)}
               >
                 <div
                   className={styles.moduleIconWrap}
                   style={{ background: m.dim, color: m.color }}
+                  aria-hidden="true"
                 >
                   {m.icon}
                 </div>
@@ -244,10 +258,17 @@ const AboutPage = () => {
         </div>
       </section>
 
-      <section className={styles.workflowSection}>
-        <motion.div className={styles.sectionHeader}>
+      {/* ══ WORKFLOW ══ */}
+      <section className={styles.workflowSection} aria-labelledby="about-workflow-heading">
+        <motion.div
+          className={styles.sectionHeader}
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.48, ease: [0.22, 1, 0.36, 1] }}
+        >
           <span className={styles.eyebrow}>Workflow</span>
-          <h2 className={styles.sectionTitle}>
+          <h2 id="about-workflow-heading" className={styles.sectionTitle}>
             A simple flow from setup to improvement
           </h2>
         </motion.div>
@@ -257,10 +278,11 @@ const AboutPage = () => {
           variants={container}
           initial="hidden"
           whileInView="show"
+          viewport={{ once: true }}
         >
           {steps.map((s) => (
             <motion.div key={s.num} className={styles.step} variants={fadeUp}>
-              <div className={styles.stepNum}>{s.num}</div>
+              <div className={styles.stepNum} aria-hidden="true">{s.num}</div>
               <div className={styles.stepTitle}>{s.title}</div>
               <div className={styles.stepDesc}>{s.desc}</div>
             </motion.div>
@@ -268,9 +290,16 @@ const AboutPage = () => {
         </motion.div>
       </section>
 
-      <section className={styles.ctaSection}>
-        <motion.div className={styles.ctaBox}>
-          <h2 className={styles.ctaTitle}>
+      {/* ══ CTA ══ */}
+      <section className={styles.ctaSection} aria-labelledby="about-cta-heading">
+        <motion.div
+          className={styles.ctaBox}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <h2 id="about-cta-heading" className={styles.ctaTitle}>
             Start organizing your business in a better way
           </h2>
 
@@ -278,13 +307,17 @@ const AboutPage = () => {
             <motion.button
               className={styles.btnPrimary}
               onClick={() => navigate("/register")}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
             >
-              Get Started <FiArrowRight />
+              Get Started <FiArrowRight aria-hidden="true" />
             </motion.button>
 
             <motion.button
               className={styles.btnSecondary}
               onClick={() => navigate("/contact")}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
             >
               Contact Us
             </motion.button>

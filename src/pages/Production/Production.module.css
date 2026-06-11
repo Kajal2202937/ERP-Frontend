@@ -4,7 +4,6 @@
   gap: 20px;
 }
 
-/* ── Header ── */
 .header {
   display: flex;
   align-items: flex-start;
@@ -37,6 +36,11 @@
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.4px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .subtitle {
@@ -44,6 +48,11 @@
   color: var(--text3);
   margin-top: 2px;
   font-family: var(--font-mono);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .headerRight {
@@ -65,6 +74,11 @@
   color: var(--text3);
   pointer-events: none;
   z-index: 1;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .searchInput {
@@ -86,6 +100,11 @@
 
 .searchInput::placeholder {
   color: var(--text3);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .searchInput:hover {
   border-color: var(--border3);
@@ -109,7 +128,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition:
+    background-color 0.15s var(--ease),
+    color 0.15s var(--ease),
+    border-color 0.15s var(--ease),
+    box-shadow 0.15s var(--ease),
+    opacity 0.15s var(--ease),
+    transform 0.15s var(--ease);
 }
 
 .clearBtn:hover {
@@ -132,7 +157,13 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0' fill='none' stroke='%239399a6' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    opacity 0.18s var(--ease),
+    transform 0.18s var(--ease);
 }
 
 .filterSelect:hover {
@@ -146,6 +177,11 @@
 }
 .filterSelect option {
   background: var(--surface2);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .btnPrimary {
@@ -185,7 +221,6 @@
   gap: 6px;
 }
 
-/* ── KPI Grid ── */
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -235,6 +270,11 @@
   font-weight: 500;
   letter-spacing: 0.2px;
   text-align: right;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .kpiValue {
@@ -243,6 +283,11 @@
   color: var(--text);
   letter-spacing: -1px;
   font-variant-numeric: tabular-nums;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .kpiAccent {
@@ -260,9 +305,13 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md, 12px);
   animation: shimmer 1.6s ease-in-out infinite;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
-/* ── Main grid ── */
 .mainGrid {
   display: grid;
   grid-template-columns: 1fr 260px;
@@ -270,7 +319,6 @@
   align-items: start;
 }
 
-/* ── Chart card ── */
 .chartCard {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -279,6 +327,11 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .cardHeader {
@@ -290,20 +343,34 @@
   font-size: 13.5px;
   font-weight: 500;
   color: var(--text);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .cardSub {
   font-size: 11.5px;
   color: var(--text3);
   font-family: var(--font-mono);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
-/* ── Tooltip ── */
 .tooltip {
   background: var(--surface2);
   border: 1px solid var(--border2);
   border-radius: 8px;
   padding: 8px 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .tooltipLabel {
@@ -311,15 +378,24 @@
   color: var(--text3);
   margin-bottom: 4px;
   font-family: var(--font-mono);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .tooltipValue {
   font-size: 15px;
   font-weight: 600;
   color: var(--text);
   font-family: var(--font-mono);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
-/* ── Stats col ── */
 .statsCol {
   display: flex;
   flex-direction: column;
@@ -348,6 +424,11 @@
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .statValue {
@@ -362,6 +443,11 @@
   background: var(--surface3);
   border-radius: 4px;
   overflow: hidden;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .statFill {
@@ -369,15 +455,18 @@
   border-radius: 4px;
 }
 
-/* ── Table card ── */
 .tableCard {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md, 12px);
   overflow: hidden;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
-/* ── Pagination ── */
 .pagination {
   display: flex;
   align-items: center;
@@ -389,9 +478,19 @@
   font-size: 12.5px;
   color: var(--text3);
   font-family: var(--font-mono);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .pageInfo strong {
   color: var(--text2);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .pageControls {
@@ -411,7 +510,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    opacity 0.18s var(--ease),
+    transform 0.18s var(--ease);
 }
 
 .pageArrow:hover:not(:disabled) {
@@ -436,7 +541,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease),
+    opacity 0.18s var(--ease),
+    transform 0.18s var(--ease);
 }
 
 .pageBtn:hover {
@@ -451,10 +562,14 @@
   font-weight: 600;
 }
 
-/* ── Skeleton ── */
 .skeleton {
   background: var(--surface2);
   animation: shimmer 1.6s ease-in-out infinite;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 @keyframes shimmer {

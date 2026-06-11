@@ -1,0 +1,111 @@
+/**
+ * theme-transitions.css
+ *
+ * Fixes applied vs original:
+ *
+ *  FIX 1 — --theme-tx is 0ms by default, 250ms ONLY during switching.
+ *    Original set --theme-tx: 320ms always-on. Every hover, data update,
+ *    and React re-render that touched background/color animated for 320ms.
+ *    Cards felt sluggish. Inputs felt laggy. Hover states were slow.
+ *
+ *    Fix: --theme-tx-duration defaults to 0ms. The [data-theme-switching]
+ *    rule bumps it to 250ms for exactly the toggle window (~280ms total).
+ *    The module CSS files already have `transition: background-color var(--theme-tx)`
+ *    on their elements — they become instant by default and smooth during toggle.
+ *
+ *  FIX 2 — Removed universal * selector with fill/stroke transitions.
+ *    Original applied 7 CSS transitions to EVERY DOM node including recharts
+ *    SVG paths, canvas, video. This caused a full-page style recalculation
+ *    cascade on every toggle. On data-dense dashboard pages with recharts,
+ *    this caused visible paint stutter during the transition.
+ *
+ *    Fix: base selector excludes svg, svg *, canvas, video, img.
+ *    fill/stroke removed entirely — SVG icons using currentColor update
+ *    instantly as part of color transitions without needing explicit fill/stroke.
+ *
+ *  FIX 3 — Duration aligned with theme.js (both 250ms).
+ *    Original CSS used 320ms, theme.js DURATION was also 320ms — but our
+ *    new theme.js uses 250ms. Now both match: 250ms transition, 280ms guard.
+ *
+ *  FIX 4 — box-shadow and border transitions scoped to elevated surfaces.
+ *    Not applied globally — only to classes that actually change box-shadow
+ *    between themes (cards, modals, sidebars, navbars).
+ *
+ *  FIX 5 — prefers-reduced-motion: keeps duration at 0ms during toggle too.
+ */
+
+
+
+:root {
+  --theme-tx-duration: 0ms;
+  --theme-tx-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --theme-tx: var(--theme-tx-duration) var(--theme-tx-easing);
+}
+
+
+[data-theme-switching] {
+  --theme-tx-duration: 250ms;
+}
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme-switching] {
+    --theme-tx-duration: 0ms;
+  }
+}
+
+
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+
+
+[data-theme-switching] :not(svg):not(svg *):not(canvas):not(video):not(img) {
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx) !important;
+}
+
+
+
+[data-theme-switching] [class*="card"],
+[data-theme-switching] [class*="Card"],
+[data-theme-switching] [class*="kpiCard"],
+[data-theme-switching] [class*="chartCard"],
+[data-theme-switching] [class*="statCard"],
+[data-theme-switching] [class*="modal"],
+[data-theme-switching] [class*="Modal"],
+[data-theme-switching] [class*="panel"],
+[data-theme-switching] [class*="Panel"],
+[data-theme-switching] [class*="sidebar"],
+[data-theme-switching] [class*="Sidebar"],
+[data-theme-switching] [class*="navbar"],
+[data-theme-switching] [class*="Navbar"],
+[data-theme-switching] [data-elevated] {
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx) !important;
+}
+
+
+
+[data-theme-switching] input,
+[data-theme-switching] textarea,
+[data-theme-switching] select,
+[data-theme-switching] button {
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    outline-color var(--theme-tx) !important;
+}

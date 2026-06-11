@@ -5,7 +5,7 @@ import {
   toggleSupplierStatus,
 } from "../../services/SupplierService";
 import styles from "./SupplierList.module.css";
-import toast from "react-hot-toast";
+import { toast } from "../../../utils/toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
@@ -169,13 +169,21 @@ const SupplierList = ({
                 const isEditing = editId === s._id;
                 const isSaving = savingId === s._id;
 
+                // FIX: The original code checked `s.active` (boolean) but the
+                // API returns `s.status` (string: "active" | "inactive").
+                // Now we derive isActive from either field for compatibility.
+                const isActive =
+                  s.isActive !== undefined
+                    ? s.isActive
+                    : s.status === "active";
+
                 return (
                   <motion.tr
                     key={s._id}
                     layout
                     className={`${styles.row}
                       ${selected.includes(s._id) ? styles.selectedRow : ""}
-                      ${!s.active ? styles.inactiveRow : ""}
+                      ${!isActive ? styles.inactiveRow : ""}
                       ${isEditing ? styles.editingRow : ""}`}
                   >
                     <td>
@@ -263,15 +271,16 @@ const SupplierList = ({
                     </td>
 
                     <td>
+                      {/* FIX: Use isActive (derived above) instead of s.active */}
                       <button
-                        className={`${styles.statusPill} ${s.active ? styles.pillActive : styles.pillInactive}`}
+                        className={`${styles.statusPill} ${isActive ? styles.pillActive : styles.pillInactive}`}
                         onClick={() => handleToggleStatus(s._id)}
                         disabled={togglingId === s._id}
                       >
                         <span className={styles.pillDot} />
                         {togglingId === s._id
                           ? "…"
-                          : s.active
+                          : isActive
                             ? "Active"
                             : "Inactive"}
                       </button>

@@ -1,18 +1,24 @@
-/* ─── Shared module info page ───────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   INFO PAGE — shared styles for all four modules
+═══════════════════════════════════════════════════ */
 .page {
   font-family: var(--font);
   background: var(--bg-base);
   color: var(--text-primary);
   padding-top: var(--navbar-h);
   overflow-x: hidden;
+  transition: background-color var(--theme-tx), color var(--theme-tx);
 }
 
-/* ─── Hero ──────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════ */
 .hero {
   position: relative;
   overflow: hidden;
 }
 
+/* Optional full-bleed background image support */
 .heroBgImage {
   position: absolute;
   inset: 0;
@@ -23,8 +29,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.;
-  filter: saturate(0.4);
+  opacity: 0.55;
+  filter: saturate(0.35);
 }
 
 .heroBgImage::after {
@@ -33,50 +39,53 @@
   inset: 0;
   background: linear-gradient(
     90deg,
-    var(--bg-base) 30%,
-    rgba(12, 13, 16, 0.65) 60%,
-    rgba(12, 13, 16, 0.95) 100%
+    var(--bg-base) 28%,
+    rgba(12, 13, 16, 0.6) 58%,
+    rgba(12, 13, 16, 0.96) 100%
   );
 }
 
-/* light theme hero overlay */
 [data-theme="light"] .heroBgImage::after {
   background: linear-gradient(
     90deg,
-    var(--bg-base) 30%,
-    rgba(246, 247, 251, 0.7) 60%,
-    rgba(246, 247, 251, 0.95) 100%
+    var(--bg-base) 28%,
+    rgba(246, 247, 251, 0.65) 58%,
+    rgba(246, 247, 251, 0.96) 100%
   );
 }
 
+/* Decorative atmospheric orb */
 .heroOrb {
   position: absolute;
-  width: 680px;
-  height: 680px;
+  width: 720px;
+  height: 720px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
   background: var(--orb-color);
 }
 
+/* Inner two-column layout */
 .heroInner {
   position: relative;
   z-index: 1;
-  max-width: 1200px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 92px 32px 76px;
+  padding: 96px 40px 80px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 72px;
+  gap: 80px;
   align-items: center;
 }
 
-/* ─── Hero left ─────────────────────────────────────────── */
+/* ── Hero Left ── */
 .heroLeft {
   display: flex;
   flex-direction: column;
+  gap: 0;
 }
 
+/* Module badge */
 .eyebrow {
   display: inline-block;
   font-family: var(--font);
@@ -85,28 +94,37 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   border-radius: 100px;
-  padding: 5px 14px;
+  padding: 5px 16px;
   width: fit-content;
-  margin-bottom: 22px;
+  margin-bottom: 26px;
 }
 
 .heroTitle {
   font-family: var(--font);
-  font-size: clamp(28px, 4vw, 50px);
+  font-size: clamp(28px, 4vw, 52px);
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.07;
   color: var(--text-primary);
-  margin: 0 0 18px;
-  letter-spacing: -0.035em;
+  margin: 0 0 20px;
+  letter-spacing: -0.036em;
+  transition: color var(--theme-tx);
+}
+
+.heroTitle span {
+  background: var(--title-gradient, var(--gradient-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .heroDesc {
   font-family: var(--font);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 15.5px;
+  line-height: 1.76;
   color: var(--text-secondary);
-  margin: 0 0 30px;
-  max-width: 460px;
+  margin: 0 0 34px;
+  max-width: 470px;
+  transition: color var(--theme-tx);
 }
 
 .heroBtns {
@@ -115,53 +133,97 @@
   flex-wrap: wrap;
 }
 
+/* Primary CTA button */
 .btnPrimary {
   font-family: var(--font);
   font-size: 14px;
   font-weight: 600;
   color: #fff;
-  border-radius: var(--radius-md);
-  padding: 11px 24px;
+  border-radius: 10px;
+  padding: 12px 26px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   box-shadow: 0 4px 18px var(--btn-shadow, var(--accent-glow));
-  transition:
-    box-shadow var(--t),
-    transform var(--t);
-  border: none;
+  transition: box-shadow var(--t), transform var(--t);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.btnPrimary:focus-visible {
+  box-shadow: 0 0 0 3px var(--accent), 0 4px 18px var(--btn-shadow, var(--accent-glow));
 }
 
 .btnPrimary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 28px var(--btn-shadow, rgba(108, 116, 240, 0.38));
+  box-shadow: 0 8px 28px var(--btn-shadow, rgba(108, 116, 240, 0.4));
 }
 
-/* ─── Hero right cards ──────────────────────────────────── */
+.btnPrimary:active {
+  transform: translateY(0);
+}
+
+/* Secondary / ghost button */
+.btnSecondary {
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--border-subtle);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: color var(--t), background var(--t), border-color var(--t);
+  outline: none;
+}
+
+.btnSecondary:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.btnSecondary:hover {
+  color: var(--text-primary);
+  background: var(--border-default);
+  border-color: var(--border-strong);
+}
+
+/* ── Hero Right ── */
 .heroRight {
   display: flex;
   justify-content: flex-end;
 }
 
-/* ── Inventory mock card ── */
-.mockCard {
+/* ── Mock card shared ── */
+.mockCard,
+.processCard,
+.analyticsCard,
+.salesCard {
   width: 100%;
-  max-width: 320px;
+  max-width: 330px;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
-  border-radius: var(--radius-xl);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow-xl);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.07),
+    0 16px 48px rgba(0, 0, 0, 0.15);
+  transition:
+    border-color var(--theme-tx),
+    background-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
+/* Traffic-light bar */
 .mockBar {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 15px;
+  padding: 11px 15px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--border-subtle);
+  transition: background-color var(--theme-tx), border-color var(--theme-tx);
 }
 
 .dot {
@@ -171,8 +233,9 @@
   flex-shrink: 0;
 }
 
+/* Inventory mock rows */
 .mockBody {
-  padding: 18px 14px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -182,8 +245,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 13px;
-  border-radius: var(--radius);
+  padding: 10px 12px;
+  border-radius: 9px;
   transition: background var(--t-fast);
 }
 
@@ -192,42 +255,33 @@
 }
 
 .mockRowLabel {
-  font-family: var(--font);
   font-size: 13px;
   color: var(--text-secondary);
+  transition: color var(--theme-tx);
 }
 
 .mockRowVal {
-  font-family: var(--font);
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* ── Production process card ── */
-.processCard {
-  width: 100%;
-  max-width: 300px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-}
-
-.processHeader {
-  padding: 14px 18px;
+/* ── Process card (Production) ── */
+.processHeader,
+.analyticsHeader,
+.salesHeader {
+  padding: 13px 18px;
   border-bottom: 1px solid var(--border-subtle);
   background: var(--border-subtle);
-  font-family: var(--font);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
+  transition: background-color var(--theme-tx), border-color var(--theme-tx), color var(--theme-tx);
 }
 
 .processSteps {
-  padding: 18px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -238,7 +292,7 @@
   align-items: center;
   gap: 11px;
   padding: 9px 11px;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   transition: background var(--t-fast);
 }
 
@@ -250,11 +304,10 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--amber-soft);
-  border: 1px solid var(--amber-border);
+  background: rgba(240, 168, 85, 0.12);
+  border: 1px solid rgba(240, 168, 85, 0.28);
   display: grid;
   place-items: center;
-  font-family: var(--font);
   font-size: 10px;
   font-weight: 700;
   color: var(--amber);
@@ -262,61 +315,40 @@
 }
 
 .stepLabel {
-  font-family: var(--font);
   font-size: 13px;
   color: var(--text-secondary);
   font-weight: 500;
+  transition: color var(--theme-tx);
 }
 
-.processFooter {
+.processFooter,
+.pipelineFooter {
   padding: 10px 18px 14px;
-  font-family: var(--font);
   font-size: 11px;
   color: var(--text-muted);
   border-top: 1px solid var(--border-subtle);
   font-style: italic;
+  transition: border-color var(--theme-tx), color var(--theme-tx);
 }
 
-/* ── Analytics card ── */
-.analyticsCard {
-  width: 100%;
-  max-width: 320px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-}
-
-.analyticsHeader {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--border-subtle);
-  font-family: var(--font);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
+/* ── Analytics card (Reports) ── */
 .chartPreview {
   display: flex;
   align-items: flex-end;
   gap: 5px;
   padding: 18px 18px 10px;
-  height: 88px;
+  height: 90px;
 }
 
 .chartBar {
   flex: 1;
-  background: linear-gradient(to top, var(--blue), var(--blue-soft));
+  background: linear-gradient(to top, var(--accent), rgba(108, 116, 240, 0.25));
   border-radius: 4px 4px 2px 2px;
   transition: opacity var(--t-fast);
 }
 
 .chartBar:hover {
-  opacity: 0.75;
+  opacity: 0.72;
 }
 
 .analyticsMetrics {
@@ -330,93 +362,63 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  font-family: var(--font);
   font-size: 11.5px;
   color: var(--text-muted);
+  transition: color var(--theme-tx);
 }
 
 .metricDot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--blue);
+  background: var(--accent);
   flex-shrink: 0;
 }
 
 /* ── Sales card ── */
-.salesCard {
-  width: 100%;
-  max-width: 280px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-}
-
-.salesHeader {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--border-subtle);
-  font-family: var(--font);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
 .pipeline {
-  padding: 20px 18px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 .pipelineItem {
   display: flex;
   align-items: center;
   gap: 11px;
-  font-family: var(--font);
   font-size: 13.5px;
   color: var(--text-secondary);
   font-weight: 500;
+  transition: color var(--theme-tx);
 }
 
 .pipelineDot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.pipelineFooter {
-  padding: 10px 18px 14px;
-  font-family: var(--font);
-  font-size: 11px;
-  color: var(--text-muted);
-  border-top: 1px solid var(--border-subtle);
-  font-style: italic;
-}
-
-/* ─── Features section ──────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   FEATURES SECTION
+══════════════════════════════════════════════ */
 .featuresSection {
-  padding: 96px 32px;
-  max-width: 1200px;
+  padding: 96px 40px;
+  max-width: 1240px;
   margin: 0 auto;
 }
 
 .sectionHeader {
   text-align: center;
-  margin-bottom: 52px;
+  margin-bottom: 54px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 11px;
+  gap: 12px;
 }
 
 .sectionEyebrow {
-  font-family: var(--font);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -432,16 +434,17 @@
   color: var(--text-primary);
   margin: 0;
   letter-spacing: -0.03em;
-  line-height: 1.15;
+  line-height: 1.14;
+  transition: color var(--theme-tx);
 }
 
 .sectionDesc {
-  font-family: var(--font);
   font-size: 15px;
   color: var(--text-secondary);
-  line-height: 1.7;
+  line-height: 1.72;
   max-width: 500px;
   margin: 0;
+  transition: color var(--theme-tx);
 }
 
 .featureGrid {
@@ -453,8 +456,8 @@
 .featureCard {
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  padding: 26px 20px;
+  border-radius: 16px;
+  padding: 28px 22px;
   transition:
     border-color var(--t),
     transform var(--t),
@@ -464,67 +467,101 @@
   gap: 13px;
   position: relative;
   overflow: hidden;
+  outline: none;
 }
 
+/* Subtle radial glow on hover */
 .featureCard::before {
   content: "";
   position: absolute;
   inset: 0;
   background: radial-gradient(
     ellipse 90% 60% at 50% 0%,
-    color-mix(in srgb, var(--fc) 7%, transparent),
+    color-mix(in srgb, var(--fc, var(--accent)) 9%, transparent),
     transparent 70%
   );
   opacity: 0;
-  transition: opacity var(--t-slow);
+  transition: opacity 0.3s ease;
   pointer-events: none;
+}
+
+/* Colored top accent stripe */
+.featureCard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--fc, var(--accent));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .featureCard:hover {
   border-color: var(--border-medium);
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 16px 40px rgba(0, 0, 0, 0.1);
 }
 
 .featureCard:hover::before {
   opacity: 1;
 }
 
+.featureCard:hover::after {
+  transform: scaleX(1);
+}
+
+.featureCard:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
 .featureIcon {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius);
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
   display: grid;
   place-items: center;
-  font-size: 17px;
+  font-size: 18px;
   position: relative;
   z-index: 1;
+  transition: transform var(--t);
+}
+
+.featureCard:hover .featureIcon {
+  transform: scale(1.08);
 }
 
 .featureName {
   font-family: var(--font);
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.018em;
   position: relative;
   z-index: 1;
+  transition: color var(--theme-tx);
 }
 
 .featureDesc {
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 13.5px;
   line-height: 1.7;
   color: var(--text-muted);
   position: relative;
   z-index: 1;
+  transition: color var(--theme-tx);
 }
 
-/* ─── CTA section ───────────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   CTA SECTION
+══════════════════════════════════════════════ */
 .ctaSection {
-  padding: 80px 32px 96px;
+  padding: 80px 40px 96px;
   background: var(--border-subtle);
   border-top: 1px solid var(--border-subtle);
+  transition: background-color var(--theme-tx), border-color var(--theme-tx);
 }
 
 .ctaBox {
@@ -545,6 +582,7 @@
   margin: 0;
   letter-spacing: -0.03em;
   line-height: 1.2;
+  transition: color var(--theme-tx);
 }
 
 .ctaActions {
@@ -554,7 +592,9 @@
   justify-content: center;
 }
 
-/* ─── Responsive ────────────────────────────────────────── */
+/* ══════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════ */
 @media (max-width: 1100px) {
   .featureGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -562,6 +602,7 @@
   .heroInner {
     grid-template-columns: 1fr;
     gap: 48px;
+    padding: 72px 32px 56px;
   }
   .heroRight {
     justify-content: flex-start;
@@ -570,7 +611,13 @@
 
 @media (max-width: 640px) {
   .heroInner {
-    padding: 60px 20px 44px;
+    padding: 56px 20px 44px;
+  }
+  .featuresSection {
+    padding: 64px 20px;
+  }
+  .ctaSection {
+    padding: 60px 20px 72px;
   }
   .featureGrid {
     grid-template-columns: 1fr;

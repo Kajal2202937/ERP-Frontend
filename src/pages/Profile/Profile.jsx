@@ -1,51 +1,55 @@
+import { useState, useMemo } from "react";
 import useAuth from "../../hooks/useAuth";
-import useTheme from "../../hooks/useTheme";
 import styles from "./Profile.module.css";
 import { motion, AnimatePresence } from "framer-motion";
-import { LogOut, Moon, Sun, Shield, Activity } from "lucide-react";
 import {
-  FiMail,
-  FiUser,
-  FiPhone,
-  FiLock,
-  FiEye,
-  FiEyeOff,
-  FiCheck,
-  FiEdit2,
-  FiX,
-  FiSave,
-} from "react-icons/fi";
-import { useState } from "react";
+  LogOut, Shield, Activity,
+  Mail, User, Phone, Lock, Eye, EyeOff,
+  Check, Edit2, X, Save,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import API from "../../services/api";
+import { getInitials } from "../../../utils/string";
+import { toast } from "../../../utils/toast";
+
 
 const ROLE_META = {
-  admin: { label: "Admin", color: "#6c74f0", dim: "rgba(108,116,240,0.1)" },
-  manager: { label: "Manager", color: "#f0a855", dim: "rgba(240,168,85,0.1)" },
-  staff: { label: "Staff", color: "#3ecf8e", dim: "rgba(62,207,142,0.1)" },
-  employee: {
-    label: "Employee",
-    color: "#60a5fa",
-    dim: "rgba(96,165,250,0.1)",
-  },
+  admin:    { label: "Admin",    color: "var(--red)",    dim: "var(--red-soft)"    },
+  manager:  { label: "Manager",  color: "var(--amber)",  dim: "var(--amber-soft)"  },
+  staff:    { label: "Staff",    color: "var(--green)",  dim: "var(--green-soft)"  },
+  employee: { label: "Employee", color: "var(--blue)",   dim: "var(--blue-soft)"   },
 };
 
-const getInitials = (name = "") =>
-  name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "U";
+/* Simple password strength scorer */
+const scorePassword = (pwd) => {
+  if (!pwd) return { score: 0, label: "", color: "" };
+  let score = 0;
+  if (pwd.length >= 8)  score++;
+  if (pwd.length >= 12) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  const levels = [
+    { label: "",          color: "" },
+    { label: "Weak",      color: "var(--red)"   },
+    { label: "Fair",      color: "var(--amber)" },
+    { label: "Good",      color: "var(--amber)" },
+    { label: "Strong",    color: "var(--green)" },
+    { label: "Very strong", color: "var(--green)" },
+  ];
+  return { score, ...levels[score] };
+};
 
-const PwdField = ({ label, value, onChange, placeholder }) => {
+/* ── Password field ── */
+const PwdField = ({ id, label, value, onChange, placeholder }) => {
   const [show, setShow] = useState(false);
   return (
     <div className={styles.pwdField}>
-      <label className={styles.pwdLabel}>{label}</label>
+      <label className={styles.pwdLabel} htmlFor={id}>{label}</label>
       <div className={styles.pwdWrap}>
-        <FiLock size={13} className={styles.pwdIcon} />
+        <Lock size={13} className={styles.pwdIcon} aria-hidden="true" />
         <input
+          id={id}
           className={styles.pwdInput}
           type={show ? "text" : "password"}
           placeholder={placeholder}
@@ -53,13 +57,17 @@ const PwdField = ({ label, value, onChange, placeholder }) => {
           onChange={onChange}
           autoComplete="new-password"
         />
+        {/* FIX: removed tabIndex={-1} — eye toggle is now keyboard accessible */}
         <button
           type="button"
           className={styles.eyeBtn}
           onClick={() => setShow((v) => !v)}
-          tabIndex={-1}
+          aria-label={show ? "Hide password" : "Show password"}
+          aria-pressed={show}
         >
-          {show ? <FiEyeOff size={13} /> : <FiEye size={13} />}
+          {show
+            ? <EyeOff size={13} aria-hidden="true" />
+            : <Eye    size={13} aria-hidden="true" />}
         </button>
       </div>
     </div>
@@ -68,433 +76,274 @@ const PwdField = ({ label, value, onChange, placeholder }) => {
 
 const Profile = () => {
   const { user, login, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
+  /* FIX: ROLE_META now uses CSS variable tokens */
+  const roleMeta = ROLE_META[user?.role] ?? ROLE_META.employee;
 
-  const [editing, setEditing] = useState(false);
+  const [editing,  setEditing]  = useState(false);
   const [editForm, setEditForm] = useState({ name: "", phone: "" });
-  const [editLoading, setEditLoading] = useState(false);
-  const [editMsg, setEditMsg] = useState({ text: "", type: "" });
+  const [saving,   setSaving]   = useState(false);
+
+  const [pwdForm, setPwdForm] = useState({ current: "", next: "", confirm: "" });
+  const [pwdSaving, setPwdSaving] = useState(false);
+
+  const handleLogout = () => { logout(); navigate("/login"); };
 
   const startEdit = () => {
     setEditForm({ name: user?.name || "", phone: user?.phone || "" });
-    setEditMsg({ text: "", type: "" });
     setEditing(true);
   };
 
-  const cancelEdit = () => {
-    setEditing(false);
-    setEditMsg({ text: "", type: "" });
-  };
+  const cancelEdit = () => { setEditing(false); setEditForm({ name: "", phone: "" }); };
 
-  const handleSaveProfile = async () => {
-    if (!editForm.name.trim())
-      return setEditMsg({ text: "Name is required", type: "error" });
-    if (editForm.name.trim().length < 3)
-      return setEditMsg({
-        text: "Name must be at least 3 characters",
-        type: "error",
-      });
-    if (editForm.phone && !/^[0-9]{10}$/.test(editForm.phone))
-      return setEditMsg({
-        text: "Phone must be exactly 10 digits",
-        type: "error",
-      });
-
-    setEditLoading(true);
+  const saveProfile = async () => {
+    if (!editForm.name.trim()) return toast.error("Name cannot be empty");
+    setSaving(true);
     try {
-      const res = await API.put("/users/me", {
-        name: editForm.name.trim(),
-        phone: editForm.phone.trim(),
-      });
-
-      const token = localStorage.getItem("token");
-      login(res.data.data, token);
-      setEditMsg({ text: "Profile updated successfully", type: "success" });
-      setTimeout(() => setEditing(false), 1000);
+      const res = await API.put("/auth/profile", editForm);
+      login({ ...user, ...res.data?.data });
+      toast.success("Profile updated");
+      setEditing(false);
     } catch (err) {
-      setEditMsg({
-        text: err.message || "Failed to update profile",
-        type: "error",
-      });
+      toast.error(err?.response?.data?.message || "Update failed");
     } finally {
-      setEditLoading(false);
+      setSaving(false);
     }
   };
 
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [pwdLoading, setPwdLoading] = useState(false);
-  const [pwdMsg, setPwdMsg] = useState({ text: "", type: "" });
-
-  const handleChangePassword = async () => {
-    setPwdMsg({ text: "", type: "" });
-
-    if (!oldPassword || !newPassword || !confirmPassword)
-      return setPwdMsg({ text: "All fields are required", type: "error" });
-
-    if (newPassword.length < 8)
-      return setPwdMsg({
-        text: "New password must be at least 8 characters",
-        type: "error",
-      });
-
-    if (newPassword !== confirmPassword)
-      return setPwdMsg({ text: "New passwords do not match", type: "error" });
-
-    setPwdLoading(true);
+  const savePassword = async () => {
+    if (!pwdForm.current) return toast.error("Enter your current password");
+    if (!pwdForm.next)    return toast.error("Enter a new password");
+    if (pwdForm.next.length < 8) return toast.error("New password must be at least 8 characters");
+    if (pwdForm.next !== pwdForm.confirm) return toast.error("Passwords do not match");
+    setPwdSaving(true);
     try {
-      await API.post("/auth/change-password", { oldPassword, newPassword });
-      setPwdMsg({ text: "Password updated successfully", type: "success" });
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err) {
-      setPwdMsg({
-        text: err.message || "Error updating password",
-        type: "error",
+      await API.put("/auth/change-password", {
+        currentPassword: pwdForm.current,
+        newPassword:     pwdForm.next,
       });
+      toast.success("Password changed");
+      setPwdForm({ current: "", next: "", confirm: "" });
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Change failed");
     } finally {
-      setPwdLoading(false);
+      setPwdSaving(false);
     }
   };
 
-  const roleMeta = ROLE_META[user?.role] || ROLE_META.employee;
+  /* Real-time password strength */
+  const strength = useMemo(() => scorePassword(pwdForm.next), [pwdForm.next]);
 
-  const infoRows = [
-    {
-      icon: <FiUser size={13} />,
-      label: "Full Name",
-      value: user?.name || "—",
-    },
-    { icon: <FiMail size={13} />, label: "Email", value: user?.email || "—" },
-    { icon: <FiPhone size={13} />, label: "Phone", value: user?.phone || "—" },
-    {
-      icon: <Shield size={13} />,
-      label: "Role",
-      value: roleMeta.label,
-      accent: roleMeta.color,
-    },
-    {
-      icon: <Activity size={13} />,
-      label: "Status",
-      value: user?.status
-        ? user.status.charAt(0).toUpperCase() + user.status.slice(1)
-        : "Active",
-      accent: "var(--green, #3ecf8e)",
-    },
-  ];
-
-  const fadeUp = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } };
+  /* Real-time confirm match */
+  const confirmMismatch = pwdForm.confirm.length > 0 && pwdForm.confirm !== pwdForm.next;
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.pageTitle}>My Profile</h1>
-          <p className={styles.pageSubtitle}>
-            Manage your account and preferences
-          </p>
+      {/* ── Profile card ── */}
+      <div className={styles.profileCard}>
+        <div className={styles.avatarSection}>
+          <div
+            className={styles.avatar}
+            style={{ background: roleMeta.dim, border: `2px solid ${roleMeta.color}` }}
+            aria-hidden="true"
+          >
+            <span style={{ color: roleMeta.color }}>{getInitials(user?.name)}</span>
+          </div>
+          <div className={styles.avatarInfo}>
+            <h1 className={styles.userName}>{user?.name || "User"}</h1>
+            <span
+              className={styles.roleChip}
+              style={{ color: roleMeta.color, background: roleMeta.dim }}
+            >
+              <Shield size={10} aria-hidden="true" />
+              {roleMeta.label}
+            </span>
+          </div>
         </div>
+
+        {/* Contact info */}
+        <div className={styles.infoGrid}>
+          <div className={styles.infoItem}>
+            <Mail size={13} className={styles.infoIcon} aria-hidden="true" />
+            <div>
+              <p className={styles.infoLabel}>Email</p>
+              <p className={styles.infoValue}>{user?.email || "—"}</p>
+            </div>
+          </div>
+          <div className={styles.infoItem}>
+            <Phone size={13} className={styles.infoIcon} aria-hidden="true" />
+            <div>
+              <p className={styles.infoLabel}>Phone</p>
+              <p className={styles.infoValue}>{user?.phone || "Not set"}</p>
+            </div>
+          </div>
+          <div className={styles.infoItem}>
+            <User size={13} className={styles.infoIcon} aria-hidden="true" />
+            <div>
+              <p className={styles.infoLabel}>Role</p>
+              <p className={styles.infoValue}>{roleMeta.label}</p>
+            </div>
+          </div>
+          <div className={styles.infoItem}>
+            <Activity size={13} className={styles.infoIcon} aria-hidden="true" />
+            <div>
+              <p className={styles.infoLabel}>Status</p>
+              <p className={styles.infoValue} style={{ color: "var(--green)" }}>Active</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Actions row */}
+        <div className={styles.actionRow}>
+          {!editing ? (
+            <button type="button" className={styles.editBtn} onClick={startEdit}>
+              <Edit2 size={13} aria-hidden="true" /> Edit Profile
+            </button>
+          ) : (
+            <div className={styles.editActions}>
+              <button type="button" className={styles.saveBtn} onClick={saveProfile} disabled={saving}>
+                {saving
+                  ? <span className={styles.spinner} aria-hidden="true" />
+                  : <><Save size={13} aria-hidden="true" /> Save</>}
+              </button>
+              <button type="button" className={styles.cancelEditBtn} onClick={cancelEdit} disabled={saving}>
+                <X size={13} aria-hidden="true" /> Cancel
+              </button>
+            </div>
+          )}
+          <button type="button" className={styles.logoutBtn} onClick={handleLogout}>
+            <LogOut size={13} aria-hidden="true" /> Sign out
+          </button>
+        </div>
+
+        {/* Edit form */}
+        <AnimatePresence>
+          {editing && (
+            <motion.div className={styles.editForm}
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.22 }}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="profile-name">
+                  <User size={12} aria-hidden="true" /> Full Name
+                </label>
+                <input
+                  id="profile-name"
+                  className={styles.formInput}
+                  value={editForm.name}
+                  onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+                  placeholder="Your full name"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel} htmlFor="profile-phone">
+                  <Phone size={12} aria-hidden="true" /> Phone
+                </label>
+                <input
+                  id="profile-phone"
+                  className={styles.formInput}
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))}
+                  placeholder="+91 00000 00000"
+                  type="tel"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className={styles.layout}>
-        {/* ── Left col ── */}
-        <div className={styles.leftCol}>
-          <motion.div
-            className={styles.profileCard}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div
-              className={styles.cardAccent}
-              style={{ background: roleMeta.color }}
-            />
-            <div className={styles.avatarWrap}>
-              <div
-                className={styles.avatar}
-                style={{ borderColor: `${roleMeta.color}40` }}
-              >
-                {getInitials(user?.name)}
-              </div>
-              <div className={styles.onlineDot} />
-            </div>
-            <div className={styles.profileInfo}>
-              <h2 className={styles.profileName}>{user?.name}</h2>
-              <p className={styles.profileEmail}>{user?.email}</p>
-              <span
-                className={styles.roleBadge}
-                style={{
-                  color: roleMeta.color,
-                  background: roleMeta.dim,
-                  borderColor: `${roleMeta.color}30`,
-                }}
-              >
-                {roleMeta.label}
-              </span>
-            </div>
-          </motion.div>
+      {/* ── Change password card ── */}
+      <div className={styles.passwordCard}>
+        <h2 className={styles.sectionTitle}>
+          <Lock size={15} aria-hidden="true" /> Change Password
+        </h2>
 
-          <motion.div
-            className={styles.section}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            transition={{ delay: 0.08, duration: 0.3 }}
-          >
-            <h3 className={styles.sectionTitle}>Preferences</h3>
-            <button className={styles.themeBtn} onClick={toggleTheme}>
-              <div className={styles.themeBtnLeft}>
-                <div className={styles.themeBtnIcon}>
-                  {theme === "dark" ? <Moon size={14} /> : <Sun size={14} />}
-                </div>
-                <div>
-                  <p className={styles.themeBtnLabel}>Theme</p>
-                  <p className={styles.themeBtnSub}>
-                    {theme === "dark"
-                      ? "Dark mode active"
-                      : "Light mode active"}
-                  </p>
-                </div>
-              </div>
-              <div
-                className={`${styles.toggle} ${theme === "dark" ? styles.toggleOn : ""}`}
-              >
-                <div className={styles.toggleThumb} />
-              </div>
-            </button>
-          </motion.div>
+        <div className={styles.pwdFields}>
+          <PwdField
+            id="pwd-current"
+            label="Current password"
+            value={pwdForm.current}
+            onChange={(e) => setPwdForm((p) => ({ ...p, current: e.target.value }))}
+            placeholder="Enter current password"
+          />
 
-          <motion.button
-            className={styles.logoutBtn}
-            onClick={handleLogout}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            transition={{ delay: 0.14, duration: 0.3 }}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <LogOut size={15} /> Sign Out
-          </motion.button>
-        </div>
+          <PwdField
+            id="pwd-new"
+            label="New password"
+            value={pwdForm.next}
+            onChange={(e) => setPwdForm((p) => ({ ...p, next: e.target.value }))}
+            placeholder="Min. 8 characters"
+          />
 
-        {/* ── Right col ── */}
-        <div className={styles.rightCol}>
-          {/* Account Information */}
-          <motion.div
-            className={styles.section}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            transition={{ delay: 0.05, duration: 0.35 }}
-          >
-            <div className={styles.sectionHeader}>
-              <h3 className={styles.sectionTitle}>Account Information</h3>
-              {!editing && (
-                <button className={styles.editBtn} onClick={startEdit}>
-                  <FiEdit2 size={12} /> Edit
-                </button>
+          {/* Password strength indicator */}
+          {pwdForm.next.length > 0 && (
+            <div className={styles.strengthWrap} aria-label={`Password strength: ${strength.label}`}>
+              <div className={styles.strengthBars}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <div
+                    key={n}
+                    className={styles.strengthBar}
+                    style={{
+                      background: n <= strength.score ? strength.color : "var(--border2)",
+                      transition: "background 0.2s ease",
+                    }}
+                  />
+                ))}
+              </div>
+              {strength.label && (
+                <span className={styles.strengthLabel} style={{ color: strength.color }}>
+                  {strength.label}
+                </span>
               )}
             </div>
+          )}
 
-            <AnimatePresence mode="wait">
-              {editing ? (
-                <motion.div
-                  key="edit-form"
-                  className={styles.editForm}
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  <div className={styles.editField}>
-                    <label className={styles.pwdLabel}>Full Name</label>
-                    <div className={styles.pwdWrap}>
-                      <FiUser size={13} className={styles.pwdIcon} />
-                      <input
-                        className={styles.pwdInput}
-                        type="text"
-                        placeholder="Your full name"
-                        value={editForm.name}
-                        onChange={(e) => {
-                          setEditForm((p) => ({ ...p, name: e.target.value }));
-                          setEditMsg({ text: "", type: "" });
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.editField}>
-                    <label className={styles.pwdLabel}>Phone</label>
-                    <div className={styles.pwdWrap}>
-                      <FiPhone size={13} className={styles.pwdIcon} />
-                      <input
-                        className={styles.pwdInput}
-                        type="tel"
-                        placeholder="10-digit number"
-                        value={editForm.phone}
-                        maxLength={10}
-                        onChange={(e) => {
-                          setEditForm((p) => ({ ...p, phone: e.target.value }));
-                          setEditMsg({ text: "", type: "" });
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <AnimatePresence>
-                    {editMsg.text && (
-                      <motion.div
-                        className={`${styles.msgBanner} ${editMsg.type === "success" ? styles.msgSuccess : styles.msgError}`}
-                        initial={{ opacity: 0, y: -4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {editMsg.type === "success" && <FiCheck size={13} />}
-                        {editMsg.text}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className={styles.editActions}>
-                    <button
-                      className={styles.cancelBtn}
-                      onClick={cancelEdit}
-                      disabled={editLoading}
-                    >
-                      <FiX size={13} /> Cancel
-                    </button>
-                    <motion.button
-                      className={styles.updateBtn}
-                      onClick={handleSaveProfile}
-                      disabled={editLoading}
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {editLoading ? (
-                        <>
-                          <span className={styles.spinner} /> Saving…
-                        </>
-                      ) : (
-                        <>
-                          <FiSave size={13} /> Save Changes
-                        </>
-                      )}
-                    </motion.button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="info-rows"
-                  className={styles.infoGrid}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  {infoRows.map((row) => (
-                    <div key={row.label} className={styles.infoRow}>
-                      <div className={styles.infoIcon}>{row.icon}</div>
-                      <div className={styles.infoContent}>
-                        <p className={styles.infoLabel}>{row.label}</p>
-                        <p
-                          className={styles.infoValue}
-                          style={row.accent ? { color: row.accent } : {}}
-                        >
-                          {row.value}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-
-          {/* Change Password */}
-          <motion.div
-            className={styles.section}
-            variants={fadeUp}
-            initial="hidden"
-            animate="show"
-            transition={{ delay: 0.1, duration: 0.35 }}
-          >
-            <h3 className={styles.sectionTitle}>Change Password</h3>
-            <div className={styles.pwdForm}>
-              <PwdField
-                label="Current password"
-                value={oldPassword}
-                onChange={(e) => {
-                  setOldPassword(e.target.value);
-                  setPwdMsg({ text: "", type: "" });
-                }}
-                placeholder="Enter current password"
-              />
-              <PwdField
-                label="New password"
-                value={newPassword}
-                onChange={(e) => {
-                  setNewPassword(e.target.value);
-                  setPwdMsg({ text: "", type: "" });
-                }}
-                placeholder="Min. 8 characters"
-              />
-              <PwdField
-                label="Confirm new password"
-                value={confirmPassword}
-                onChange={(e) => {
-                  setConfirmPassword(e.target.value);
-                  setPwdMsg({ text: "", type: "" });
-                }}
+          {/* Confirm with real-time mismatch */}
+          <div className={styles.pwdField}>
+            <label className={styles.pwdLabel} htmlFor="pwd-confirm">Confirm new password</label>
+            <div className={`${styles.pwdWrap} ${confirmMismatch ? styles.pwdWrapError : ""}`}>
+              <Lock size={13} className={styles.pwdIcon} aria-hidden="true" />
+              <input
+                id="pwd-confirm"
+                className={styles.pwdInput}
+                type="password"
                 placeholder="Repeat new password"
+                value={pwdForm.confirm}
+                onChange={(e) => setPwdForm((p) => ({ ...p, confirm: e.target.value }))}
+                autoComplete="new-password"
+                aria-invalid={confirmMismatch}
+                aria-describedby={confirmMismatch ? "pwd-confirm-error" : undefined}
               />
-
-              <AnimatePresence>
-                {pwdMsg.text && (
-                  <motion.div
-                    className={`${styles.msgBanner} ${pwdMsg.type === "success" ? styles.msgSuccess : styles.msgError}`}
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {pwdMsg.type === "success" ? <FiCheck size={13} /> : null}
-                    {pwdMsg.text}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <motion.button
-                className={styles.updateBtn}
-                onClick={handleChangePassword}
-                disabled={
-                  pwdLoading || !oldPassword || !newPassword || !confirmPassword
-                }
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {pwdLoading ? (
-                  <>
-                    <span className={styles.spinner} /> Updating…
-                  </>
-                ) : (
-                  <>
-                    <FiLock size={13} /> Update Password
-                  </>
-                )}
-              </motion.button>
+              {/* Real-time match indicator */}
+              {pwdForm.confirm.length > 0 && (
+                <span
+                  className={styles.matchIcon}
+                  style={{ color: confirmMismatch ? "var(--red)" : "var(--green)" }}
+                  aria-hidden="true"
+                >
+                  {confirmMismatch ? <X size={13} /> : <Check size={13} />}
+                </span>
+              )}
             </div>
-          </motion.div>
+            {confirmMismatch && (
+              <p id="pwd-confirm-error" className={styles.fieldError} role="alert">
+                Passwords do not match
+              </p>
+            )}
+          </div>
         </div>
+
+        <button
+          type="button"
+          className={styles.changePwdBtn}
+          onClick={savePassword}
+          disabled={pwdSaving || confirmMismatch || !pwdForm.current || !pwdForm.next || !pwdForm.confirm}
+        >
+          {pwdSaving
+            ? <><span className={styles.spinner} aria-hidden="true" /> Changing…</>
+            : <><Check size={13} aria-hidden="true" /> Change Password</>}
+        </button>
       </div>
     </div>
   );

@@ -1,14 +1,14 @@
 import { createContext, useContext, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const NotificationContext = createContext();
+
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
   const notify = useCallback((message, type = "info", duration = 3500) => {
     const id = `notif_${Date.now()}_${Math.random()}`;
-
     setNotifications((prev) => [...prev, { id, message, type }]);
-
     setTimeout(() => {
       setNotifications((prev) => prev.filter((n) => n.id !== id));
     }, duration);
@@ -22,20 +22,31 @@ export const NotificationProvider = ({ children }) => {
     <NotificationContext.Provider value={{ notify, dismiss, notifications }}>
       {children}
 
-      {notifications.length > 0 && (
-        <div style={containerStyle}>
-          {notifications.map((n) => (
-            <div
-              key={n.id}
-              style={{ ...toastStyle, ...typeStyle[n.type] }}
-              onClick={() => dismiss(n.id)}
-            >
-              <span style={iconStyle}>{typeIcon[n.type]}</span>
-              <span style={{ flex: 1, fontSize: 13 }}>{n.message}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <div style={containerStyle}>
+        <AnimatePresence initial={false}>
+          {notifications.map((n) => {
+            const meta = TYPE_META[n.type] ?? TYPE_META.info;
+            return (
+              <motion.div
+                key={n.id}
+                layout
+                initial={{ opacity: 0, y: 16, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.94 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                style={{ ...toastStyle, ...meta.style }}
+                onClick={() => dismiss(n.id)}
+                whileHover={{ scale: 1.015 }}
+                whileTap={{ scale: 0.975 }}
+              >
+                <span style={iconWrapStyle(meta.color)}>{meta.icon}</span>
+                <span style={messageStyle}>{n.message}</span>
+                <span style={dismissStyle}>✕</span>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
     </NotificationContext.Provider>
   );
 };
@@ -55,34 +66,100 @@ const containerStyle = {
   display: "flex",
   flexDirection: "column",
   gap: 10,
-  maxWidth: 360,
+  width: 340,
+
+  pointerEvents: "none",
 };
 
 const toastStyle = {
   display: "flex",
   alignItems: "center",
   gap: 10,
-  padding: "12px 16px",
-  borderRadius: 10,
+  padding: "11px 14px",
+  borderRadius: 12,
   border: "1px solid",
   cursor: "pointer",
-  boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
-  animation: "slideIn 0.2s ease",
+
   fontFamily: "var(--font, sans-serif)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  pointerEvents: "all",
+  userSelect: "none",
 };
 
-const typeStyle = {
-  success: { background: "#dcfce7", borderColor: "#86efac", color: "#166534" },
-  error: { background: "#fee2e2", borderColor: "#fca5a5", color: "#991b1b" },
-  warning: { background: "#fef9c3", borderColor: "#fde047", color: "#854d0e" },
-  info: { background: "#dbeafe", borderColor: "#93c5fd", color: "#1e40af" },
+const TYPE_META = {
+  success: {
+    icon: "✓",
+    color: "#3ecf8e",
+    style: {
+      background: "rgba(62, 207, 142, 0.1)",
+      borderColor: "rgba(62, 207, 142, 0.25)",
+      color: "#3ecf8e",
+      boxShadow:
+        "0 4px 20px rgba(62, 207, 142, 0.12), 0 1px 4px rgba(0,0,0,0.18)",
+    },
+  },
+  error: {
+    icon: "✕",
+    color: "#f87171",
+    style: {
+      background: "rgba(248, 113, 113, 0.1)",
+      borderColor: "rgba(248, 113, 113, 0.25)",
+      color: "#f87171",
+      boxShadow:
+        "0 4px 20px rgba(248, 113, 113, 0.12), 0 1px 4px rgba(0,0,0,0.18)",
+    },
+  },
+  warning: {
+    icon: "⚠",
+    color: "#f0a855",
+    style: {
+      background: "rgba(240, 168, 85, 0.1)",
+      borderColor: "rgba(240, 168, 85, 0.25)",
+      color: "#f0a855",
+      boxShadow:
+        "0 4px 20px rgba(240, 168, 85, 0.12), 0 1px 4px rgba(0,0,0,0.18)",
+    },
+  },
+  info: {
+    icon: "ℹ",
+    color: "#4da8f5",
+    style: {
+      background: "rgba(77, 168, 245, 0.1)",
+      borderColor: "rgba(77, 168, 245, 0.25)",
+      color: "#4da8f5",
+      boxShadow:
+        "0 4px 20px rgba(77, 168, 245, 0.12), 0 1px 4px rgba(0,0,0,0.18)",
+    },
+  },
 };
 
-const iconStyle = { fontSize: 16, flexShrink: 0 };
+const iconWrapStyle = (color) => ({
+  width: 22,
+  height: 22,
+  borderRadius: 6,
+  background: `${color}18`,
+  border: `1px solid ${color}30`,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 12,
+  fontWeight: 700,
+  flexShrink: 0,
+  color,
+});
 
-const typeIcon = {
-  success: "✅",
-  error: "❌",
-  warning: "⚠️",
-  info: "ℹ️",
+const messageStyle = {
+  flex: 1,
+  fontSize: 13,
+  fontWeight: 500,
+  lineHeight: 1.45,
+};
+
+const dismissStyle = {
+  fontSize: 11,
+  opacity: 0.4,
+  flexShrink: 0,
+  transition: "opacity 0.15s",
+  marginLeft: 2,
 };

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createSupplier } from "../../services/SupplierService";
 import styles from "./AddSupplier.module.css";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiX,
@@ -69,6 +69,7 @@ const AddSupplier = ({ refresh, close }) => {
       await createSupplier(form);
       toast.success("Supplier added successfully");
       refresh();
+      handleClose();
     } catch (err) {
       toast.error(err.message || "Failed to add supplier");
     } finally {
@@ -122,7 +123,6 @@ const AddSupplier = ({ refresh, close }) => {
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           <div className={styles.grid}>
-            {/* ✅ Fixed: removed leading spaces from all labels */}
             <Field
               icon={<FiUser size={11} />}
               label="Supplier Name"
@@ -133,6 +133,8 @@ const AddSupplier = ({ refresh, close }) => {
                 name="name"
                 value={form.name}
                 onChange={handleChange}
+                placeholder="e.g. Rajesh Kumar"
+                autoComplete="off"
               />
             </Field>
 
@@ -146,6 +148,8 @@ const AddSupplier = ({ refresh, close }) => {
                 name="company"
                 value={form.company}
                 onChange={handleChange}
+                placeholder="e.g. Acme Industries"
+                autoComplete="off"
               />
             </Field>
 
@@ -160,6 +164,8 @@ const AddSupplier = ({ refresh, close }) => {
                 type="email"
                 value={form.email}
                 onChange={handleChange}
+                placeholder="e.g. supplier@email.com"
+                autoComplete="off"
               />
             </Field>
 
@@ -173,6 +179,8 @@ const AddSupplier = ({ refresh, close }) => {
                 name="phone"
                 value={form.phone}
                 onChange={handleChange}
+                placeholder="e.g. +91 98765 43210"
+                autoComplete="off"
               />
             </Field>
 
@@ -187,6 +195,8 @@ const AddSupplier = ({ refresh, close }) => {
                 name="address"
                 value={form.address}
                 onChange={handleChange}
+                placeholder="e.g. 12 MG Road, Ludhiana"
+                autoComplete="off"
               />
             </Field>
           </div>

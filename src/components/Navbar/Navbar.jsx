@@ -5,6 +5,7 @@ import useTheme from "../../hooks/useTheme";
 import { getSocket } from "../../services/socket";
 import { TICKET_EVENTS } from "../../services/socketEvents";
 import { fetchTicketStats } from "../../services/ticketService";
+import { SearchTrigger } from "../common/GlobalSearch";
 import {
   Bell,
   Sun,
@@ -18,7 +19,17 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./Navbar.module.css";
+import { getInitials } from "../../../utils/string";
 import CreateUserModal from "../CreateUserModal/CreateUserModal";
+
+const notifAudio =
+  typeof window !== "undefined" ? new Audio("/notification.mp3") : null;
+
+const playNotifSound = () => {
+  if (!notifAudio) return;
+  notifAudio.currentTime = 0;
+  notifAudio.play().catch(() => {});
+};
 
 const panelVariants = {
   hidden: { opacity: 0, scale: 0.96, y: -6, transformOrigin: "top right" },
@@ -62,32 +73,23 @@ const fmtTime = (ts) => {
   return `${Math.floor(h / 24)}d ago`;
 };
 
-const getInitials = (name = "") =>
-  name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "U";
-
 const Navbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
-  const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [createUserOpen, setCreateUserOpen] = useState(false);
 
   const [notifications, setNotifications] = useState([]);
   const [ticketStats, setTicketStats] = useState({ unread: 0, new: 0 });
 
-  const dropdownRef = useRef(null);
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
   const isMounted = useRef(true);
 
-  // Admin and manager can create users
   const canCreateUser = ["admin", "manager"].includes(user?.role);
-  // Only admin sees ticket notifications
   const isAdmin = user?.role === "admin";
 
   useEffect(() => {
@@ -99,30 +101,41 @@ const Navbar = ({ onMenuClick }) => {
 
   useEffect(() => {
     const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target))
         setNotifOpen(false);
-      }
+      if (profileRef.current && !profileRef.current.contains(e.target))
+        setProfileOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   useEffect(() => {
-    if (!isAdmin) return;
-    const load = async () => {
-      try {
-        const res = await fetchTicketStats();
-        if (!isMounted.current) return;
-        setTicketStats(res.data);
-      } catch {}
+    const handler = (e) => {
+      if (e.key === "Escape") {
+        setNotifOpen(false);
+        setProfileOpen(false);
+      }
     };
-    load();
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    fetchTicketStats()
+      .then((res) => {
+        if (!cancelled && isMounted.current) setTicketStats(res.data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [isAdmin]);
 
   useEffect(() => {
     if (!isAdmin) return;
-
     const socket = getSocket();
     if (!socket) return;
 
@@ -130,7 +143,7 @@ const Navbar = ({ onMenuClick }) => {
       if (!isMounted.current) return;
       setNotifications((prev) => {
         if (prev.some((n) => n._id === payload._id)) return prev;
-        new Audio("/notification.mp3").play().catch(() => {});
+        playNotifSound();
         return [
           {
             _id: payload._id,
@@ -212,78 +225,89 @@ const Navbar = ({ onMenuClick }) => {
   );
   const badgeCount = Math.max(unreadCount, ticketStats.unread || 0);
 
-  const handleUserCreated = useCallback(() => {
-    setCreateUserOpen(false);
-  }, []);
-
   return (
     <>
-      <div className={styles.navbar}>
+      <header className={styles.navbar} role="banner">
+        {/* Left — hamburger + live indicator */}
         <div className={styles.left}>
           <button
             className={styles.hamburger}
             onClick={onMenuClick}
-            aria-label="Open menu"
+            aria-label="Open navigation menu"
+            type="button"
           >
-            <Menu size={18} />
+            <Menu size={18} aria-hidden="true" />
           </button>
-          <div className={styles.statusDot} />
-          <span className={styles.statusLabel}>Live</span>
+          <span className={styles.statusDot} aria-hidden="true" />
+          <span className={styles.statusLabel} aria-hidden="true">
+            Live
+          </span>
         </div>
 
-        <div className={styles.right} ref={dropdownRef}>
+        {/* Right — actions + profile */}
+        <div className={styles.right}>
+          {/* Theme toggle */}
+          <SearchTrigger />
           <motion.button
             className={styles.iconBtn}
             onClick={toggleTheme}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            aria-label="Toggle theme"
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
+            type="button"
           >
             <AnimatePresence mode="wait">
-              <motion.div
+              <motion.span
                 key={theme}
                 initial={{ rotate: -20, opacity: 0 }}
                 animate={{ rotate: 0, opacity: 1 }}
                 exit={{ rotate: 20, opacity: 0 }}
                 transition={{ duration: 0.18 }}
+                aria-hidden="true"
+                style={{ display: "flex" }}
               >
                 {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
-              </motion.div>
+              </motion.span>
             </AnimatePresence>
           </motion.button>
 
-          {/* FIX: show Create User button for admin AND manager */}
+          {/* Create user — admin + manager */}
           {canCreateUser && (
             <motion.button
               className={`${styles.iconBtn} ${styles.createUserBtn}`}
               onClick={() => {
                 setCreateUserOpen(true);
-                setOpen(false);
+                setProfileOpen(false);
                 setNotifOpen(false);
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               aria-label="Create new user"
-              title="Create User"
+              type="button"
             >
-              <UserPlus size={15} />
+              <UserPlus size={15} aria-hidden="true" />
             </motion.button>
           )}
 
-          {/* Ticket bell — admin only */}
+          {/* Notifications bell — admin only */}
           {isAdmin && (
-            <div className={styles.notifWrapper}>
+            <div className={styles.notifWrapper} ref={notifRef}>
               <motion.button
                 className={`${styles.iconBtn} ${notifOpen ? styles.iconBtnActive : ""}`}
                 onClick={() => {
                   setNotifOpen((v) => !v);
-                  setOpen(false);
+                  setProfileOpen(false);
                 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 aria-label={`Support tickets${badgeCount > 0 ? `, ${badgeCount} unread` : ""}`}
+                aria-expanded={notifOpen}
+                aria-haspopup="dialog"
+                type="button"
               >
-                <Bell size={15} />
+                <Bell size={15} aria-hidden="true" />
                 <AnimatePresence>
                   {badgeCount > 0 && (
                     <motion.span
@@ -297,12 +321,24 @@ const Navbar = ({ onMenuClick }) => {
                         stiffness: 400,
                         damping: 20,
                       }}
+                      aria-hidden="true"
                     >
                       {badgeCount > 9 ? "9+" : badgeCount}
                     </motion.span>
                   )}
                 </AnimatePresence>
               </motion.button>
+
+              {/* Screen-reader live region */}
+              <span
+                className={styles.srOnly}
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {badgeCount > 0
+                  ? `${badgeCount} unread support ticket${badgeCount > 1 ? "s" : ""}`
+                  : ""}
+              </span>
 
               <AnimatePresence>
                 {notifOpen && (
@@ -312,6 +348,9 @@ const Navbar = ({ onMenuClick }) => {
                     initial="hidden"
                     animate="visible"
                     exit="exit"
+                    role="dialog"
+                    aria-label="Support ticket notifications"
+                    aria-modal="false"
                   >
                     <div className={styles.panelHeader}>
                       <span className={styles.panelTitle}>
@@ -324,9 +363,12 @@ const Navbar = ({ onMenuClick }) => {
                       </span>
                       <div className={styles.panelActions}>
                         {unreadCount > 0 && (
-                          <button onClick={markAllRead}>Mark all read</button>
+                          <button type="button" onClick={markAllRead}>
+                            Mark all read
+                          </button>
                         )}
                         <button
+                          type="button"
                           onClick={() => {
                             navigate("/tickets");
                             setNotifOpen(false);
@@ -340,13 +382,14 @@ const Navbar = ({ onMenuClick }) => {
                     <div className={styles.notifList}>
                       {notifications.length === 0 ? (
                         <div className={styles.notifEmpty}>
-                          <Ticket size={18} />
+                          <Ticket size={18} aria-hidden="true" />
                           <p>No new tickets</p>
                         </div>
                       ) : (
                         notifications.slice(0, 6).map((n) => (
-                          <motion.div
+                          <motion.button
                             key={n._id}
+                            type="button"
                             className={`${styles.notifItem} ${!n.read ? styles.notifItemUnread : ""}`}
                             onClick={() => {
                               navigate("/tickets");
@@ -355,13 +398,13 @@ const Navbar = ({ onMenuClick }) => {
                             initial={{ opacity: 0, x: 6 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.15 }}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) =>
-                              e.key === "Enter" && navigate("/tickets")
-                            }
                           >
-                            {!n.read && <span className={styles.notifDot} />}
+                            {!n.read && (
+                              <span
+                                className={styles.notifDot}
+                                aria-hidden="true"
+                              />
+                            )}
                             <div className={styles.notifBody}>
                               <p className={styles.notifTitle}>{n.title}</p>
                               <p className={styles.notifDesc}>{n.desc}</p>
@@ -369,7 +412,7 @@ const Navbar = ({ onMenuClick }) => {
                                 {fmtTime(n.time)}
                               </span>
                             </div>
-                          </motion.div>
+                          </motion.button>
                         ))
                       )}
                     </div>
@@ -377,6 +420,7 @@ const Navbar = ({ onMenuClick }) => {
                     {notifications.length > 6 && (
                       <div className={styles.panelFooter}>
                         <button
+                          type="button"
                           onClick={() => {
                             navigate("/tickets");
                             setNotifOpen(false);
@@ -392,79 +436,74 @@ const Navbar = ({ onMenuClick }) => {
             </div>
           )}
 
-          <div className={styles.divider} />
+          <div className={styles.divider} aria-hidden="true" />
 
-          <div className={styles.profileWrapper}>
-            <div
-              className={styles.profile}
+          {/* Profile — FIX: real <button> instead of <div role="button"> */}
+          <div className={styles.profileWrapper} ref={profileRef}>
+            <button
+              type="button"
+              className={styles.profileBtn}
               onClick={() => {
-                setOpen((v) => !v);
+                setProfileOpen((v) => !v);
                 setNotifOpen(false);
               }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && setOpen((v) => !v)}
-              aria-haspopup="true"
-              aria-expanded={open}
+              aria-haspopup="menu"
+              aria-expanded={profileOpen}
+              aria-label={`Account menu for ${user?.name ?? "user"}`}
             >
-              <div className={styles.avatar}>{getInitials(user?.name)}</div>
+              <div className={styles.avatar} aria-hidden="true">
+                {getInitials(user?.name)}
+              </div>
               <div className={styles.profileText}>
                 <span>{user?.name}</span>
                 <span>{user?.role}</span>
               </div>
               <motion.span
-                animate={{ rotate: open ? 180 : 0 }}
+                animate={{ rotate: profileOpen ? 180 : 0 }}
                 transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 style={{ display: "flex" }}
+                aria-hidden="true"
               >
                 <ChevronDown size={13} />
               </motion.span>
-            </div>
+            </button>
 
             <AnimatePresence>
-              {open && (
+              {profileOpen && (
                 <motion.div
                   className={styles.dropdown}
                   variants={dropVariants}
                   initial="hidden"
                   animate="visible"
                   exit="exit"
+                  role="menu"
+                  aria-label="Account options"
                 >
-                  {/* FIX: show Create User in dropdown for admin AND manager */}
-                  {canCreateUser && (
-                    <button
-                      onClick={() => {
-                        setCreateUserOpen(true);
-                        setOpen(false);
-                      }}
-                    >
-                      <UserPlus size={14} /> Create User
-                    </button>
-                  )}
                   <button
+                    role="menuitem"
+                    type="button"
                     onClick={() => {
                       navigate("/profile");
-                      setOpen(false);
+                      setProfileOpen(false);
                     }}
                   >
-                    <UserCircle size={14} /> My profile
+                    <UserCircle size={14} aria-hidden="true" /> My profile
                   </button>
-                  <button onClick={handleLogout}>
-                    <LogOut size={14} /> Sign out
+                  <button role="menuitem" type="button" onClick={handleLogout}>
+                    <LogOut size={14} aria-hidden="true" /> Sign out
                   </button>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* FIX: render modal for admin and manager */}
       {canCreateUser && (
         <CreateUserModal
           isOpen={createUserOpen}
           onClose={() => setCreateUserOpen(false)}
-          onSuccess={handleUserCreated}
+          onSuccess={() => setCreateUserOpen(false)}
         />
       )}
     </>

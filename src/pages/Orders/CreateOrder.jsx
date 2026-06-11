@@ -1,34 +1,67 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { createOrder } from "../../services/OrderService";
-import { getInventory } from "../../services/inventoryService";
 import API from "../../services/api";
-import { toast } from "react-toastify";
+import { getInventory } from "../../services/inventoryService";
+import { toast } from "../../../utils/toast";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./CreateOrder.module.css";
-import { FiPackage, FiHash, FiX, FiAlertCircle, FiInfo } from "react-icons/fi";
+import {
+  FiPackage,
+  FiHash,
+  FiX,
+  FiAlertCircle,
+  FiInfo,
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiFileText,
+  FiChevronDown,
+} from "react-icons/fi";
 import { TbShoppingCartPlus } from "react-icons/tb";
+import SearchableSelect from "../../components/common/SearchableSelect";
 
-const CreateOrder = ({ refresh, onClose }) => {
-  const [form, setForm] = useState({ product: "", quantity: "" });
+const EMPTY_FORM = {
+  product: "",
+  quantity: "",
+  customerName: "",
+  customerEmail: "",
+  customerPhone: "",
+  notes: "",
+};
+
+const CreateOrder = ({
+  refresh,
+  onClose,
+  inventoryData: propInventory,
+  disabledProductIds: propDisabled,
+}) => {
+  const [form, setForm] = useState(EMPTY_FORM);
   const [products, setProducts] = useState([]);
-  const [inventoryData, setInventoryData] = useState([]);
-  const [disabledProductIds, setDisabledProductIds] = useState(new Set());
+  const [inventoryData, setInventoryData] = useState(propInventory || []);
+  const [disabledProductIds, setDisabledProductIds] = useState(
+    propDisabled || new Set(),
+  );
   const [selectedStock, setSelectedStock] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingData, setLoadingData] = useState(!propInventory);
+  const [showCustomer, setShowCustomer] = useState(false);
+
+  const propInventoryRef = useRef(propInventory);
 
   useEffect(() => {
     const load = async () => {
+      setLoadingData(true);
       try {
-        const [prodRes, invRes] = await Promise.allSettled([
-          API.get("/products"),
-          getInventory(),
-        ]);
+        const tasks = [API.get("/products", { params: { limit: 1000 } })];
+        if (!propInventoryRef.current) tasks.push(getInventory());
+
+        const [prodRes, invRes] = await Promise.allSettled(tasks);
 
         if (prodRes.status === "fulfilled") {
           setProducts(prodRes.value.data?.data || []);
         }
 
-        if (invRes.status === "fulfilled") {
+        if (!propInventoryRef.current && invRes?.status === "fulfilled") {
           const inv = invRes.value.data?.data || [];
           setInventoryData(inv);
           setDisabledProductIds(
@@ -39,27 +72,51 @@ const CreateOrder = ({ refresh, onClose }) => {
             ),
           );
         }
-      } catch {}
+      } finally {
+        setLoadingData(false);
+      }
     };
     load();
   }, []);
+
+  useEffect(() => {
+    if (propInventory) setInventoryData(propInventory);
+  }, [propInventory]);
+
+  useEffect(() => {
+    if (propDisabled) setDisabledProductIds(propDisabled);
+  }, [propDisabled]);
 
   const availableProducts = products.filter(
     (p) => !disabledProductIds.has(p._id),
   );
 
   useEffect(() => {
+    if (!form.product) {
+      setSelectedStock(0);
+      return;
+    }
     const inv = inventoryData.find((i) => i.product?._id === form.product);
     setSelectedStock(inv?.quantity || 0);
   }, [form.product, inventoryData]);
 
+  useEffect(() => {
+    setForm((prev) => ({ ...prev, quantity: "" }));
+  }, [form.product]);
+
   const selectedProduct = availableProducts.find((p) => p._id === form.product);
   const qty = Number(form.quantity);
+  const isIntQty = Number.isInteger(qty);
   const overStock = qty > 0 && qty > selectedStock;
   const stockPct =
     selectedStock > 0 && qty > 0
       ? Math.min((qty / selectedStock) * 100, 100)
       : 0;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = useCallback(
     async (e) => {
@@ -68,22 +125,35 @@ const CreateOrder = ({ refresh, onClose }) => {
       if (disabledProductIds.has(form.product))
         return toast.error("This product's inventory is disabled");
       if (qty <= 0) return toast.error("Quantity must be greater than 0");
+      if (!isIntQty) return toast.error("Quantity must be a whole number");
       if (qty > selectedStock) return toast.error("Not enough stock");
 
       setSubmitting(true);
       try {
-        await createOrder({ product: form.product, quantity: qty });
-        toast.success("Order created");
-        refresh();
-        setForm({ product: "", quantity: "" });
+        await createOrder({
+          product: form.product,
+          quantity: qty,
+          notes: form.notes.trim(),
+          customer: {
+            name: form.customerName.trim(),
+            email: form.customerEmail.trim(),
+            phone: form.customerPhone.trim(),
+          },
+        });
+        toast.success("Order created successfully");
+        refresh?.();
         onClose?.();
       } catch (err) {
-        toast.error(err.message || "Something went wrong");
+        const msg =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Something went wrong";
+        toast.error(msg);
       } finally {
         setSubmitting(false);
       }
     },
-    [form, qty, selectedStock, disabledProductIds, refresh, onClose],
+    [form, qty, isIntQty, selectedStock, disabledProductIds, refresh, onClose],
   );
 
   return (
@@ -103,6 +173,7 @@ const CreateOrder = ({ refresh, onClose }) => {
         transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* ── Header ─────────────────────────────────────────────────── */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <div className={styles.headerIcon}>
@@ -121,30 +192,30 @@ const CreateOrder = ({ refresh, onClose }) => {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          {/* ── Product selector ──────────────────────────────────────── */}
           <div className={styles.field}>
             <label htmlFor="order-product" className={styles.label}>
               <FiPackage size={12} className={styles.labelIcon} /> Product
             </label>
             <div className={styles.selectWrap}>
-              <select
-                className={styles.select}
-                id="order-product"
-                name="product"
-                value={form.product}
-                onChange={(e) => setForm({ ...form, product: e.target.value })}
-              >
-                <option value="">Choose a product…</option>
-                {availableProducts.map((p) => {
-                  const inv = inventoryData.find(
-                    (i) => i.product?._id === p._id,
-                  );
-                  return (
-                    <option key={p._id} value={p._id}>
-                      {p.name} — Stock: {inv?.quantity || 0}
-                    </option>
-                  );
-                })}
-              </select>
+              {loadingData ? (
+                <div className={styles.selectSkeleton} />
+              ) : (
+                <SearchableSelect
+                  options={availableProducts.map((p) => {
+                    const inv = inventoryData.find(
+                      (i) => i.product?._id === p._id,
+                    );
+                    return {
+                      value: p._id,
+                      label: `${p.name} — Stock: ${inv?.quantity || 0}`,
+                    };
+                  })}
+                  value={form.product}
+                  onChange={(val) => setForm((prev) => ({ ...prev, product: val }))}
+                  placeholder="Choose a product…"
+                />
+              )}
             </div>
             {disabledProductIds.size > 0 && (
               <p className={styles.hint}>
@@ -154,6 +225,7 @@ const CreateOrder = ({ refresh, onClose }) => {
             )}
           </div>
 
+          {/* ── Product info card ─────────────────────────────────────── */}
           <AnimatePresence>
             {selectedProduct && (
               <motion.div
@@ -202,19 +274,21 @@ const CreateOrder = ({ refresh, onClose }) => {
             )}
           </AnimatePresence>
 
+          {/* ── Quantity ──────────────────────────────────────────────── */}
           <div className={styles.field}>
             <label htmlFor="order-quantity" className={styles.label}>
               <FiHash size={12} className={styles.labelIcon} /> Quantity
             </label>
             <input
-              className={`${styles.input} ${overStock ? styles.inputError : ""}`}
+              className={`${styles.input} ${overStock || (qty > 0 && !isIntQty) ? styles.inputError : ""}`}
               id="order-quantity"
               name="quantity"
               type="number"
               min="1"
+              step="1"
               placeholder="Enter quantity…"
               value={form.quantity}
-              onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+              onChange={handleChange}
             />
             <AnimatePresence>
               {overStock && (
@@ -228,9 +302,112 @@ const CreateOrder = ({ refresh, onClose }) => {
                   Exceeds available stock ({selectedStock})
                 </motion.p>
               )}
+              {qty > 0 && !isIntQty && !overStock && (
+                <motion.p
+                  className={styles.errorMsg}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <FiAlertCircle size={12} />
+                  Quantity must be a whole number
+                </motion.p>
+              )}
             </AnimatePresence>
           </div>
 
+          {/* ── Customer details (collapsible) ────────────────────────── */}
+          <div className={styles.field}>
+            <button
+              type="button"
+              className={styles.sectionToggle}
+              onClick={() => setShowCustomer((v) => !v)}
+            >
+              <FiUser size={12} />
+              Customer Details
+              <span className={styles.optional}>(optional)</span>
+              <FiChevronDown
+                size={13}
+                className={`${styles.chevron} ${showCustomer ? styles.chevronOpen : ""}`}
+              />
+            </button>
+
+            <AnimatePresence>
+              {showCustomer && (
+                <motion.div
+                  className={styles.customerFields}
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className={styles.inputRow}>
+                    <div className={styles.inputWrap}>
+                      <FiUser size={12} className={styles.inputIcon} />
+                      <input
+                        className={styles.inputInline}
+                        name="customerName"
+                        type="text"
+                        placeholder="Customer name"
+                        value={form.customerName}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.inputRow}>
+                    <div className={styles.inputWrap}>
+                      <FiMail size={12} className={styles.inputIcon} />
+                      <input
+                        className={styles.inputInline}
+                        name="customerEmail"
+                        type="email"
+                        placeholder="Customer email (for invoice)"
+                        value={form.customerEmail}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className={styles.inputWrap}>
+                      <FiPhone size={12} className={styles.inputIcon} />
+                      <input
+                        className={styles.inputInline}
+                        name="customerPhone"
+                        type="tel"
+                        placeholder="Phone number"
+                        value={form.customerPhone}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <p className={styles.hint}>
+                    <FiInfo size={11} />
+                    Customer email is required to send order confirmation and
+                    invoice
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ── Notes ─────────────────────────────────────────────────── */}
+          <div className={styles.field}>
+            <label htmlFor="order-notes" className={styles.label}>
+              <FiFileText size={12} className={styles.labelIcon} />
+              Notes
+              <span className={styles.optional}>(optional)</span>
+            </label>
+            <textarea
+              className={styles.textarea}
+              id="order-notes"
+              name="notes"
+              rows={2}
+              placeholder="Internal notes for this order…"
+              value={form.notes}
+              onChange={handleChange}
+              maxLength={500}
+            />
+          </div>
+
+          {/* ── Actions ───────────────────────────────────────────────── */}
           <div className={styles.actions}>
             <button
               type="button"
@@ -243,7 +420,11 @@ const CreateOrder = ({ refresh, onClose }) => {
               type="submit"
               className={styles.btnSubmit}
               disabled={
-                submitting || overStock || !form.product || !form.quantity
+                submitting ||
+                overStock ||
+                !form.product ||
+                !form.quantity ||
+                (qty > 0 && !isIntQty)
               }
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}

@@ -3,36 +3,76 @@ import useAI from "../../hooks/useAI";
 import styles from "./InsightsPanel.module.css";
 import { FiRefreshCw, FiTrendingUp, FiAlertCircle } from "react-icons/fi";
 
-const InsightsPanel = () => {
+const safeParseInsights = (result) => {
+  try {
+    if (!result) return null;
+
+    const raw =
+      result?.data?.insight ?? result?.data?.insights ?? result?.insight;
+
+    if (Array.isArray(raw)) {
+      const items = raw
+        .filter((item) => typeof item === "string" && item.trim())
+        .map((item) => item.trim());
+      return items.length > 0 ? items : null;
+    }
+
+    if (typeof raw === "string" && raw.trim()) {
+      const items = raw
+        .split("\n")
+        .map((l) => l.replace(/^[-•*\d.]\s*/, "").trim())
+        .filter(Boolean);
+      return items.length > 0 ? items : null;
+    }
+
+    if (raw !== undefined && raw !== null) {
+      console.warn(
+        "[InsightsPanel] unexpected insight shape:",
+        typeof raw,
+        raw,
+      );
+    }
+
+    return null;
+  } catch (err) {
+    console.error("[InsightsPanel] parse error:", err);
+    return null;
+  }
+};
+
+const InsightsPanel = ({ analyticsData = {} }) => {
   const [insights, setInsights] = useState([]);
+  const [parseError, setParseError] = useState(null);
 
   const { getInsights, insightsLoading, insightsError } = useAI();
 
   const load = useCallback(async () => {
-    const result = await getInsights();
-    if (!result) return;
+    setParseError(null);
+    try {
+      const result = await getInsights(analyticsData);
+      const parsed = safeParseInsights(result);
 
-    const raw = result?.data?.insight;
-
-    if (Array.isArray(raw)) {
-      setInsights(
-        raw.filter((item) => typeof item === "string" && item.trim()),
-      );
-    } else if (typeof raw === "string" && raw.trim()) {
-      setInsights(
-        raw
-          .split("\n")
-          .map((l) => l.replace(/^[-•*]\s*/, "").trim())
-          .filter(Boolean),
-      );
-    } else {
+      if (parsed === null) {
+        setInsights([]);
+        if (!insightsError) {
+          setParseError("Could not parse AI response — please try again.");
+        }
+      } else {
+        setInsights(parsed);
+      }
+    } catch (err) {
+      setParseError(err.message || "Failed to load insights");
       setInsights([]);
     }
-  }, [getInsights]);
+  }, [getInsights, analyticsData, insightsError]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    if ((analyticsData.totalOrders ?? 0) > 0) {
+      load();
+    }
+  }, []);
+
+  const displayError = insightsError || parseError;
 
   return (
     <div className={styles.panel}>
@@ -45,6 +85,7 @@ const InsightsPanel = () => {
           disabled={insightsLoading}
           aria-label="Refresh insights"
           type="button"
+          title="Refresh AI insights"
         >
           <FiRefreshCw className={insightsLoading ? styles.spin : ""} />
         </button>
@@ -62,10 +103,10 @@ const InsightsPanel = () => {
         </div>
       )}
 
-      {insightsError && !insightsLoading && (
+      {displayError && !insightsLoading && (
         <p className={styles.error}>
           <FiAlertCircle style={{ verticalAlign: "middle", marginRight: 4 }} />
-          {insightsError}
+          {displayError}
         </p>
       )}
 
@@ -80,8 +121,12 @@ const InsightsPanel = () => {
         </ul>
       )}
 
-      {!insightsLoading && insights.length === 0 && !insightsError && (
-        <p className={styles.empty}>No AI insights available yet.</p>
+      {!insightsLoading && insights.length === 0 && !displayError && (
+        <p className={styles.empty}>
+          {(analyticsData.totalOrders ?? 0) === 0
+            ? "Add orders to enable AI insights."
+            : "No AI insights available yet."}
+        </p>
       )}
     </div>
   );

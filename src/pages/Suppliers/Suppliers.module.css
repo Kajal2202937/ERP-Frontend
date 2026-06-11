@@ -36,12 +36,22 @@
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.4px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .subtitle {
   font-size: 12px;
   color: var(--text3);
   margin-top: 2px;
   font-family: var(--font-mono);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .controls {
@@ -63,6 +73,11 @@
   color: var(--text3);
   pointer-events: none;
   z-index: 1;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .searchInput {
@@ -84,10 +99,14 @@
 
 .searchInput::placeholder {
   color: var(--text3);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .searchInput:hover {
-  border-color: var(--border3);
-}
+  border-color: var(--border3);}
 .searchInput:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
@@ -107,13 +126,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .clearBtn:hover {
   background: var(--surface4);
-  color: var(--text);
-}
+  color: var(--text);}
 
 .bulkDeleteBtn {
   height: 34px;
@@ -129,7 +153,13 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .bulkDeleteBtn:hover {
@@ -167,7 +197,6 @@
   transform: scale(0.98);
 }
 
-/* ── KPI ── */
 .kpiRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -189,8 +218,7 @@
 }
 
 .kpiCard:hover {
-  border-color: var(--border2);
-}
+  border-color: var(--border2);}
 .kpiTop {
   display: flex;
   align-items: center;
@@ -213,6 +241,11 @@
   font-family: var(--font-mono);
   font-weight: 500;
   text-align: right;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .kpiValue {
   font-size: 22px;
@@ -228,6 +261,11 @@
   border-radius: 6px;
   background: var(--surface2);
   animation: shimmer 1.6s ease-in-out infinite;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .kpiAccent {
@@ -239,15 +277,18 @@
   opacity: 0.55;
 }
 
-/* ── Card ── */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md, 12px);
   overflow: hidden;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
-/* ── Pagination ── */
 .pagination {
   display: flex;
   align-items: center;
@@ -263,10 +304,20 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .pageInfo strong {
   color: var(--text2);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .pageDot {
   opacity: 0.5;
@@ -288,7 +339,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .pageArrow:hover:not(:disabled) {
@@ -314,13 +371,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .pageBtn:hover {
   background: var(--surface2);
-  color: var(--text);
-}
+  color: var(--text);}
 
 .activeBtn {
   background: var(--accent-soft);
@@ -337,9 +399,13 @@
   justify-content: center;
   font-size: 12px;
   color: var(--text3);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
-/* ── Confirm modal ── */
 .confirmOverlay {
   position: fixed;
   inset: 0;
@@ -364,6 +430,11 @@
   gap: 8px;
   text-align: center;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 
 .confirmIcon {
@@ -384,11 +455,21 @@
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.2px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .confirmDesc {
   font-size: 13px;
   color: var(--text3);
   margin-bottom: 4px;
+  transition:
+    background-color var(--theme-tx),
+    color var(--theme-tx),
+    border-color var(--theme-tx),
+    box-shadow var(--theme-tx);
 }
 .confirmActions {
   display: flex;
@@ -408,14 +489,19 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .confirmCancel:hover {
   background: var(--surface3);
   border-color: var(--border3);
-  color: var(--text);
-}
+  color: var(--text);}
 
 .confirmDelete {
   flex: 1;
@@ -428,7 +514,13 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.18s;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .confirmDelete:hover {

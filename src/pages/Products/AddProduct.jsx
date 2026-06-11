@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { createProduct, updateProduct } from "../../services/ProductService";
 import API from "../../services/api";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./AddProduct.module.css";
 import {
@@ -14,6 +14,7 @@ import {
   FiX,
 } from "react-icons/fi";
 import { MdCurrencyRupee } from "react-icons/md";
+import SearchableSelect from "../../components/common/SearchableSelect";
 
 const Field = ({ icon, label, error, full, children }) => (
   <div
@@ -58,7 +59,7 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    API.get("/suppliers")
+    API.get("/suppliers", { params: { limit: 1000 } })
       .then((res) => setSuppliers(res?.data?.data?.data || []))
       .catch(() => {
         setSuppliers([]);
@@ -220,19 +221,16 @@ const AddProduct = ({ refresh, editData, setEditData }) => {
           label="Supplier"
           error={errors.supplier}
         >
-          <select
-            className={`${styles.input} ${styles.select}`}
-            name="supplier"
+          <SearchableSelect
+            options={suppliers.map((s) => ({ value: s._id, label: s.name }))}
             value={form.supplier}
-            onChange={handleChange}
-          >
-            <option value="">Select a supplier…</option>
-            {suppliers.map((s) => (
-              <option key={s._id} value={s._id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+            onChange={(val) => {
+              setForm((p) => ({ ...p, supplier: val }));
+              if (errors.supplier) setErrors((p) => ({ ...p, supplier: "" }));
+            }}
+            placeholder="Select a supplier…"
+            error={errors.supplier}
+          />
         </Field>
 
         <Field icon={<FiFileText size={12} />} label="Description" full>

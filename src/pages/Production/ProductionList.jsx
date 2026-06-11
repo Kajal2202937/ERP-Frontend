@@ -3,7 +3,7 @@ import {
   updateProduction,
   deleteProduction,
 } from "../../services/ProductionService";
-import { toast as toastP } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import { motion as motionP, AnimatePresence as AP } from "framer-motion";
 import stylesP from "./ProductionList.module.css";
 import { FiEdit2, FiTrash2, FiSave, FiX } from "react-icons/fi";
@@ -25,25 +25,25 @@ export const ProductionListComponent = ({ data, refresh }) => {
   };
 
   const handleUpdate = async (id) => {
-    if (!editStatus) return toastP.warning("Select a status");
+    if (!editStatus) return toast.warning("Select a status");
     try {
       await updateProduction(id, { status: editStatus });
-      toastP.success("Status updated");
+      toast.success("Status updated");
       setEditId(null);
       refresh();
     } catch {
-      toastP.error("Update failed");
+      toast.error("Update failed");
     }
   };
 
   const handleDelete = async (id) => {
     try {
       await deleteProduction(id);
-      toastP.success("Production deleted");
+      toast.success("Production deleted");
       setDeleteConfirm(null);
       refresh();
     } catch {
-      toastP.error("Delete failed");
+      toast.error("Delete failed");
     }
   };
 

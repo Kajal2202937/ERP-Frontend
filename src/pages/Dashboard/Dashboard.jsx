@@ -1,13 +1,16 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  Component,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import API from "../../services/api";
 import styles from "./Dashboard.module.css";
-import {
-  getSalesSummary,
-  getSalesTrend,
-  getTopProducts,
-} from "../../services/ReportService";
+import { getDashboardSummary } from "../../services/ReportService";
+import { formatCurrency, formatPercent, getDelta } from "../../../utils/format";
 import {
   AreaChart,
   Area,
@@ -24,52 +27,67 @@ import {
 } from "recharts";
 import InsightsPanel from "../../components/AI/InsightsPanel";
 import AIChat from "../../components/AI/AIChat";
-import { FiCpu } from "react-icons/fi";
+import DateRangePicker from "../../components/common/DateRangePicker";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  RefreshCw,
+  Cpu,
+  ShoppingCart,
+  Package,
+  BarChart2,
+  AlertTriangle,
+  Ticket,
+} from "lucide-react";
+
+import { initSocket } from "../../services/socket";
+import { ORDER_EVENTS } from "../../services/socketEvents";
 
 const PALETTE = ["#6c74f0", "#3ecf8e", "#f0a855", "#f87171", "#4da8f5"];
+const AUTO_REFRESH_MS = 60_000;
+const REFRESH_COOLDOWN_MS = 30_000;
 
-const INITIAL_STATS = {
+const INITIAL_SALES = {
   totalOrders: 0,
   totalQuantity: 0,
   totalRevenue: 0,
   profit: 0,
   profitMargin: 0,
 };
-
 const INITIAL_INVENTORY = { totalStock: 0, lowStock: 0, activeItems: 0 };
-const INITIAL_TICKETS = { total: 0, open: 0 };
 
-const formatCurrency = (num = 0) => {
-  if (!num) return "₹ 0";
-  if (num >= 10_000_000) return `₹ ${(num / 10_000_000).toFixed(1)} Cr`;
-  if (num >= 100_000) return `₹ ${(num / 100_000).toFixed(1)} L`;
-  return `₹ ${num.toLocaleString("en-IN")}`;
-};
+class ChartErrorBoundary extends Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.error("[ChartErrorBoundary]", error, info.componentStack);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className={styles.chartError} role="alert">
+          Chart unavailable — data may be invalid
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const CustomTooltip = ({ active, payload, label, currency = false }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div
-      style={{
-        background: "var(--surface2)",
-        border: "1px solid var(--border2)",
-        borderRadius: 10,
-        padding: "10px 14px",
-        boxShadow: "var(--shadow-lg)",
-      }}
-    >
-      <p style={{ fontSize: 11, color: "var(--text3)", marginBottom: 6 }}>
-        {label}
-      </p>
+    <div className={styles.tooltip}>
+      <p className={styles.tooltipLabel}>{label}</p>
       {payload.map((p, i) => (
         <p
           key={i}
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: p.color || "var(--accent)",
-          }}
+          className={styles.tooltipValue}
+          style={{ color: p.color || "var(--accent)" }}
         >
           {currency ? formatCurrency(p.value) : p.value.toLocaleString("en-IN")}
         </p>
@@ -78,7 +96,26 @@ const CustomTooltip = ({ active, payload, label, currency = false }) => {
   );
 };
 
-const StatCard = ({ title, value, sub, variant }) => (
+const DeltaBadge = ({ delta }) => {
+  if (!delta) return null;
+  const Icon =
+    delta.direction === "up"
+      ? TrendingUp
+      : delta.direction === "down"
+        ? TrendingDown
+        : Minus;
+  return (
+    <span
+      className={`${styles.delta} ${delta.isPositive ? styles.deltaUp : styles.deltaDown}`}
+      aria-label={`${delta.isPositive ? "Up" : "Down"} ${Math.abs(delta.pct).toFixed(1)}% vs previous period`}
+    >
+      <Icon size={10} aria-hidden="true" strokeWidth={2.5} />
+      {delta.label}
+    </span>
+  );
+};
+
+const StatCard = ({ title, value, sub, variant, icon: Icon, delta }) => (
   <div
     className={[
       styles.card,
@@ -87,10 +124,24 @@ const StatCard = ({ title, value, sub, variant }) => (
     ]
       .filter(Boolean)
       .join(" ")}
+    role="region"
+    aria-label={`${title}: ${typeof value === "number" ? value.toLocaleString("en-IN") : value}`}
   >
-    <h3>{title}</h3>
-    <p>{typeof value === "number" ? value.toLocaleString("en-IN") : value}</p>
-    {sub && <small>{sub}</small>}
+    <div className={styles.cardHeader}>
+      <h3 className={styles.cardTitle}>{title}</h3>
+      {Icon && (
+        <span className={styles.cardIcon} aria-hidden="true">
+          <Icon size={13} strokeWidth={1.8} />
+        </span>
+      )}
+    </div>
+    <p className={styles.cardValue}>
+      {typeof value === "number" ? value.toLocaleString("en-IN") : value}
+    </p>
+    <div className={styles.cardFooter}>
+      {sub && <small className={styles.cardSub}>{sub}</small>}
+      <DeltaBadge delta={delta} />
+    </div>
   </div>
 );
 
@@ -98,11 +149,11 @@ const Skeleton = () => (
   <>
     <div className={styles.skeletonGrid}>
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className={styles.skeletonCard} />
+        <div key={i} className={styles.skeletonCard} aria-hidden="true" />
       ))}
     </div>
-    <div className={styles.skeletonChart} />
-    <div className={styles.skeletonChart} />
+    <div className={styles.skeletonChart} aria-hidden="true" />
+    <div className={styles.skeletonChart} aria-hidden="true" />
   </>
 );
 
@@ -114,148 +165,164 @@ const axisStyle = {
 const gridProps = { strokeDasharray: "3 3", stroke: "var(--border)" };
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, socketReady } = useAuth();
   const navigate = useNavigate();
-  const [aiOpen, setAiOpen] = useState(false);
 
-  const [stats, setStats] = useState(INITIAL_STATS);
-  const [inventoryStats, setInventory] = useState(INITIAL_INVENTORY);
-  const [ticketStats, setTicketStats] = useState(INITIAL_TICKETS);
-  const [topProducts, setTopProducts] = useState([]);
-  const [salesTrend, setSalesTrend] = useState([]);
-  const [topSuppliers, setTopSuppliers] = useState([]);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [range, setRange] = useState({ from: null, to: null });
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState({});
+  const [refreshing, setRefreshing] = useState(false);
+  const [canRefresh, setCanRefresh] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [dashData, setDashData] = useState({
+    sales: INITIAL_SALES,
+    prevSales: null,
+    trend: [],
+    topProducts: [],
+    inventory: INITIAL_INVENTORY,
+    topSuppliers: [],
+    openTickets: 0,
+  });
 
   const abortRef = useRef(null);
+  const cooldownRef = useRef(null);
 
-  const fetchDashboard = useCallback(async () => {
-    abortRef.current?.abort();
-    abortRef.current = new AbortController();
+  const today = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
-    setLoading(true);
+  const fetchDashboard = useCallback(
+    async (isManual = false) => {
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
 
-    const [salesRes, topRes, trendRes, inventoryRes, productsRes, ticketRes] =
-      await Promise.allSettled([
-        getSalesSummary(),
-        getTopProducts(),
-        getSalesTrend(),
-        API.get("/inventory"),
-        API.get("/products"),
-        API.get("/tickets"),
-      ]);
+      isManual ? setRefreshing(true) : setLoading(true);
+      setError(null);
 
-    if (abortRef.current.signal.aborted) return;
+      try {
+        const params = {};
+        if (range.from) params.from = range.from;
+        if (range.to) params.to = range.to;
 
-    const errs = {};
+        const res = await getDashboardSummary(params);
+        if (abortRef.current.signal.aborted) return;
 
-    if (salesRes.status === "fulfilled" && salesRes.value?.data) {
-      setStats(salesRes.value.data);
-    } else {
-      errs.sales = "Failed to load sales summary";
-    }
+        if (!res.success || !res.data) {
+          setError("Failed to load dashboard data");
+          return;
+        }
 
-    if (topRes.status === "fulfilled" && topRes.value?.data) {
-      setTopProducts(
-        topRes.value.data.map((item) => ({
-          name: item.name,
-          sold: item.totalSold || item.sold || item.quantity || 0,
-        })),
-      );
-    }
-
-    if (trendRes.status === "fulfilled" && trendRes.value?.data) {
-      setSalesTrend(
-        trendRes.value.data.map((item) => ({
-          date: item.date || "",
-          total: item.total || item.totalSales || item.revenue || 0,
-        })),
-      );
-    }
-
-    if (inventoryRes.status === "fulfilled") {
-      const inv = inventoryRes.value.data?.data || [];
-      setInventory({
-        totalStock: inv.reduce((a, i) => a + (i.quantity || 0), 0),
-        lowStock: inv.filter((i) => (i.quantity || 0) < 10).length,
-        activeItems: inv.filter((i) => i.isActive !== false).length,
-      });
-    }
-
-    if (productsRes.status === "fulfilled") {
-      const products = productsRes.value.data?.data || [];
-      const map = {};
-      products.forEach((p) => {
-        const s = p?.supplier;
-        if (!s?._id) return;
-        if (!map[s._id])
-          map[s._id] = { name: s.name || "Unknown", value: 0, quantity: 0 };
-        map[s._id].quantity += p.quantity || 0;
-        map[s._id].value += (p.price || 0) * (p.quantity || 0);
-      });
-      setTopSuppliers(
-        Object.values(map)
-          .sort((a, b) => b.value - a.value)
-          .slice(0, 5),
-      );
-    }
-
-    if (ticketRes.status === "fulfilled") {
-      const tickets = ticketRes.value.data?.data || [];
-      setTicketStats({
-        total: tickets.length,
-        open: tickets.filter(
-          (t) => t.status === "open" || t.status === "in_progress",
-        ).length,
-      });
-    }
-
-    setErrors(errs);
-    setLoading(false);
-  }, []);
+        const d = res.data;
+        setDashData({
+          sales: d.sales || INITIAL_SALES,
+          prevSales: d.prevSales || null,
+          trend: (d.trend || []).filter((t) => t.total > 0),
+          topProducts: (d.topProducts || [])
+            .map((p) => ({ name: p.name, sold: p.totalSold || 0 }))
+            .filter((p) => p.sold > 0),
+          inventory: d.inventory || INITIAL_INVENTORY,
+          topSuppliers: (d.topSuppliers || []).sort(
+            (a, b) => b.value - a.value,
+          ),
+          openTickets: d.openTickets || 0,
+        });
+      } catch (err) {
+        if (err?.name === "AbortError" || err?.name === "CanceledError") return;
+        setError("Failed to load dashboard data");
+      } finally {
+        if (!abortRef.current.signal.aborted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    },
+    [range],
+  );
 
   useEffect(() => {
     fetchDashboard();
     return () => abortRef.current?.abort();
   }, [fetchDashboard]);
 
-  const cleanProducts = useMemo(
-    () => topProducts.filter((p) => p.sold > 0),
-    [topProducts],
-  );
+  useEffect(() => {
+    const id = setInterval(() => fetchDashboard(), AUTO_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [fetchDashboard]);
 
-  const cleanTrend = useMemo(
-    () => salesTrend.filter((d) => d.total > 0),
-    [salesTrend],
-  );
+  useEffect(() => {
+    if (!socketReady) return;
 
-  const today = useMemo(
-    () =>
-      new Date().toLocaleDateString("en-IN", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }),
-    [],
-  );
+    const socket = initSocket();
+    if (!socket) return;
+
+    const handleOrderChange = () => {
+      fetchDashboard(false);
+    };
+
+    socket.on(ORDER_EVENTS.ORDER_CREATED, handleOrderChange);
+    socket.on(ORDER_EVENTS.ORDER_UPDATED, handleOrderChange);
+    socket.on(ORDER_EVENTS.ORDER_DELETED, handleOrderChange);
+
+    return () => {
+      socket.off(ORDER_EVENTS.ORDER_CREATED, handleOrderChange);
+      socket.off(ORDER_EVENTS.ORDER_UPDATED, handleOrderChange);
+      socket.off(ORDER_EVENTS.ORDER_DELETED, handleOrderChange);
+    };
+  }, [fetchDashboard, socketReady]);
+
+  const handleManualRefresh = useCallback(() => {
+    if (!canRefresh) return;
+    setCanRefresh(false);
+    fetchDashboard(true);
+    cooldownRef.current = setTimeout(
+      () => setCanRefresh(true),
+      REFRESH_COOLDOWN_MS,
+    );
+  }, [canRefresh, fetchDashboard]);
+
+  useEffect(() => () => clearTimeout(cooldownRef.current), []);
+
+  const deltas = useMemo(() => {
+    if (!dashData.prevSales) return {};
+    return {
+      revenue: getDelta(
+        dashData.sales.totalRevenue,
+        dashData.prevSales.totalRevenue,
+      ),
+      orders: getDelta(
+        dashData.sales.totalOrders,
+        dashData.prevSales.totalOrders,
+      ),
+      profit: getDelta(dashData.sales.profit, dashData.prevSales.profit),
+    };
+  }, [dashData.sales, dashData.prevSales]);
 
   const aiContext = useMemo(
     () => ({
       page: "dashboard",
-      totalRevenue: stats.totalRevenue,
-      totalOrders: stats.totalOrders,
-      profit: stats.profit,
-      profitMargin: stats.profitMargin,
-      lowStock: inventoryStats.lowStock,
-      openTickets: ticketStats.open,
+      totalRevenue: dashData.sales.totalRevenue,
+      totalOrders: dashData.sales.totalOrders,
+      profit: dashData.sales.profit,
+      profitMargin: dashData.sales.profitMargin,
+      lowStock: dashData.inventory.lowStock,
+      openTickets: dashData.openTickets,
+      dateRange: range,
     }),
-    [stats, inventoryStats.lowStock, ticketStats.open],
+    [dashData.sales, dashData.inventory.lowStock, dashData.openTickets, range],
+  );
+
+  const totalUnitsSold = useMemo(
+    () => dashData.topProducts.reduce((s, p) => s + p.sold, 0),
+    [dashData.topProducts],
   );
 
   return (
     <div className={styles.content}>
-      {/* Header */}
+      {/* ── Header ── */}
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Dashboard</h1>
@@ -263,113 +330,321 @@ const Dashboard = () => {
             Welcome back, <span>{user?.name || "User"}</span> — {today}
           </p>
         </div>
+
+        <div className={styles.headerActions}>
+          <DateRangePicker value={range} onChange={setRange} />
+          <button
+            type="button"
+            className={`${styles.refreshBtn} ${!canRefresh ? styles.refreshBtnDisabled : ""}`}
+            onClick={handleManualRefresh}
+            disabled={!canRefresh || refreshing}
+            aria-label="Refresh dashboard data"
+            title={
+              !canRefresh ? "Please wait 30s between refreshes" : "Refresh"
+            }
+          >
+            <RefreshCw
+              size={13}
+              className={refreshing ? styles.spinning : ""}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
       </div>
 
-      {Object.values(errors).map((msg, i) => (
-        <div key={i} className={styles.error}>
-          {msg}
+      {error && (
+        <div className={styles.error} role="alert">
+          <AlertTriangle size={14} aria-hidden="true" />
+          {error}
         </div>
-      ))}
+      )}
 
       {loading && <Skeleton />}
 
       {!loading && (
         <>
-          {/* ── Overview stats ── */}
+          {/* ── KPI cards ── */}
           <p className={styles.sectionTitle}>Overview</p>
           <div className={styles.cards}>
-            <StatCard title="Total Orders" value={stats.totalOrders} />
-            <StatCard title="Total Sold" value={stats.totalQuantity} />
+            <StatCard
+              title="Total Orders"
+              value={dashData.sales.totalOrders}
+              icon={ShoppingCart}
+              delta={deltas.orders}
+            />
+            <StatCard
+              title="Units Sold"
+              value={dashData.sales.totalQuantity}
+              icon={Package}
+            />
             <StatCard
               title="Revenue"
-              value={formatCurrency(stats.totalRevenue)}
+              value={formatCurrency(dashData.sales.totalRevenue)}
+              icon={BarChart2}
+              delta={deltas.revenue}
             />
-            {/* FIX 6: variant is now conditional on sign; profitMargin uses
-                        toFixed(2) so floats like -178.9734… are displayed cleanly. */}
             <StatCard
               title="Profit"
-              value={formatCurrency(stats.profit)}
-              variant={stats.profit >= 0 ? "success" : "danger"}
-              sub={`${Number(stats.profitMargin ?? 0).toFixed(2)}% margin`}
+              value={formatCurrency(dashData.sales.profit)}
+              variant={dashData.sales.profit >= 0 ? "success" : "danger"}
+              sub={`${Number(dashData.sales.profitMargin ?? 0).toFixed(2)}% margin`}
+              delta={deltas.profit}
             />
-            <StatCard title="Total Stock" value={inventoryStats.totalStock} />
+            <StatCard
+              title="Total Stock"
+              value={dashData.inventory.totalStock}
+              icon={Package}
+            />
             <StatCard
               title="Low Stock"
-              value={inventoryStats.lowStock}
+              value={dashData.inventory.lowStock}
               variant="danger"
               sub="Items below threshold"
+              icon={AlertTriangle}
             />
             <StatCard
               title="Active Items"
-              value={inventoryStats.activeItems}
+              value={dashData.inventory.activeItems}
               variant="success"
             />
             <StatCard
-              title="Support Tickets"
-              value={ticketStats.total}
+              title="Open Tickets"
+              value={dashData.openTickets}
+              icon={Ticket}
               sub={
-                ticketStats.open > 0
-                  ? `${ticketStats.open} open`
-                  : "All resolved"
+                dashData.openTickets === 0
+                  ? "All resolved"
+                  : "Awaiting resolution"
               }
+              variant={dashData.openTickets > 0 ? "danger" : "success"}
             />
           </div>
 
-          {/* ── AI Insights ── */}
           <InsightsPanel analyticsData={aiContext} />
 
           {/* ── Top Suppliers ── */}
-          {topSuppliers.length > 0 && (
+          {dashData.topSuppliers.length > 0 && (
             <>
               <p className={styles.sectionTitle}>Top Suppliers</p>
               <div className={styles.cards}>
-                {topSuppliers.map((s, i) => (
+                {dashData.topSuppliers.map((s, i) => (
                   <div
                     key={s.name}
                     className={styles.card}
                     style={{ cursor: "pointer" }}
-                    onClick={() => navigate(`/products?supplier=${s.name}`)}
+                    onClick={() =>
+                      navigate(
+                        `/products?supplier=${encodeURIComponent(s.name)}`,
+                      )
+                    }
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" &&
+                      navigate(
+                        `/products?supplier=${encodeURIComponent(s.name)}`,
+                      )
+                    }
+                    aria-label={`Supplier ${s.name}: ${formatCurrency(s.value)}`}
                   >
-                    <h3>
+                    <h3 className={styles.cardTitle}>
                       #{i + 1} {s.name}
                     </h3>
-                    <p style={{ fontSize: "20px" }}>
+                    <p className={styles.cardValue}>
                       {formatCurrency(s.value)}
                     </p>
-                    <small>{s.quantity.toLocaleString("en-IN")} items</small>
+                    <small className={styles.cardSub}>
+                      {s.quantity.toLocaleString("en-IN")} items
+                    </small>
                   </div>
                 ))}
               </div>
             </>
           )}
 
-          {/* ── Charts ── */}
+          {/* ── Charts row ── */}
           <div className={styles.chartsRow}>
             {/* Sales Trend */}
             <div className={styles.chartBox}>
-              <h3>Sales Trend</h3>
-              {cleanTrend.length === 0 ? (
-                <p className={styles.noData}>No sales data yet</p>
+              <div className={styles.chartHeader}>
+                <h3>Sales Trend</h3>
+              </div>
+              {dashData.trend.length === 0 ? (
+                <p className={styles.noData}>No sales data for this period</p>
               ) : (
-                <ResponsiveContainer width="100%" height={240}>
-                  <AreaChart data={cleanTrend}>
-                    <defs>
-                      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop
-                          offset="5%"
-                          stopColor="var(--accent)"
-                          stopOpacity={0.2}
+                <ChartErrorBoundary>
+                  <ResponsiveContainer width="100%" height={240}>
+                    <AreaChart data={dashData.trend}>
+                      <defs>
+                        <linearGradient
+                          id="areaGrad"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="var(--accent)"
+                            stopOpacity={0.2}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="var(--accent)"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid {...gridProps} />
+                      <XAxis
+                        dataKey="date"
+                        tick={axisStyle}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={axisStyle}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={formatCurrency}
+                        width={72}
+                      />
+                      <Tooltip
+                        content={<CustomTooltip currency />}
+                        cursor={{
+                          stroke: "var(--accent)",
+                          strokeWidth: 1,
+                          strokeDasharray: "4 4",
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="total"
+                        stroke="var(--accent)"
+                        strokeWidth={2}
+                        fill="url(#areaGrad)"
+                        dot={false}
+                        activeDot={{
+                          r: 4,
+                          fill: "var(--accent)",
+                          strokeWidth: 0,
+                        }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </ChartErrorBoundary>
+              )}
+            </div>
+
+            {/* Product Distribution */}
+            <div className={styles.chartBox}>
+              <div className={styles.chartHeader}>
+                <h3>Product Distribution</h3>
+              </div>
+              {dashData.topProducts.length === 0 ? (
+                <p className={styles.noData}>No product data for this period</p>
+              ) : (
+                <ChartErrorBoundary>
+                  <div className={styles.pieWrap}>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={dashData.topProducts}
+                          dataKey="sold"
+                          nameKey="name"
+                          innerRadius={52}
+                          outerRadius={88}
+                          paddingAngle={2}
+                        >
+                          {dashData.topProducts.map((_, i) => (
+                            <Cell
+                              key={i}
+                              fill={PALETTE[i % PALETTE.length]}
+                              strokeWidth={0}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className={styles.pieCenter} aria-hidden="true">
+                      <span className={styles.pieCenterValue}>
+                        {totalUnitsSold.toLocaleString("en-IN")}
+                      </span>
+                      <span className={styles.pieCenterLabel}>units</span>
+                    </div>
+                  </div>
+                  <div className={styles.pieLegend}>
+                    {dashData.topProducts.slice(0, 5).map((p, i) => (
+                      <span key={i} className={styles.pieLegendItem}>
+                        <span
+                          className={styles.pieLegendDot}
+                          style={{ background: PALETTE[i % PALETTE.length] }}
                         />
-                        <stop
-                          offset="95%"
-                          stopColor="var(--accent)"
-                          stopOpacity={0}
-                        />
-                      </linearGradient>
-                    </defs>
+                        {p.name}
+                      </span>
+                    ))}
+                  </div>
+                </ChartErrorBoundary>
+              )}
+            </div>
+          </div>
+
+          {/* ── Top Products bar ── */}
+          {dashData.topProducts.length > 0 && (
+            <div className={styles.chartBox}>
+              <div className={styles.chartHeader}>
+                <h3>Top Products by Units Sold</h3>
+              </div>
+              <ChartErrorBoundary>
+                <ResponsiveContainer
+                  width="100%"
+                  height={Math.max(200, dashData.topProducts.length * 44 + 60)}
+                >
+                  <BarChart data={dashData.topProducts} layout="vertical">
+                    <CartesianGrid {...gridProps} horizontal={false} />
+                    <XAxis
+                      type="number"
+                      tick={axisStyle}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      tick={axisStyle}
+                      axisLine={false}
+                      tickLine={false}
+                      width={130}
+                    />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ fill: "var(--accent-soft)" }}
+                    />
+                    <Bar
+                      dataKey="sold"
+                      fill="var(--accent)"
+                      radius={[0, 6, 6, 0]}
+                      maxBarSize={22}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartErrorBoundary>
+            </div>
+          )}
+
+          {/* ── Supplier Value Breakdown ── */}
+          {dashData.topSuppliers.length > 0 && (
+            <div className={styles.chartBox}>
+              <div className={styles.chartHeader}>
+                <h3>Supplier Value Breakdown</h3>
+              </div>
+              <ChartErrorBoundary>
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={dashData.topSuppliers}>
                     <CartesianGrid {...gridProps} />
                     <XAxis
-                      dataKey="date"
+                      dataKey="name"
                       tick={axisStyle}
                       axisLine={false}
                       tickLine={false}
@@ -383,160 +658,33 @@ const Dashboard = () => {
                     />
                     <Tooltip
                       content={<CustomTooltip currency />}
-                      cursor={{
-                        stroke: "var(--accent)",
-                        strokeWidth: 1,
-                        strokeDasharray: "4 4",
-                      }}
+                      cursor={{ fill: "var(--accent-soft)" }}
                     />
-                    <Area
-                      type="monotone"
-                      dataKey="total"
-                      stroke="var(--accent)"
-                      strokeWidth={2}
-                      fill="url(#areaGrad)"
-                      dot={false}
-                      activeDot={{
-                        r: 4,
-                        fill: "var(--accent)",
-                        strokeWidth: 0,
-                      }}
+                    <Bar
+                      dataKey="value"
+                      fill="var(--blue)"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={48}
                     />
-                  </AreaChart>
+                  </BarChart>
                 </ResponsiveContainer>
-              )}
-            </div>
-
-            {/* Product Distribution */}
-            <div className={styles.chartBox}>
-              <h3>Product Distribution</h3>
-              {cleanProducts.length === 0 ? (
-                <p className={styles.noData}>No product data yet</p>
-              ) : (
-                <>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={cleanProducts}
-                        dataKey="sold"
-                        nameKey="name"
-                        innerRadius={52}
-                        outerRadius={88}
-                        paddingAngle={2}
-                      >
-                        {cleanProducts.map((_, i) => (
-                          <Cell
-                            key={i}
-                            fill={PALETTE[i % PALETTE.length]}
-                            strokeWidth={0}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className={styles.pieLegend}>
-                    {cleanProducts.slice(0, 5).map((p, i) => (
-                      <span key={i} className={styles.pieLegendItem}>
-                        <span
-                          className={styles.pieLegendDot}
-                          style={{ background: PALETTE[i % PALETTE.length] }}
-                        />
-                        {p.name}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Top Products Bar */}
-          {cleanProducts.length > 0 && (
-            <div className={styles.chartBox}>
-              <h3>Top Products by Units Sold</h3>
-              <ResponsiveContainer
-                width="100%"
-                height={Math.max(200, cleanProducts.length * 44 + 60)}
-              >
-                <BarChart data={cleanProducts} layout="vertical">
-                  <CartesianGrid {...gridProps} horizontal={false} />
-                  <XAxis
-                    type="number"
-                    tick={axisStyle}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    tick={axisStyle}
-                    axisLine={false}
-                    tickLine={false}
-                    width={130}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={{ fill: "var(--accent-soft)" }}
-                  />
-                  <Bar
-                    dataKey="sold"
-                    fill="var(--accent)"
-                    radius={[0, 6, 6, 0]}
-                    maxBarSize={22}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-
-          {/* Supplier Value Bar */}
-          {topSuppliers.length > 0 && (
-            <div className={styles.chartBox}>
-              <h3>Supplier Value Breakdown</h3>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={topSuppliers}>
-                  <CartesianGrid {...gridProps} />
-                  <XAxis
-                    dataKey="name"
-                    tick={axisStyle}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={axisStyle}
-                    axisLine={false}
-                    tickLine={false}
-                    tickFormatter={formatCurrency}
-                    width={72}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip currency />}
-                    cursor={{ fill: "var(--accent-soft)" }}
-                  />
-                  <Bar
-                    dataKey="value"
-                    fill="var(--blue)"
-                    radius={[6, 6, 0, 0]}
-                    maxBarSize={48}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              </ChartErrorBoundary>
             </div>
           )}
         </>
       )}
 
-      {/* ── Floating AI Chat Button ── */}
+      {/* ── AI Float Button ── */}
       <button
+        type="button"
         className={styles.aiFloatBtn}
         onClick={() => setAiOpen((o) => !o)}
-        aria-label="Open AI Assistant"
+        aria-label={aiOpen ? "Close AI Assistant" : "Open AI Assistant"}
+        aria-expanded={aiOpen}
       >
-        <FiCpu size={18} />
+        <Cpu size={18} aria-hidden="true" />
       </button>
 
-      {/* ── AI Chat Drawer ── */}
       <AnimatePresence>
         {aiOpen && (
           <motion.div
@@ -545,6 +693,9 @@ const Dashboard = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            role="dialog"
+            aria-label="AI Assistant"
+            aria-modal="true"
           >
             <AIChat context={aiContext} onClose={() => setAiOpen(false)} />
           </motion.div>

@@ -1,29 +1,46 @@
+/* ─────────────────────────────────────────────
+   Dashboard.module.css
+   Phase 2 additions:
+   - .headerActions, .refreshBtn, .spinning
+   - .cardHeader, .cardTitle, .cardValue, .cardSub, .cardFooter, .cardIcon
+   - .delta, .deltaUp, .deltaDown
+   - .chartHeader
+   - .tooltip, .tooltipLabel, .tooltipValue
+   - .pieWrap, .pieCenter, .pieCenterValue, .pieCenterLabel
+   - .chartError
+   - Removed duplicate @keyframes shimmer (now in index.css)
+   - Replaced hardcoded border-radius with tokens
+───────────────────────────────────────────── */
+
 .content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--space-6);
 }
 
+/* ── Header ── */
 .header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--space-4);
   flex-wrap: wrap;
 }
 
 .title {
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 600;
   color: var(--text);
   letter-spacing: -0.5px;
   line-height: 1.2;
+  transition: color var(--theme-tx);
 }
 
 .subtitle {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--text3);
-  margin-top: 4px;
+  margin-top: var(--space-1);
+  transition: color var(--theme-tx);
 }
 
 .subtitle span {
@@ -31,35 +48,65 @@
   font-weight: 500;
 }
 
-
-@keyframes badgePulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
 }
 
+.refreshBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  transition:
+    background var(--t-fast),
+    color var(--t-fast),
+    border-color var(--t-fast);
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--accent);
+}
+
+.refreshBtnDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes rotateSpin {
+  to { transform: rotate(360deg); }
+}
+
+.spinning {
+  animation: rotateSpin 0.8s linear infinite;
+}
+
+/* ── Error banner ── */
 .error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   background: var(--red-soft);
-  border: 1px solid rgba(248, 113, 113, 0.25);
+  border: 1px solid var(--red-border);
   border-radius: var(--radius-md);
   padding: 12px 16px;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--red);
 }
 
-.noData {
-  font-size: 13px;
-  color: var(--text3);
-  text-align: center;
-  padding: 32px 0;
-}
-
+/* ── Section label ── */
 .sectionTitle {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-family: var(--font-mono);
   font-weight: 500;
   color: var(--text3);
@@ -68,101 +115,238 @@
   padding-bottom: 2px;
   border-bottom: 1px solid var(--border);
   margin-bottom: -8px;
+  transition: color var(--theme-tx), border-color var(--theme-tx);
 }
 
+/* ── KPI Cards ── */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 16px;
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   transition:
     border-color var(--transition),
-    transform var(--transition);
+    transform var(--transition),
+    background-color var(--theme-tx);
   cursor: default;
+  min-width: 0;
 }
 
 .card:hover {
   border-color: var(--border2);
   transform: translateY(-1px);
 }
-.card h3 {
-  font-size: 11.5px;
+
+.cardDanger {
+  border-color: var(--red-border);
+  background: var(--red-soft);
+}
+.cardDanger:hover { border-color: var(--red); }
+
+.cardSuccess {
+  border-color: var(--green-border);
+  background: var(--green-soft);
+}
+.cardSuccess:hover { border-color: var(--green); }
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  font-size: var(--text-xs);
   font-weight: 500;
   color: var(--text3);
   letter-spacing: 0.2px;
+  transition: color var(--theme-tx);
 }
-.card p {
-  font-size: 24px;
+
+.cardIcon {
+  color: var(--text3);
+  display: flex;
+  align-items: center;
+}
+
+.cardValue {
+  font-size: clamp(14px, 2.2vw, 22px);
   font-weight: 600;
   color: var(--text);
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  transition: color var(--theme-tx);
 }
-.card small {
-  font-size: 11px;
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  min-height: 16px;
+}
+
+.cardSub {
+  font-size: var(--text-xs);
   color: var(--text3);
+  transition: color var(--theme-tx);
 }
 
-.cardDanger {
-  border-color: rgba(248, 113, 113, 0.2);
-  background: rgba(248, 113, 113, 0.03);
-}
-.cardDanger:hover {
-  border-color: rgba(248, 113, 113, 0.35);
-}
-.cardSuccess {
-  border-color: rgba(62, 207, 142, 0.2);
-  background: rgba(62, 207, 142, 0.03);
-}
-.cardSuccess:hover {
-  border-color: rgba(62, 207, 142, 0.35);
+/* ── Delta badge ── */
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
+.deltaUp {
+  background: var(--green-soft);
+  color: var(--green);
+  border-color: var(--green-border);
+}
+
+.deltaDown {
+  background: var(--red-soft);
+  color: var(--red);
+  border-color: var(--red-border);
+}
+
+/* ── Charts ── */
 .chartsRow {
   display: grid;
   grid-template-columns: 1fr 380px;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .chartBox {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 20px;
+  padding: var(--space-5);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-3);
   min-width: 0;
+  transition:
+    background-color var(--theme-tx),
+    border-color var(--theme-tx);
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .chartBox h3 {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text);
+  transition: color var(--theme-tx);
+}
+
+.chartError {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text3);
+  font-size: var(--text-sm);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* ── Custom tooltip ── */
+.tooltip {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  box-shadow: var(--shadow-lg);
+}
+
+.tooltipLabel {
+  font-size: var(--text-xs);
+  color: var(--text3);
+  margin-bottom: 6px;
+  margin-top: 0;
+}
+
+.tooltipValue {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ── Pie chart ── */
+.pieWrap {
+  position: relative;
+}
+
+.pieCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pieCenterValue {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.pieCenterLabel {
+  font-size: var(--text-xs);
+  color: var(--text3);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .pieLegend {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .pieLegendItem {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11.5px;
+  font-size: var(--text-xs);
   color: var(--text2);
+  transition: color var(--theme-tx);
 }
 
 .pieLegendDot {
@@ -172,10 +356,19 @@
   flex-shrink: 0;
 }
 
+.noData {
+  font-size: var(--text-sm);
+  color: var(--text3);
+  text-align: center;
+  padding: 32px 0;
+  transition: color var(--theme-tx);
+}
+
+/* ── Skeleton (uses global shimmer keyframe from index.css) ── */
 .skeletonGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-3);
 }
 
 .skeletonCard {
@@ -184,6 +377,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   animation: shimmer 1.6s ease-in-out infinite;
+  transition: background-color var(--theme-tx), border-color var(--theme-tx);
 }
 
 .skeletonChart {
@@ -193,8 +387,10 @@
   border-radius: var(--radius-md);
   animation: shimmer 1.6s ease-in-out infinite;
   animation-delay: 0.2s;
+  transition: background-color var(--theme-tx), border-color var(--theme-tx);
 }
 
+/* ── AI Float button ── */
 .aiFloatBtn {
   position: fixed;
   bottom: 28px;
@@ -209,15 +405,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px var(--accent-glow, rgba(108, 116, 240, 0.45));
+  box-shadow: 0 4px 20px var(--accent-glow);
   z-index: 400;
   transition:
     transform 0.18s,
     box-shadow 0.18s;
 }
+
 .aiFloatBtn:hover {
   transform: translateY(-2px) scale(1.06);
-  box-shadow: 0 6px 28px var(--accent-glow, rgba(108, 116, 240, 0.55));
+  box-shadow: 0 6px 28px var(--accent-glow);
 }
 
 .aiDrawer {
@@ -227,9 +424,26 @@
   width: 360px;
   height: 500px;
   z-index: 400;
-  border-radius: var(--radius-lg, 16px);
+  border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .chartsRow { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .skeletonGrid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .cards,
+  .skeletonGrid { grid-template-columns: repeat(2, 1fr); }
+  .cardValue    { font-size: 20px; }
+  .title        { font-size: var(--text-lg); }
+  .headerActions { flex-wrap: wrap; }
 }
 
 @media (max-width: 500px) {
@@ -241,45 +455,6 @@
   }
 }
 
-@keyframes shimmer {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@media (max-width: 1100px) {
-  .chartsRow {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 900px) {
-  .skeletonGrid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .skeletonGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .card p {
-    font-size: 20px;
-  }
-  .title {
-    font-size: 18px;
-  }
-}
-
 @media (max-width: 400px) {
-  .cards {
-    grid-template-columns: 1fr;
-  }
+  .cards { grid-template-columns: 1fr; }
 }

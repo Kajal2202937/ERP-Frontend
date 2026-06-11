@@ -3,5 +3,11 @@
   flex-direction: column;
   min-height: 100vh;
   background: var(--bg-base);
+  transition:
+    background-color var(--theme-tx),
+    background var(--theme-tx),
+    color var(--theme-tx);
 }
-.main { flex: 1; }
+.main {
+  flex: 1;
+}

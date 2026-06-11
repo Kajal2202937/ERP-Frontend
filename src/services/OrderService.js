@@ -1,17 +1,11 @@
 import API from "./api";
 
-export const getOrders = (params) => {
-  return API.get("/orders", { params });
-};
+export const getOrders = (params) => API.get("/orders", { params });
+export const getOrderById = (id) => API.get(`/orders/${id}`);
+export const createOrder = (data) => API.post("/orders", data);
+export const deleteOrder = (id) => API.delete(`/orders/${id}`);
 
-export const createOrder = (data) => {
-  return API.post("/orders", data);
-};
+export const updateOrderStatus = (id, status, note = "") =>
+  API.patch(`/orders/${id}/status`, { status, note });
 
-export const deleteOrder = (id) => {
-  return API.delete(`/orders/${id}`);
-};
-
-export const updateOrderStatus = (id, status) => {
-  return API.patch(`/orders/${id}/status`, { status });
-};
+export const resendInvoice = (id) => API.post(`/orders/${id}/resend-invoice`);

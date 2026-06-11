@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { getProductions } from "../../services/ProductionService";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 import CreateProduction from "./CreateProduction";

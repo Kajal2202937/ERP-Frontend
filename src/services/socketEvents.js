@@ -11,11 +11,16 @@ export const TICKET_EVENTS = {
 
   TYPING: "ticket:typing",
   STOP_TYPING: "ticket:stop_typing",
-
   SEEN: "ticket:seen",
 
   USER_ONLINE: "ticket:user_online",
   USER_OFFLINE: "ticket:user_offline",
-
   ERROR: "ticket:error",
+};
+
+export const ORDER_EVENTS = {
+  JOIN_MANAGER: "order:join_manager",
+  ORDER_CREATED: "order:created",
+  ORDER_UPDATED: "order:updated",
+  ORDER_DELETED: "order:deleted",
 };

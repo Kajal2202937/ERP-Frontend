@@ -14,7 +14,7 @@ const modules = [
   {
     icon: <FiBox />,
     name: "Inventory",
-    desc: "Stay on top of your stock without guesswork. Know what’s available, what’s low, and what needs attention.",
+    desc: "Stay on top of your stock without guesswork. Know what's available, what's low, and what needs attention.",
     path: "/inventory/info",
     color: "var(--mod-inventory)",
     dim: "var(--mod-inventory-soft)",
@@ -38,7 +38,7 @@ const modules = [
   {
     icon: <FiBarChart2 />,
     name: "Reports",
-    desc: "Turn your daily data into clear insights so you can understand what’s working and what needs improvement.",
+    desc: "Turn your daily data into clear insights so you can understand what's working and what needs improvement.",
     path: "/reports/info",
     color: "var(--mod-reports)",
     dim: "var(--mod-reports-soft)",
@@ -59,7 +59,7 @@ const steps = [
   {
     num: "03",
     title: "Track",
-    desc: "Keep an eye on what’s happening across inventory, orders, and production in real-time.",
+    desc: "Keep an eye on what's happening across inventory, orders, and production in real-time.",
   },
   {
     num: "04",
@@ -70,15 +70,15 @@ const steps = [
 
 const container = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
+  show: { transition: { staggerChildren: 0.07 } },
 };
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
+  hidden: { opacity: 0, y: 20 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.52, ease: [0.22, 1, 0.36, 1] },
   },
 };
 
@@ -87,18 +87,23 @@ const HomePage = () => {
 
   return (
     <div className={styles.page}>
-      <section>
+      {/* ══ HERO ══ */}
+      <section aria-label="Hero">
         <div className={styles.hero}>
-          <div className={styles.heroOrb1} />
-          <div className={styles.heroOrb2} />
+          <div className={styles.heroOrb1} aria-hidden="true" />
+          <div className={styles.heroOrb2} aria-hidden="true" />
 
+          {/* Left column */}
           <motion.div
             className={styles.heroLeft}
             initial={{ opacity: 0, x: -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className={styles.badge}>Enterprise Resource Planning</div>
+            <div className={styles.badge} role="note">
+              Enterprise Resource Planning
+            </div>
+
             <h1 className={styles.heroTitle}>
               Manage Your Business
               <br />
@@ -109,7 +114,7 @@ const HomePage = () => {
               Running a business means handling multiple moving parts every day
               — stock, orders, production, and reports. This system brings
               everything together in one place, so you can stay organized,
-              reduce manual work, and always know what’s happening across your
+              reduce manual work, and always know what's happening across your
               operations.
             </p>
 
@@ -119,8 +124,9 @@ const HomePage = () => {
                 onClick={() => navigate("/login")}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
+                aria-label="Get started — go to login"
               >
-                Get Started <FiArrowRight />
+                Get Started <FiArrowRight aria-hidden="true" />
               </motion.button>
 
               <motion.button
@@ -137,92 +143,71 @@ const HomePage = () => {
               No complicated setup. Start simple and expand as you need.
             </p>
 
-            <div className={styles.heroTrust}>
+            <ul className={styles.heroTrust} aria-label="Key benefits">
               {[
                 "Keep everything in one place without switching tools",
                 "Designed to stay simple as your operations grow",
                 "Clear visibility into daily business activities",
               ].map((t) => (
-                <span key={t} className={styles.trustItem}>
-                  <FiCheck />
+                <li key={t} className={styles.trustItem}>
+                  <span className={styles.trustCheck} aria-hidden="true">
+                    <FiCheck />
+                  </span>
                   {t}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
           </motion.div>
 
+          {/* Right column */}
           <motion.div
             className={styles.heroRight}
             initial={{ opacity: 0, x: 24 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
           >
+            {/* Product screenshot */}
             <div className={styles.heroImageWrap}>
               <img
                 src="/homeImage.png"
-                alt="ERP Dashboard Preview"
+                alt="ERP System dashboard overview"
                 className={styles.heroImage}
+                loading="eager"
+                width="800"
+                height="500"
               />
             </div>
 
-            <div className={styles.dashPreview}>
-              <div className={styles.previewBar}>
+            {/* Live stats mini-card */}
+            <div className={styles.dashPreview} aria-label="Dashboard preview">
+              <div className={styles.previewBar} aria-hidden="true">
                 {["#f87171", "#f0a855", "#3ecf8e"].map((c, i) => (
-                  <div
-                    key={i}
-                    className={styles.dot}
-                    style={{ background: c }}
-                  />
+                  <div key={i} className={styles.dot} style={{ background: c }} />
                 ))}
+                <span className={styles.previewBarLabel}>Live overview</span>
               </div>
 
               <div className={styles.previewBody}>
                 <div className={styles.previewKpis}>
                   {[
-                    {
-                      label: "Orders",
-                      val: "Managed",
-                      trend: "Active",
-                      tColor: "var(--green)",
-                    },
-                    {
-                      label: "Inventory",
-                      val: "Tracked",
-                      trend: "Updated",
-                      tColor: "var(--green)",
-                    },
-                    {
-                      label: "Stock Alerts",
-                      val: "Monitored",
-                      trend: "Live",
-                      tColor: "var(--amber)",
-                    },
-                    {
-                      label: "Products",
-                      val: "Organized",
-                      trend: "Stable",
-                      tColor: "var(--text-secondary)",
-                    },
+                    { label: "Orders",       val: "Managed",   trend: "Active",   tColor: "var(--green)" },
+                    { label: "Inventory",    val: "Tracked",   trend: "Updated",  tColor: "var(--green)" },
+                    { label: "Stock Alerts", val: "Monitored", trend: "Live",     tColor: "var(--amber)" },
+                    { label: "Products",     val: "Organized", trend: "Stable",   tColor: "var(--text-secondary)" },
                   ].map((k) => (
                     <div key={k.label} className={styles.kpiMini}>
                       <span className={styles.kpiLabel}>{k.label}</span>
                       <span className={styles.kpiVal}>{k.val}</span>
-                      <span
-                        className={styles.kpiTrend}
-                        style={{ color: k.tColor }}
-                      >
+                      <span className={styles.kpiTrend} style={{ color: k.tColor }}>
                         {k.trend}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <div className={styles.previewChart}>
-                  <span className={styles.chartLabel}>
-                    Operational Activity Overview
-                  </span>
-
-                  <div className={styles.chartBars}>
+                <div className={styles.previewChart} aria-label="Operational activity chart">
+                  <span className={styles.chartLabel}>Operational Activity Overview</span>
+                  <div className={styles.chartBars} role="img" aria-label="Bar chart showing activity trend">
                     {[30, 50, 38, 65, 45, 72, 88].map((h, i) => (
                       <motion.div
                         key={i}
@@ -230,8 +215,8 @@ const HomePage = () => {
                         initial={{ height: 0 }}
                         animate={{ height: `${h}%` }}
                         transition={{
-                          delay: 0.4 + i * 0.06,
-                          duration: 0.5,
+                          delay: 0.45 + i * 0.055,
+                          duration: 0.48,
                           ease: [0.22, 1, 0.36, 1],
                         }}
                       />
@@ -244,7 +229,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      <div className={styles.statsStrip}>
+      {/* ══ CAPABILITY STRIP ══ */}
+      <div className={styles.statsStrip} aria-label="Platform highlights">
         <div className={styles.statsInner}>
           {[
             "Everything connected in one system",
@@ -258,15 +244,17 @@ const HomePage = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.4 }}
+              transition={{ delay: i * 0.08, duration: 0.4 }}
             >
+              <span className={styles.statDot} aria-hidden="true" />
               <span className={styles.statVal}>{text}</span>
             </motion.div>
           ))}
         </div>
       </div>
 
-      <section className={styles.modulesSection}>
+      {/* ══ CORE MODULES ══ */}
+      <section className={styles.modulesSection} aria-labelledby="modules-heading">
         <motion.div
           className={styles.sectionHeader}
           initial={{ opacity: 0, y: 16 }}
@@ -275,13 +263,12 @@ const HomePage = () => {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
           <span className={styles.eyebrow}>Core Modules</span>
-          <h2 className={styles.sectionTitle}>
+          <h2 id="modules-heading" className={styles.sectionTitle}>
             Integrated business functionalities
           </h2>
           <p className={styles.sectionSub}>
             Each module focuses on a key part of your business, while staying
-            connected so information flows naturally between teams and
-            processes.
+            connected so information flows naturally between teams and processes.
           </p>
         </motion.div>
 
@@ -299,16 +286,21 @@ const HomePage = () => {
               style={{ "--c": m.color }}
               variants={fadeUp}
               onClick={() => navigate(m.path)}
+              role="button"
+              tabIndex={0}
+              aria-label={`Explore ${m.name} module`}
+              onKeyDown={(e) => e.key === "Enter" && navigate(m.path)}
             >
               <div
                 className={styles.moduleIconWrap}
                 style={{ background: m.dim, color: m.color }}
+                aria-hidden="true"
               >
                 {m.icon}
               </div>
               <div className={styles.moduleName}>{m.name}</div>
               <div className={styles.moduleDesc}>{m.desc}</div>
-              <div className={styles.moduleArrow}>
+              <div className={styles.moduleArrow} aria-hidden="true">
                 Explore <FiArrowRight />
               </div>
             </motion.div>
@@ -316,7 +308,8 @@ const HomePage = () => {
         </motion.div>
       </section>
 
-      <section className={styles.howSection}>
+      {/* ══ WORKFLOW ══ */}
+      <section className={styles.howSection} aria-labelledby="workflow-heading">
         <div className={styles.howInner}>
           <motion.div
             className={styles.sectionHeader}
@@ -327,7 +320,9 @@ const HomePage = () => {
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           >
             <span className={styles.eyebrow}>Workflow</span>
-            <h2 className={styles.sectionTitle}>Structured business process</h2>
+            <h2 id="workflow-heading" className={styles.sectionTitle}>
+              Structured business process
+            </h2>
             <p className={styles.sectionSub}>
               A practical flow that reflects how businesses actually operate —
               from planning work to improving it over time.
@@ -343,7 +338,7 @@ const HomePage = () => {
           >
             {steps.map((s) => (
               <motion.div key={s.num} className={styles.step} variants={fadeUp}>
-                <div className={styles.stepNum}>{s.num}</div>
+                <div className={styles.stepNum} aria-hidden="true">{s.num}</div>
                 <div className={styles.stepTitle}>{s.title}</div>
                 <div className={styles.stepDesc}>{s.desc}</div>
               </motion.div>
@@ -352,7 +347,8 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className={styles.ctaSection}>
+      {/* ══ BOTTOM CTA ══ */}
+      <section className={styles.ctaSection} aria-labelledby="cta-heading">
         <motion.div
           className={styles.ctaInner}
           initial={{ opacity: 0, y: 20 }}
@@ -361,7 +357,7 @@ const HomePage = () => {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className={styles.ctaBox}>
-            <h2 className={styles.ctaTitle}>
+            <h2 id="cta-heading" className={styles.ctaTitle}>
               Bring clarity to your daily operations
             </h2>
             <p className={styles.ctaDesc}>
@@ -377,7 +373,7 @@ const HomePage = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
               >
-                Get Started <FiArrowRight />
+                Get Started <FiArrowRight aria-hidden="true" />
               </motion.button>
 
               <motion.button

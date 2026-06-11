@@ -23,7 +23,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import { TbCurrencyRupee } from "react-icons/tb";
-import { toast } from "react-toastify";
+import { toast } from "../../../utils/toast";
 
 const fmtVal = (v) => {
   if (!v) return "₹0";

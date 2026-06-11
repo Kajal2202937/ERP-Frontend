@@ -2,23 +2,21 @@
   display: flex;
   height: 100%;
   overflow: hidden;
-  background: var(--color-bg, #fff);
+  background: var(--surface);
   border-radius: 12px;
-  border: 1px solid var(--color-border, #e5e7eb);
+  border: 1px solid var(--border);
 }
 
-/* ── Sidebar ── */
 .sidebar {
   width: 360px;
   min-width: 300px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--color-border, #e5e7eb);
+  border-right: 1px solid var(--border);
   overflow: hidden;
+  background: var(--surface);
 }
-
-
 
 .sidebarHeader {
   display: flex;
@@ -26,13 +24,13 @@
   justify-content: space-between;
   padding: 18px 16px 12px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: 1px solid var(--border);
 }
 
 .title {
   font-size: 17px;
   font-weight: 700;
-  color: var(--color-text-primary, #111827);
+  color: var(--text);
   margin: 0;
 }
 
@@ -48,39 +46,45 @@
 .searchWrap {
   padding: 10px 12px;
   flex-shrink: 0;
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: 1px solid var(--border);
 }
 
 .searchInput {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--color-border, #d1d5db);
+  border: 1px solid var(--border2);
   border-radius: 8px;
   font-size: 13px;
   outline: none;
-  background: var(--color-bg-secondary, #f9fafb);
-  color: var(--color-text-primary, #111827);
+  background: var(--surface2);
+  color: var(--text);
   box-sizing: border-box;
   transition: border 0.15s;
+  font-family: var(--font);
 }
 
+.searchInput::placeholder {
+  color: var(--text3);
+}
 .searchInput:focus {
-  border-color: #4F46E5;
-  background: var(--color-bg, #fff);
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
-/* Tabs */
 .tabs {
   display: flex;
   overflow-x: auto;
   padding: 0 12px;
   gap: 2px;
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   scrollbar-width: none;
 }
 
-.tabs::-webkit-scrollbar { display: none; }
+.tabs::-webkit-scrollbar {
+  display: none;
+}
 
 .tab {
   display: flex;
@@ -89,7 +93,7 @@
   padding: 10px 10px;
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--text2);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -97,19 +101,22 @@
   white-space: nowrap;
   transition: color 0.15s;
   margin-bottom: -1px;
+  font-family: var(--font);
 }
 
-.tab:hover { color: var(--color-text-primary, #111827); }
+.tab:hover {
+  color: var(--text);
+}
 
 .tabActive {
-  color: #4F46E5;
-  border-bottom-color: #4F46E5;
+  color: var(--accent2);
+  border-bottom-color: var(--accent);
   font-weight: 600;
 }
 
 .tabCount {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--surface3);
+  color: var(--text2);
   font-size: 10px;
   font-weight: 700;
   padding: 1px 5px;
@@ -119,14 +126,23 @@
 }
 
 .tabActive .tabCount {
-  background: #eef2ff;
-  color: #4F46E5;
+  background: var(--accent-soft);
+  color: var(--accent2);
 }
 
-/* Ticket list */
 .list {
   flex: 1;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+
+.list::-webkit-scrollbar {
+  width: 4px;
+}
+.list::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 4px;
 }
 
 .loadingState {
@@ -138,15 +154,24 @@
 
 .skeleton {
   height: 80px;
-  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background: linear-gradient(
+    90deg,
+    var(--surface2) 25%,
+    var(--surface3) 50%,
+    var(--surface2) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.2s infinite;
   border-radius: 8px;
 }
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .emptyState {
@@ -155,29 +180,36 @@
   align-items: center;
   gap: 8px;
   padding: 48px 16px;
-  color: var(--color-text-secondary, #9ca3af);
+  color: var(--text3);
   font-size: 14px;
 }
 
-.emptyState span { font-size: 32px; }
+.emptyState span {
+  font-size: 32px;
+}
 
-/* Ticket row */
 .ticketRow {
   padding: 12px 14px;
-  border-bottom: 1px solid var(--color-border, #f3f4f6);
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.1s;
 }
 
-.ticketRow:hover           { background: #f9fafb; }
-.ticketRowActive           { background: #eef2ff !important; }
-.ticketRowUnread .rowName  { font-weight: 700; }
+.ticketRow:hover {
+  background: var(--surface2);
+}
+.ticketRowActive {
+  background: var(--accent-soft) !important;
+}
+.ticketRowUnread .rowName {
+  font-weight: 700;
+}
 .ticketRowUnread::before {
   content: "";
   display: inline-block;
   width: 6px;
   height: 6px;
-  background: #4F46E5;
+  background: var(--accent);
   border-radius: 50%;
   margin-right: 6px;
   vertical-align: middle;
@@ -202,16 +234,16 @@
 .rowTicketId {
   font-size: 11px;
   font-weight: 700;
-  font-family: monospace;
-  color: #4F46E5;
-  background: #eef2ff;
+  font-family: var(--font-mono);
+  color: var(--accent2);
+  background: var(--accent-soft);
   padding: 1px 6px;
   border-radius: 3px;
 }
 
 .rowTime {
   font-size: 11px;
-  color: var(--color-text-secondary, #9ca3af);
+  color: var(--text3);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -219,13 +251,13 @@
 .rowName {
   font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-primary, #111827);
+  color: var(--text);
   margin-bottom: 2px;
 }
 
 .rowSubject {
   font-size: 12px;
-  color: var(--color-text-secondary, #6b7280);
+  color: var(--text2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -240,7 +272,7 @@
 
 .rowEmail {
   font-size: 11px;
-  color: var(--color-text-secondary, #9ca3af);
+  color: var(--text3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -250,7 +282,7 @@
 .deleteBtn {
   background: none;
   border: none;
-  color: #ef4444;
+  color: #f87171;
   cursor: pointer;
   font-size: 12px;
   padding: 2px 6px;
@@ -259,40 +291,54 @@
   flex-shrink: 0;
 }
 
-.deleteBtn:hover:not(:disabled) { background: #fef2f2; }
-.deleteBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.deleteBtn:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.1);
+}
+.deleteBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-/* Pagination */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   padding: 12px;
-  border-top: 1px solid var(--color-border, #e5e7eb);
+  border-top: 1px solid var(--border);
 }
 
 .pageBtn {
   padding: 6px 12px;
-  border: 1px solid var(--color-border, #d1d5db);
+  border: 1px solid var(--border2);
   border-radius: 6px;
   background: none;
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
-  color: var(--color-text-primary, #374151);
+  color: var(--text2);
+  font-family: var(--font);
 }
 
-.pageBtn:hover:not(:disabled) { background: #f3f4f6; }
-.pageBtn:disabled { opacity: 0.4; cursor: not-allowed; }
-.pageInfo { font-size: 12px; color: var(--color-text-secondary, #6b7280); }
+.pageBtn:hover:not(:disabled) {
+  background: var(--surface2);
+  color: var(--text);
+}
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pageInfo {
+  font-size: 12px;
+  color: var(--text3);
+}
 
-/* ── Main panel ── */
 .main {
   flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: var(--surface);
 }
 
 .mainEmpty {
@@ -305,15 +351,18 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  color: var(--color-text-secondary, #9ca3af);
+  color: var(--text3);
   font-size: 14px;
 }
 
-.placeholderIcon { font-size: 40px; }
+.placeholderIcon {
+  font-size: 40px;
+}
 
-/* ── Responsive ── */
 @media (max-width: 768px) {
-  .layout { position: relative; }
+  .layout {
+    position: relative;
+  }
 
   .sidebar {
     position: absolute;
@@ -323,11 +372,17 @@
     border-right: none;
   }
 
-  .sidebarHidden { display: none; }
+  .sidebarHidden {
+    display: none;
+  }
 
   .main {
     position: absolute;
     inset: 0;
     z-index: 3;
+  }
+
+  .mainEmpty {
+    display: none;
   }
 }

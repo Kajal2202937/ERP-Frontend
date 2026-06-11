@@ -6,20 +6,14 @@ const TIMEOUT = 10000;
 const safeRequest = async (fn) => {
   try {
     const res = await fn();
-
-    return {
-      success: true,
-      data: res?.data?.data,
-      error: null,
-    };
+    return { success: true, data: res?.data?.data, error: null };
   } catch (error) {
-    return {
-      success: false,
-      data: null,
-      error: error.message,
-    };
+    return { success: false, data: null, error: error.message };
   }
 };
+
+export const getDashboardSummary = (params = {}) =>
+  safeRequest(() => API.get(`${BASE}/dashboard/summary`, { params, timeout: TIMEOUT }));
 
 export const getSalesSummary = (params = {}) =>
   safeRequest(() => API.get(`${BASE}/sales`, { params, timeout: TIMEOUT }));
@@ -41,6 +35,5 @@ export const getInsights = async () => {
       data: "System analysis: sales performance is being tracked normally.",
     };
   }
-
   return res;
 };

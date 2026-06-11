@@ -8,8 +8,6 @@ const useAuth = () => {
     throw new Error("useAuth must be used inside AuthProvider");
   }
 
-  const token = useMemo(() => context.token, [context.token]);
-
   const userId = useMemo(
     () => context.user?._id || context.user?.id,
     [context.user],
@@ -17,10 +15,7 @@ const useAuth = () => {
 
   return {
     ...context,
-    token,
     userId,
-
-    isAuthenticated: context.isAuthenticated,
   };
 };
 

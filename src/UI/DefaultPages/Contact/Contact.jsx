@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import ConfirmDialog from "../../../components/common/ConfirmDialog";
 import styles from "./Contact.module.css";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiSend, FiX, FiCheck } from "react-icons/fi";
+import { FiSend, FiX, FiCheck, FiAlertCircle } from "react-icons/fi";
 import {
   submitTicket,
   replyToTicket,
@@ -11,7 +12,6 @@ import { getSocket, initSocket } from "../../../services/socket";
 import { TICKET_EVENTS } from "../../../services/socketEvents";
 
 const Contact = () => {
-  // ── Form state ──────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -21,61 +21,51 @@ const Contact = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ── Chat state ──────────────────────────────────────────────────────────────
-  const [ticket, setTicket] = useState(null); // full ticket object from server
+  const [ticket, setTicket] = useState(null);
   const [messages, setMessages] = useState([]);
   const [replyText, setReplyText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [chatActive, setChatActive] = useState(false);
+  const [dialog, setDialog] = useState(null);
 
-  // ── Refs ────────────────────────────────────────────────────────────────────
   const chatEndRef = useRef(null);
-  const ticketRef = useRef(null); // stable ref to current ticket
-  const seenRef = useRef(new Set()); // dedup by message _id
+  const ticketRef = useRef(null);
+  const seenRef = useRef(new Set());
   const stopTypingTimer = useRef(null);
   const typingFadeTimer = useRef(null);
 
-  // Keep ticketRef in sync
   useEffect(() => {
     ticketRef.current = ticket;
   }, [ticket]);
 
-  // ── Scroll to bottom ────────────────────────────────────────────────────────
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // ── Socket setup (runs once, reuses singleton) ────────────────────────────
   useEffect(() => {
-    // Public user: get existing socket or create one with no token
     const socket = getSocket() || initSocket(null);
     if (!socket) return;
 
-    // ── Join ticket room once ticket is known ────────────────────────────
     const joinRoom = () => {
       const t = ticketRef.current;
       if (!t?.ticketId) return;
       socket.emit(TICKET_EVENTS.JOIN_TICKET, { ticketId: t.ticketId });
     };
 
-    // Rejoin on reconnect
     socket.on("connect", joinRoom);
     if (socket.connected) joinRoom();
 
-    // ── Incoming reply ────────────────────────────────────────────────────
     const handleReply = (payload) => {
       const t = ticketRef.current;
       if (!t) return;
       if (payload.contactId !== t._id && payload.ticketId !== t.ticketId)
         return;
 
-      // Dedup by real _id
       const key = payload._id;
       if (key && seenRef.current.has(key)) return;
       if (key) seenRef.current.add(key);
 
       setMessages((prev) => {
-        // Replace optimistic message by tempId
         if (payload.tempId) {
           const idx = prev.findIndex((m) => m._id === payload.tempId);
           if (idx !== -1) {
@@ -89,9 +79,7 @@ const Contact = () => {
             return updated;
           }
         }
-        // Dedup by real _id
         if (prev.some((m) => m._id === payload._id)) return prev;
-
         return [
           ...prev,
           {
@@ -104,13 +92,11 @@ const Contact = () => {
         ];
       });
 
-      // Emit seen for admin messages
       if (payload.sender === "admin") {
         socket.emit(TICKET_EVENTS.SEEN, { ticketId: t.ticketId });
       }
     };
 
-    // ── Typing indicators ─────────────────────────────────────────────────
     const handleTyping = ({ ticketId }) => {
       if (ticketRef.current?.ticketId !== ticketId) return;
       setIsTyping(true);
@@ -124,7 +110,6 @@ const Contact = () => {
       setIsTyping(false);
     };
 
-    // ── Seen ack: mark user messages as seen ──────────────────────────────
     const handleSeen = ({ ticketId }) => {
       if (ticketRef.current?.ticketId !== ticketId) return;
       setMessages((prev) =>
@@ -132,7 +117,6 @@ const Contact = () => {
       );
     };
 
-    // ── Ticket resolved ───────────────────────────────────────────────────
     const handleResolved = ({ ticketId }) => {
       if (ticketRef.current?.ticketId !== ticketId) return;
       setMessages((prev) => [
@@ -163,38 +147,28 @@ const Contact = () => {
       clearTimeout(stopTypingTimer.current);
       clearTimeout(typingFadeTimer.current);
     };
-  }, []); // runs once — ticketRef keeps it current
+  }, []);
 
-  // ── Join ticket room whenever ticket changes ──────────────────────────────
   useEffect(() => {
     if (!ticket?.ticketId) return;
     const socket = getSocket();
     if (!socket) return;
-
     socket.emit(TICKET_EVENTS.JOIN_TICKET, { ticketId: ticket.ticketId });
-
-    // Mark seen on open
     markTicketSeen(ticket._id).catch(() => {});
-
     return () => {
       socket.emit(TICKET_EVENTS.LEAVE_TICKET, { ticketId: ticket.ticketId });
     };
   }, [ticket]);
 
-  // ── Submit form → create ticket ───────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await submitTicket(form);
       const newTicket = res.data;
-
       setTicket(newTicket);
       setChatActive(true);
-
-      // Seed chat with system confirmation + user's opening message
       setMessages([
         {
           _id: `system-${Date.now()}`,
@@ -210,7 +184,6 @@ const Contact = () => {
           _status: "sent",
         },
       ]);
-
       setForm({ name: "", email: "", subject: "", message: "" });
     } catch (err) {
       setError(
@@ -223,20 +196,14 @@ const Contact = () => {
     }
   };
 
-  // ── Send reply ────────────────────────────────────────────────────────────
   const handleSendReply = useCallback(async () => {
     const text = replyText.trim();
     if (!text || !ticket) return;
-
     const tempId = `temp_${Date.now()}`;
     setReplyText("");
-
-    // Stop typing indicator
     clearTimeout(stopTypingTimer.current);
     const socket = getSocket();
     socket?.emit(TICKET_EVENTS.STOP_TYPING, { ticketId: ticket.ticketId });
-
-    // Optimistic message
     setMessages((prev) => [
       ...prev,
       {
@@ -247,7 +214,6 @@ const Contact = () => {
         _status: "sending",
       },
     ]);
-
     try {
       await replyToTicket(ticket._id, { message: text, tempId });
     } catch (err) {
@@ -255,37 +221,39 @@ const Contact = () => {
         prev.map((m) => (m._id === tempId ? { ...m, _status: "failed" } : m)),
       );
       setError(err?.response?.data?.message || err.message || "Failed to send");
-      setReplyText(text); // restore on failure
+      setReplyText(text);
     }
   }, [replyText, ticket]);
 
-  // ── Typing emit ───────────────────────────────────────────────────────────
   const handleTypingInput = (e) => {
     setReplyText(e.target.value);
     const socket = getSocket();
     if (!socket || !ticket?.ticketId) return;
-
     socket.emit(TICKET_EVENTS.TYPING, { ticketId: ticket.ticketId });
-
     clearTimeout(stopTypingTimer.current);
     stopTypingTimer.current = setTimeout(() => {
       socket.emit(TICKET_EVENTS.STOP_TYPING, { ticketId: ticket.ticketId });
     }, 2000);
   };
 
-  // ── Close chat ────────────────────────────────────────────────────────────
   const handleCloseChat = () => {
-    if (!window.confirm("Close this conversation?")) return;
+    setDialog({
+      title: "Close this conversation?",
+      message: "The conversation will be marked as resolved.",
+      variant: "warning",
+      confirmLabel: "Close Conversation",
+      onConfirm: () => closeConversation(),
+    });
+  };
 
+  const closeConversation = () => {
     const socket = getSocket();
     if (ticket?.ticketId) {
       socket?.emit(TICKET_EVENTS.LEAVE_TICKET, { ticketId: ticket.ticketId });
       socket?.emit(TICKET_EVENTS.STOP_TYPING, { ticketId: ticket.ticketId });
     }
-
     clearTimeout(stopTypingTimer.current);
     clearTimeout(typingFadeTimer.current);
-
     setTicket(null);
     setMessages([]);
     setReplyText("");
@@ -294,7 +262,6 @@ const Contact = () => {
     seenRef.current.clear();
   };
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={styles.page}>
       <AnimatePresence mode="wait">
@@ -305,16 +272,24 @@ const Contact = () => {
             className={styles.formCard}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -16 }}
+            transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h2 className={styles.title}>Contact Us</h2>
-            <p className={styles.subtitle}>
-              Send a message to start a live support chat.
-            </p>
+            <div className={styles.formHeader}>
+              <h1 className={styles.title}>Contact Us</h1>
+              <p className={styles.subtitle}>
+                Send a message to start a live support chat with our team.
+              </p>
+            </div>
 
-            {error && <p className={styles.errorMsg}>{error}</p>}
+            {error && (
+              <p className={styles.errorMsg} role="alert">
+                <FiAlertCircle aria-hidden="true" />
+                {error}
+              </p>
+            )}
 
-            <form onSubmit={handleSubmit} className={styles.form}>
+            <form onSubmit={handleSubmit} className={styles.form} noValidate>
               <div className={styles.row}>
                 <div className={styles.field}>
                   <label htmlFor="c-name">Name</label>
@@ -328,6 +303,7 @@ const Contact = () => {
                     placeholder="Your name"
                     required
                     disabled={loading}
+                    autoComplete="name"
                   />
                 </div>
                 <div className={styles.field}>
@@ -343,6 +319,7 @@ const Contact = () => {
                     placeholder="you@example.com"
                     required
                     disabled={loading}
+                    autoComplete="email"
                   />
                 </div>
               </div>
@@ -386,26 +363,29 @@ const Contact = () => {
                   "Connecting…"
                 ) : (
                   <>
-                    <FiSend /> Send Message
+                    <FiSend aria-hidden="true" /> Send Message
                   </>
                 )}
               </button>
             </form>
           </motion.div>
         ) : (
-          /* ── Chat View ── */
+          /* ── Support Chat ── */
           <motion.div
             key="chat"
             className={styles.chatCard}
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
+            role="region"
+            aria-label="Support chat"
           >
-            {/* Chat header */}
+            {/* Header */}
             <div className={styles.chatHeader}>
               <div className={styles.onlineStatus}>
-                <div className={styles.onlineDot} />
+                <div className={styles.onlineDot} aria-hidden="true" />
                 <div>
-                  <h3>Support Chat</h3>
+                  <h2>Support Chat</h2>
                   <span>
                     {ticket?.ticketId
                       ? `Ticket ${ticket.ticketId} · Typically replies in minutes`
@@ -418,13 +398,19 @@ const Contact = () => {
                 className={styles.closeBtn}
                 title="End conversation"
                 type="button"
+                aria-label="End conversation"
               >
-                <FiX />
+                <FiX aria-hidden="true" />
               </button>
             </div>
 
             {/* Messages */}
-            <div className={styles.chatBody}>
+            <div
+              className={styles.chatBody}
+              role="log"
+              aria-live="polite"
+              aria-label="Chat messages"
+            >
               {messages.map((m, i) => (
                 <div
                   key={m._id || i}
@@ -437,9 +423,11 @@ const Contact = () => {
                   >
                     {m.message}
 
-                    {/* Delivery status ticks — user messages only */}
                     {m.sender === "user" && (
-                      <span className={styles.msgStatus}>
+                      <span
+                        className={styles.msgStatus}
+                        aria-label={`Message status: ${m._status}`}
+                      >
                         {m._status === "sending" && "···"}
                         {m._status === "sent" && <FiCheck size={10} />}
                         {m._status === "seen" && (
@@ -457,9 +445,11 @@ const Contact = () => {
                 </div>
               ))}
 
-              {/* Typing indicator */}
               {isTyping && (
-                <div className={`${styles.msgRow} ${styles.admin}`}>
+                <div
+                  className={`${styles.msgRow} ${styles.admin}`}
+                  aria-label="Support is typing"
+                >
                   <div className={styles.typingBubble}>
                     <span className={styles.typingDot} />
                     <span className={styles.typingDot} />
@@ -472,7 +462,12 @@ const Contact = () => {
             </div>
 
             {error && (
-              <p className={styles.errorMsg} style={{ margin: "0 12px" }}>
+              <p
+                className={styles.errorMsg}
+                style={{ margin: "0 14px" }}
+                role="alert"
+              >
+                <FiAlertCircle aria-hidden="true" />
                 {error}
               </p>
             )}
@@ -497,14 +492,16 @@ const Contact = () => {
                 disabled={!replyText.trim()}
                 className={styles.sendIconBtn}
                 type="button"
-                aria-label="Send"
+                aria-label="Send reply"
               >
-                <FiSend />
+                <FiSend aria-hidden="true" />
               </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog config={dialog} onClose={() => setDialog(null)} />
     </div>
   );
 };
