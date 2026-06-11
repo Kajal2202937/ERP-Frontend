@@ -9,44 +9,50 @@ import Loader from "./components/common/Loader";
 import NotFound from "./components/common/NotFound";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import ResetPassword from "./Authentication/ResetPassword";
-import GlobalSearch from "./components/common/GlobalSearch";
+import GlobalSearch from "./components/common/Globalsearch";
 
-const HomePage       = lazy(() => import("./UI/DefaultPages/HomePage/HomePage"));
-const AboutPage      = lazy(() => import("./UI/DefaultPages/AboutPage/AboutPage"));
-const Contact        = lazy(() => import("./UI/DefaultPages/Contact/Contact"));
-const InventoryInfo  = lazy(() => import("./UI/DefaultPages/ModuleInfo/InventoryInfo"));
-const ProductionInfo = lazy(() => import("./UI/DefaultPages/ModuleInfo/ProductionInfo"));
-const SalesInfo      = lazy(() => import("./UI/DefaultPages/ModuleInfo/SalesInfo"));
-const ReportsInfo    = lazy(() => import("./UI/DefaultPages/ModuleInfo/ReportsInfo"));
-const Login          = lazy(() => import("./Authentication/Login"));
-const SupportPage    = lazy(() => import("./components/Ticket/SupportPage"));
+const HomePage = lazy(() => import("./UI/DefaultPages/HomePage/HomePage"));
+const AboutPage = lazy(() => import("./UI/DefaultPages/AboutPage/AboutPage"));
+const Contact = lazy(() => import("./UI/DefaultPages/Contact/Contact"));
+const InventoryInfo = lazy(
+  () => import("./UI/DefaultPages/ModuleInfo/InventoryInfo"),
+);
+const ProductionInfo = lazy(
+  () => import("./UI/DefaultPages/ModuleInfo/ProductionInfo"),
+);
+const SalesInfo = lazy(() => import("./UI/DefaultPages/ModuleInfo/SalesInfo"));
+const ReportsInfo = lazy(
+  () => import("./UI/DefaultPages/ModuleInfo/ReportsInfo"),
+);
+const Login = lazy(() => import("./Authentication/Login"));
+const SupportPage = lazy(() => import("./components/Ticket/SupportPage"));
 
 /* ── Lazy authenticated pages ── */
-const Dashboard  = lazy(() => import("./pages/Dashboard/Dashboard"));
-const Products   = lazy(() => import("./pages/Products/Products"));
-const Orders     = lazy(() => import("./pages/Orders/Orders"));
-const Inventory  = lazy(() => import("./pages/Inventory/Inventory"));
-const Suppliers  = lazy(() => import("./pages/Suppliers/Suppliers"));
+const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
+const Products = lazy(() => import("./pages/Products/Products"));
+const Orders = lazy(() => import("./pages/Orders/Orders"));
+const Inventory = lazy(() => import("./pages/Inventory/Inventory"));
+const Suppliers = lazy(() => import("./pages/Suppliers/Suppliers"));
 const Production = lazy(() => import("./pages/Production/Production"));
-const Reports    = lazy(() => import("./pages/Reports/Reports"));
-const Profile    = lazy(() => import("./pages/Profile/Profile"));
-const TicketsPage= lazy(() => import("./pages/Ticket/TicketPage"));
+const Reports = lazy(() => import("./pages/Reports/Reports"));
+const Profile = lazy(() => import("./pages/Profile/Profile"));
+const TicketsPage = lazy(() => import("./pages/Ticket/TicketPage"));
 
 /* ── Document title map ── */
 const PAGE_TITLES = {
-  "/":            "ERP System",
-  "/about":       "About · ERP",
-  "/contact":     "Contact · ERP",
-  "/login":       "Sign in · ERP",
-  "/dashboard":   "Dashboard · ERP",
-  "/products":    "Products · ERP",
-  "/orders":      "Orders · ERP",
-  "/inventory":   "Inventory · ERP",
-  "/suppliers":   "Suppliers · ERP",
-  "/production":  "Production · ERP",
-  "/reports":     "Reports · ERP",
-  "/profile":     "My Profile · ERP",
-  "/tickets":     "Support · ERP",
+  "/": "ERP System",
+  "/about": "About · ERP",
+  "/contact": "Contact · ERP",
+  "/login": "Sign in · ERP",
+  "/dashboard": "Dashboard · ERP",
+  "/products": "Products · ERP",
+  "/orders": "Orders · ERP",
+  "/inventory": "Inventory · ERP",
+  "/suppliers": "Suppliers · ERP",
+  "/production": "Production · ERP",
+  "/reports": "Reports · ERP",
+  "/profile": "My Profile · ERP",
+  "/tickets": "Support · ERP",
 };
 
 /* Sets browser tab title on every navigation */
@@ -71,10 +77,7 @@ function Page({ children, title }) {
     <ErrorBoundary>
       <Suspense
         fallback={
-          <Loader
-            fullscreen
-            text={title ? `Loading ${title}…` : undefined}
-          />
+          <Loader fullscreen text={title ? `Loading ${title}…` : undefined} />
         }
       >
         {children}
@@ -83,10 +86,6 @@ function Page({ children, title }) {
   );
 }
 
-/**
- * GlobalSearchWrapper — renders GlobalSearch alongside the Outlet
- * so the ⌘K command palette is mounted once for all authenticated routes.
- */
 function GlobalSearchWrapper() {
   return (
     <>
@@ -102,24 +101,95 @@ function App() {
       <DocumentTitle />
 
       <Routes>
-
         {/* ════════════════════════════════════════
             PUBLIC ROUTES
         ════════════════════════════════════════ */}
         <Route element={<Layout />}>
-          <Route path="/"                element={<Page title="Home">      <HomePage />      </Page>} />
-          <Route path="/about"           element={<Page title="About">     <AboutPage />     </Page>} />
-          <Route path="/contact"         element={<Page title="Contact">   <Contact />       </Page>} />
-          <Route path="/inventory/info"  element={<Page>                   <InventoryInfo /> </Page>} />
-          <Route path="/production/info" element={<Page>                   <ProductionInfo /></Page>} />
-          <Route path="/sales"           element={<Page>                   <SalesInfo />     </Page>} />
-          <Route path="/reports/info"    element={<Page>                   <ReportsInfo />   </Page>} />
+          <Route
+            path="/"
+            element={
+              <Page title="Home">
+                {" "}
+                <HomePage />{" "}
+              </Page>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <Page title="About">
+                {" "}
+                <AboutPage />{" "}
+              </Page>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <Page title="Contact">
+                {" "}
+                <Contact />{" "}
+              </Page>
+            }
+          />
+          <Route
+            path="/inventory/info"
+            element={
+              <Page>
+                {" "}
+                <InventoryInfo />{" "}
+              </Page>
+            }
+          />
+          <Route
+            path="/production/info"
+            element={
+              <Page>
+                {" "}
+                <ProductionInfo />
+              </Page>
+            }
+          />
+          <Route
+            path="/sales"
+            element={
+              <Page>
+                {" "}
+                <SalesInfo />{" "}
+              </Page>
+            }
+          />
+          <Route
+            path="/reports/info"
+            element={
+              <Page>
+                {" "}
+                <ReportsInfo />{" "}
+              </Page>
+            }
+          />
         </Route>
 
-        <Route path="/support"         element={<Page title="Support"> <SupportPage /> </Page>} />
-        <Route path="/login"           element={<Page title="Sign in"> <Login />        </Page>} />
-        <Route path="/reset-password"  element={<ResetPassword />} />
-        <Route path="/register"        element={<Navigate to="/login" replace />} />
+        <Route
+          path="/support"
+          element={
+            <Page title="Support">
+              {" "}
+              <SupportPage />{" "}
+            </Page>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <Page title="Sign in">
+              {" "}
+              <Login />{" "}
+            </Page>
+          }
+        />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/register" element={<Navigate to="/login" replace />} />
 
         {/* ════════════════════════════════════════
             AUTHENTICATED ROUTES
@@ -136,15 +206,22 @@ function App() {
         >
           <Route element={<MainLayout />}>
             <Route element={<GlobalSearchWrapper />}>
-
               {/* ── All authenticated roles ── */}
               <Route
                 path="/dashboard"
-                element={<Page title="Dashboard"><Dashboard /></Page>}
+                element={
+                  <Page title="Dashboard">
+                    <Dashboard />
+                  </Page>
+                }
               />
               <Route
                 path="/profile"
-                element={<Page title="Profile"><Profile /></Page>}
+                element={
+                  <Page title="Profile">
+                    <Profile />
+                  </Page>
+                }
               />
 
               {/* ── admin + manager + employee ── */}
@@ -157,55 +234,77 @@ function App() {
               >
                 <Route
                   path="/inventory"
-                  element={<Page title="Inventory"><Inventory /></Page>}
+                  element={
+                    <Page title="Inventory">
+                      <Inventory />
+                    </Page>
+                  }
                 />
               </Route>
 
               {/* ── admin + manager ── */}
               <Route
-                element={
-                  <ProtectedRoute allowedRoles={["admin", "manager"]} />
-                }
+                element={<ProtectedRoute allowedRoles={["admin", "manager"]} />}
               >
                 <Route
                   path="/products"
-                  element={<Page title="Products"><Products /></Page>}
+                  element={
+                    <Page title="Products">
+                      <Products />
+                    </Page>
+                  }
                 />
                 <Route
                   path="/orders"
-                  element={<Page title="Orders"><Orders /></Page>}
+                  element={
+                    <Page title="Orders">
+                      <Orders />
+                    </Page>
+                  }
                 />
                 <Route
                   path="/suppliers"
-                  element={<Page title="Suppliers"><Suppliers /></Page>}
+                  element={
+                    <Page title="Suppliers">
+                      <Suppliers />
+                    </Page>
+                  }
                 />
                 <Route
                   path="/production"
-                  element={<Page title="Production"><Production /></Page>}
+                  element={
+                    <Page title="Production">
+                      <Production />
+                    </Page>
+                  }
                 />
               </Route>
 
               {/* ── admin only ── */}
-              <Route
-                element={<ProtectedRoute allowedRoles={["admin"]} />}
-              >
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route
                   path="/reports"
-                  element={<Page title="Reports"><Reports /></Page>}
+                  element={
+                    <Page title="Reports">
+                      <Reports />
+                    </Page>
+                  }
                 />
                 <Route
                   path="/tickets"
-                  element={<Page title="Support"><TicketsPage /></Page>}
+                  element={
+                    <Page title="Support">
+                      <TicketsPage />
+                    </Page>
+                  }
                 />
               </Route>
-
             </Route>
           </Route>
         </Route>
 
         {/* ── 404 ── */}
         <Route path="*" element={<NotFound />} />
-
       </Routes>
     </ErrorBoundary>
   );
