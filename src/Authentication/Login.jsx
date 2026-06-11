@@ -8,29 +8,11 @@ import {
   ArrowRight,
   X,
 } from "lucide-react";
-import API from "../services/api";
+import API, { initCsrf } from "../services/api";
 import useAuth from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import ForgotPassword from "./ForgotPassword";
 import styles from "./Login.module.css";
-
-/**
- * Login
- * ─────
- * Fixes applied:
- *  1. Removed duplicate `import { useState as useBoolState }` — was importing
- *     useState twice from the same package under different names
- *  2. Removed 7 inline SVG icon components (IconMail, IconLock, IconEye,
- *     IconEyeOff, IconAlert, IconArrow, IconClose) — replaced with lucide-react
- *     which is already in the project bundle
- *  3. Fixed staff redirect bug — staff role now lands on /dashboard instead
- *     of "/" (the marketing homepage)
- *  4. Added email format validation before submitting
- *  5. Added `aria-describedby` linking error banner to the form for
- *     screen-reader announcements
- *  6. Error banner now has role="alert" so screen readers announce it immediately
- *  7. Eye toggle button is now keyboard-accessible (removed tabIndex={-1})
- */
 
 const getRedirectPath = () => "/dashboard";
 
@@ -71,6 +53,7 @@ const Login = () => {
 
     setLoading(true);
     try {
+      await initCsrf();
       const res = await API.post("/auth/login", form);
       login(res.data.data);
       navigate(getRedirectPath());
