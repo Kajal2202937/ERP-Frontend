@@ -55,6 +55,11 @@ const Login = () => {
     try {
       await initCsrf();
       const res = await API.post("/auth/login", form);
+
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+
       login(res.data.data);
       navigate(getRedirectPath());
     } catch (err) {
