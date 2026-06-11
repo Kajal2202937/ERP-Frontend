@@ -7,16 +7,16 @@ export const setCsrfToken = (t) => {
 };
 
 export const initCsrf = async () => {
-  
   const res = await axios.get(`${import.meta.env.VITE_URL}/csrf-token`, {
     withCredentials: true,
+    params: { _t: Date.now() },
   });
   _csrfToken = res.data.csrfToken;
   return _csrfToken;
 };
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_URL, 
+  baseURL: import.meta.env.VITE_URL,
   withCredentials: true,
   timeout: 30000,
 });
