@@ -5,7 +5,7 @@ import useTheme from "../../hooks/useTheme";
 import { getSocket } from "../../services/socket";
 import { TICKET_EVENTS } from "../../services/socketEvents";
 import { fetchTicketStats } from "../../services/ticketService";
-import { SearchTrigger } from "../common/GlobalSearch";
+import { SearchTrigger } from "../common/Globalsearch";
 import {
   Bell,
   Sun,

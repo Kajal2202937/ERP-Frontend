@@ -1,45 +1,28 @@
 import { useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
-import styles from "./Breadcrumb.module.css";
-
-/**
- * Breadcrumb
- * ──────────
- * Auto-generates breadcrumbs from the current URL path.
- * Drop into MainLayout above <Outlet /> — it reads useLocation() itself.
- *
- * Route label overrides:
- *   /dashboard  → "Dashboard"
- *   /inventory  → "Inventory"
- *   etc.
- *
- * Dynamic segments:
- *   /orders/123  → Orders > #123
- *
- * Usage in MainLayout.jsx:
- *   import Breadcrumb from "../Breadcrumb/Breadcrumb";
- *   // Inside .content, above <Outlet />:
- *   <Breadcrumb />
- */
+import styles from "./BreadCrumb.module.css";
 
 const ROUTE_LABELS = {
-  dashboard:  "Dashboard",
-  inventory:  "Inventory",
-  orders:     "Orders",
-  products:   "Products",
-  suppliers:  "Suppliers",
+  dashboard: "Dashboard",
+  inventory: "Inventory",
+  orders: "Orders",
+  products: "Products",
+  suppliers: "Suppliers",
   production: "Production",
-  reports:    "Reports",
-  tickets:    "Support",
-  profile:    "My Profile",
+  reports: "Reports",
+  tickets: "Support",
+  profile: "My Profile",
 };
 
 const isMongoId = (str) => /^[a-f\d]{24}$/i.test(str);
 
 const segmentLabel = (seg) => {
   if (isMongoId(seg)) return `#${seg.slice(-6).toUpperCase()}`;
-  return ROUTE_LABELS[seg.toLowerCase()] ?? seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return (
+    ROUTE_LABELS[seg.toLowerCase()] ??
+    seg.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
 };
 
 export default function Breadcrumb() {
@@ -51,7 +34,7 @@ export default function Breadcrumb() {
 
     return segments.map((seg, i) => ({
       label: segmentLabel(seg),
-      path:  "/" + segments.slice(0, i + 1).join("/"),
+      path: "/" + segments.slice(0, i + 1).join("/"),
       isLast: i === segments.length - 1,
     }));
   }, [pathname]);
@@ -64,7 +47,11 @@ export default function Breadcrumb() {
       <ol className={styles.list} role="list">
         {/* Home */}
         <li className={styles.item}>
-          <Link to="/dashboard" className={styles.link} aria-label="Dashboard home">
+          <Link
+            to="/dashboard"
+            className={styles.link}
+            aria-label="Dashboard home"
+          >
             <Home size={11} aria-hidden="true" />
           </Link>
         </li>

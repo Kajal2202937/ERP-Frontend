@@ -20,7 +20,7 @@ import {
   Command,
   Sparkles,
 } from "lucide-react";
-import styles from "./GlobalSearch.module.css";
+import styles from "./Globalsearch.module.css";
 
 const NAV_ITEMS = [
   {
